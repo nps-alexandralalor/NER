@@ -2,3 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+
+!.gitignore
+/output/data_clean/*
+/output/errors/*
+/output/graphs/*
