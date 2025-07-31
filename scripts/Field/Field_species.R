@@ -31,19 +31,28 @@ here()
 path_data <- "C:/Users/alalor/OneDrive - DOI/_FireFX/Data Collection/NER/RICH/Template/Species/"
 path_clean <- paste0(here(), "/output/data_clean/")
 
-database <- "RICH"
-MonitoringType <- "Malvern Hill"
-plot <- "01"
-
 
 ################################################################################
 # LOAD DATA
 ################################################################################
 
 # Load in data
-Species <- read.csv(paste0(path_data, "RICH species list 2025_raw.csv"))
-HerbsObs <- read.csv(paste0(path_data, "RICH_MalvernHill_Cover - Species Composition (metric)_XPT.csv"), quote = "")
-HerbsPoints <- read.csv(paste0(path_data, "RICH_MalvernHill_Cover - Points (metric)_XPT.csv"), quote = "")
+Species <- read.csv(paste0(path_data, "RICH_species.csv"))
+MH_HerbsObs <- read.csv(paste0(path_data, "RICH_MalvernHill_Cover - Species Composition (metric)_XPT.csv"), quote = "")
+MH_HerbsPoints <- read.csv(paste0(path_data, "RICH_MalvernHill_Cover - Points (metric)_XPT.csv"), quote = "")
+CH_HerbsObs <- read.csv(paste0(path_data, "RICH_ColdHarbor_Cover - Species Composition (metric)_XPT.csv"), quote = "")
+CH_HerbsPoints <- read.csv(paste0(path_data, "RICH_MalvernHill_Cover - Points (metric)_XPT.csv"), quote = "")
+
+
+################################################################################
+# CLEAN DATA
+################################################################################
+
+#ensure no commas exist
+Species <- Species %>% 
+  mutate(LocalSpecies_CommonName = gsub(',', ";", LocalSpecies_CommonName),
+         LocalSpecies_LifeCycle = gsub(',', ";", LocalSpecies_LifeCycle),
+         LocalSpecies_Comment = gsub(',', ";", LocalSpecies_Comment))
 
 
 ################################################################################
@@ -51,26 +60,41 @@ HerbsPoints <- read.csv(paste0(path_data, "RICH_MalvernHill_Cover - Points (metr
 ################################################################################
 
 #identify all species in herbs protocols
-Herbs <- merge(HerbsPoints, HerbsObs, by = "Species.Symbol", all = T) %>% 
+MH_Herbs <- merge(MH_HerbsPoints, MH_HerbsObs, by = "Species.Symbol", all = T) %>% 
+  filter(Species.Symbol != "") %>% 
   mutate(LocalSpecies_Symbol = Species.Symbol) %>% 
   select(LocalSpecies_Symbol) %>% 
   mutate(MalvernHill = "yes")
+
+CH_Herbs <- merge(CH_HerbsPoints, CH_HerbsObs, by = "Species.Symbol", all = T) %>% 
+  filter(Species.Symbol != "") %>% 
+  mutate(LocalSpecies_Symbol = Species.Symbol) %>% 
+  select(LocalSpecies_Symbol) %>% 
+  mutate(ColdHarbor = "yes")
 
 
 ################################################################################
 # MERGE WITH MASTER LIST
 ################################################################################
 
+#ensure no commas exist
+Species <- Species %>% 
+  mutate(LocalSpecies_CommonName = gsub(',', ";", LocalSpecies_CommonName),
+         LocalSpecies_LifeCycle = gsub(',', ";", LocalSpecies_LifeCycle),
+         LocalSpecies_Comment = gsub(',', ";", LocalSpecies_Comment))
+
 #identify all species in herbs protocols
-Combined <- merge(Species, Herbs, by = "LocalSpecies_Symbol", all = T) %>% 
+Species_all_1 <- merge(Species, MH_Herbs, by = "LocalSpecies_Symbol", all = T) %>% 
   mutate(MalvernHill = ifelse(is.na(MalvernHill), "no", MalvernHill))
 
+Species_all <- merge(Species_all_1, CH_Herbs, by = "LocalSpecies_Symbol", all = T) %>% 
+  mutate(ColdHarbor = ifelse(is.na(ColdHarbor), "no", ColdHarbor))
 
 ################################################################################
 # SAVE
 ################################################################################
 
-write.csv(Combined, paste0(path_clean, "RICH_MalvernHill_Species_all.csv"), quote=FALSE, row.names = FALSE, na = "") 
+write.csv(Species_all, paste0(path_clean, "RICH_species_all.csv"), quote=FALSE, row.names = FALSE, na = "") 
 
 
 
