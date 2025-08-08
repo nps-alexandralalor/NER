@@ -1,0 +1,279 @@
+---
+title: "QAQC GRCA MetaData"
+author: "Alexandra Lalor"
+output:
+  html_document:
+    theme: readable
+    highlight: 
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      smooth_scroll: yes
+    code_download: true
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+# Before Starting
+
+### Setup
+
+```{r setup, include=FALSE}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warnings = FALSE, message = FALSE)
+```
+
+```{r install packages, include=FALSE}
+## Install packages (if needed)
+
+# install.packages("tidyverse")
+# install.packages("Rtools")
+# install.packages("janitor")
+# install.packages("condformat")
+# install.packages("knitr")
+# install.packages("here")
+```
+
+```{r load packages, include=FALSE}
+## Load Packages
+
+# tidyverse and dplyr have lots of useful functions for data cleaning
+library(tidyverse)
+library(dplyr)
+library(plyr)
+# janitor has functions to find duplicates
+library(janitor)
+# writexl is used to create excel output files
+library(writexl)
+# condformat is used to format excel output files
+library(condformat)
+# knitr is used to create output files from R Markdown
+library(knitr)
+# "here" helps you easily find and reference your working directory
+library(here)
+```
+
+### Create Function
+
+```{r}
+# Blank data frame
+errors_blank_meta <- data.frame("SavedQuery" = "", "Macroplot" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+
+# QAQC function
+qaqc_meta <- function(data, query, query_message, values_check) {
+  
+  # Check if there is data to QAQC
+  if(nrow(data) == 0) {
+  # If there is no data, default to "No Error" data frame
+  errors <- errors_blank_meta %>%
+    mutate(SavedQuery = query,
+           Error = "No Error")
+  # If there is data, perform error check
+} else {
+  
+  # Use relevant dataset to look for errors
+  errors <- data %>%  
+    # Add columns relevant to error checking
+           # Populate the "SavedQuery" column with the query name
+    mutate("SavedQuery" = query, 
+           # Populate the "Error" column with the query message and relevant data
+           "Error" = paste(query_message, "=", values_data),
+           # Create a blank "Fixed" column
+           "Fixed" = "",
+           # Create a blank "Explanation" column
+           "Explanation" = "",
+           # Create a blank "Queryers" column
+           "Queryers" = "") %>%   
+    # Filter for data which is "false" (data does not match valid conditions)
+    # NA values are treated as "false" (missing data is not valid)
+    filter(!(values_check %>% replace_na(FALSE))) %>%   
+    # Select relevant columns to view errors
+    select("SavedQuery", "Macroplot", "Error", "Fixed", "Explanation", "Queryers")
+  
+  # Next, check if there are duplicate errors
+  errors_temp <- errors %>% 
+    get_dupes(SavedQuery, Macroplot, Error)
+  # Merge duplicate errors
+  errors <- unique(merge(errors, errors_temp, all = T))
+  # If duplicate errors exist, add number of duplicates to error message
+  errors <- errors %>% 
+    mutate(Error = ifelse(is.na(dupe_count), Error, paste0("(x", dupe_count, ") ", Error))) %>% 
+    select(!"dupe_count")
+}
+  
+  # Check if there are no errors
+  if (nrow(errors) == 0) {  
+    # If there are no errors, default to "No Error" data frame
+    errors <- errors_blank_meta %>%
+      mutate(SavedQuery = query,
+             Error = "No Error")
+    # If there are errors, keep error log you just created
+  } else {   
+    errors <- errors
+  }
+}
+```
+
+### Adjust File Paths
+
+```{r import data, include=FALSE}
+# Identify working directory.
+here()
+
+# designate target park(s)
+# options: S-MTTS. S-Allegheny, N-MidAtlantic, NCA
+target_zone <- "S-MTTS"
+target_park <- "RICH"
+
+# Load in data.
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/_metadata/"
+path_data <- paste0(path_file, target_zone, "_", target_park, "/")
+path_errors <- paste0(here(), "/output/errors/")
+path_errors_name <- "Metadata QAQC Errors"
+```
+
+### Load Data
+
+```{r load data, include=FALSE}
+## Load Data
+MacroplotReport <- read.csv(paste0(path_data, target_park, "_", "MacroplotReport.csv"))
+```
+
+### Clean Data
+
+```{r}
+# The Macroplot Report contains information on both plot metadata, and sample event history. Separate these into 2 tables.
+
+MacroplotReport_MetaData <- MacroplotReport %>%
+  mutate(SampleEventDate = ifelse(SampleEventDate == "", NA, SampleEventDate)) %>% 
+  filter(is.na(SampleEventDate)) %>%
+  select(!c(SampleEventDate, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
+
+MacroplotReport_SampleEvents <- MacroplotReport %>%
+  mutate(SampleEventDate = ifelse(SampleEventDate == "", NA, SampleEventDate)) %>% 
+  filter(!is.na(SampleEventDate)) %>%
+  select(c(Macroplot, SampleEventDate, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
+```
+
+# Macroplot Report - Meta Data
+
+## Macroplot
+
+[Problem:]{.underline} MacroplotReport_MetaData is missing information
+
+[Procedure:]{.underline}
+
+-   Check that Macroplot is not blank
+
+```{r}
+# Set parameters 
+data <- MacroplotReport_MetaData
+query <- "Macroplot"
+query_message <- "Macroplot" 
+values_data <- data$Macroplot
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_MetaData_Macroplot <- qaqc_meta(data, query, query_message, values_check)
+```
+
+## Type
+
+## Latitude
+
+## Longitude
+
+## UTM_X
+
+## UTM_Y
+
+## UTM_Zone
+
+## Datum
+
+## PDOP
+
+## Precision
+
+## DateIn
+
+## FutureVisit
+
+## DateOut
+
+## Elevation
+
+## ElevationUnits
+
+## Azimuth
+
+## Aspect
+
+## SlopeHill
+
+## SlopeTransect
+
+# Macroplot Report - Sample Events
+
+## Macroplot
+
+[Problem:]{.underline} MacroplotReport_SampleEvents is missing information
+
+[Procedure:]{.underline}
+
+-   Check that Macroplot is not blank
+
+```{r}
+# Set parameters 
+data <- MacroplotReport_SampleEvents
+query <- "Macroplot"
+query_message <- "Macroplot" 
+values_data <- data$Macroplot
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_SampleEvents_Macroplot <- qaqc_meta(data, query, query_message, values_check)
+```
+
+## SampleEventDate
+
+## MonStatusOrd
+
+## LegacyMonStatus
+
+## MonStatus
+
+# ALL ERRORS
+
+```{r}
+errors_all <- rbind(errors_Disturbance, errors_blank_meta, errors_MonStatus, errors_blank_meta, errors_ProjectUnit, errors_blank_meta, errors_TimeSince, errors_blank_meta, errors_Visited)
+```
+
+```{r}
+# Create conditional formatting rules
+errors_all_cf <- errors_all %>% 
+  mutate(Color = ifelse(SavedQuery == "", NA, "Color"))
+
+# Add conditional formating to ouput
+errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:8]) %>%
+  rule_fill_discrete(columns = 1:7,
+                     expression = (errors_all_cf$Color),
+                     colours = c("Color"="#C6E0B4"),
+                     na.value = "#FFFFFF") %>%
+  select(!c("Color"))
+```
+
+```{r}
+# Table of results for quick check
+#kable(errors_all, "pipe")
+
+# Save as CSV or XLSX 
+path_errors
+# write.csv(errors_all, paste0(path_errors, "errors_GRCA_FMH.csv"), quote=FALSE, row.names = FALSE, na = "") 
+#write_xlsx(errors_all, paste0(path_errors, "errors_GRCA_FMH.xlsx"))
+# condformat2excel(errors_all, paste0(path_errors, "errors_GRCA_FMH_formatted.xlsx"), overwrite_wb = TRUE)
+#condformat2excel(errors_all, paste0(path_errors, "errors_metadata_formatted.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+```
