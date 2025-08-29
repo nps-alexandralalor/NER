@@ -122,11 +122,12 @@ qaqc_meta <- function(data, query, query_message, values_check) {
 here()
 
 # designate target park(s)
-target_park <- "APCO"
+target_park <- "GETT"
 
 # Load in data.
+path_data <- paste0("E:/Allie/R/NER/data/", target_park, "/")
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/_metadata/"
-path_data <- paste0(path_file, target_park, "/")
+#path_data <- paste0(path_file, target_park, "/")
 path_errors <- paste0(here(), "/output/errors/")
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 ```
@@ -156,10 +157,8 @@ MacroplotReport_MetaData <- MacroplotReport %>%
   separate(DateIn, sep = " ", into = c("DateIn", "DateInTime")) %>%
   # reformate Date columns
   mutate(DateIn = as.Date(DateIn, "%m/%d/%Y")) %>%
-  # separate Date columns into Year, Month, and Day columns
-  separate(DateIn, sep = "-", into = c("DateIn_Year", "DateIn_Month", "DateIn_Day"), remove = FALSE) %>%
-  # remove unnecessary Date columns
-  select(!c(DateInTime, DateIn_Month, DateIn_Day)) %>%
+  # remove unnecessary columns
+  select(!c(DateInTime)) %>%
   select(!c(SampleEventDate, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
 
 MacroplotReport_SampleEvents <- MacroplotReport %>%
@@ -172,10 +171,8 @@ MacroplotReport_SampleEvents <- MacroplotReport %>%
   separate(SampleEventDate, sep = " ", into = c("SampleEventDate", "SampleEventTime")) %>%
   # reformate Date columns
   mutate(SampleEventDate = as.Date(SampleEventDate, "%m/%d/%Y")) %>%
-  # separate Date columns into Year, Month, and Day columns
-  separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "SampleEventDate_Month", "SampleEventDate_Day"), remove = FALSE) %>%
-  # remove unnecessary Date columns
-  select(!c(SampleEventTime, SampleEventDate_Month, SampleEventDate_Day)) %>%
+  # remove unnecessary columns
+  select(!c(SampleEventTime)) %>%
   select(c(Macroplot, SampleEventDate, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
 
 
@@ -195,16 +192,14 @@ SampleEventReport <- SampleEventReport %>%
   separate(SampleEventDate, sep = " ", into = c("SampleEventDate", "SampleEventTime")) %>%
   # reformate Date columns
   mutate(SampleEventDate = as.Date(SampleEventDate, "%m/%d/%Y")) %>%
-  # separate Date columns into Year, Month, and Day columns
-  separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "SampleEventDate_Month", "SampleEventDate_Day"), remove = FALSE) %>%
-  # remove unnecessary Date columns
-  select(!c(SampleEventTime, SampleEventDate_Month, SampleEventDate_Day)) %>%
+  # remove unnecessary columns
+  select(!c(SampleEventTime)) %>%
   select(!c(MacroPlot_Name, SampleEvent_LegacyMonitoringStatus, MonitoringStatus_Name, ProjectUnit_Name, SampleEvent_Date))
 ```
 
 # Park Summary: [`r target_park`]{style="color:red"}
 
-# Macroplot Report
+## Macroplot Report
 
 ### Setup
 
@@ -242,7 +237,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_Purpose <- qaqc_meta(data, query, query_message, values_check)
 ```
 
--   Check that Type = Forest or Grassland
+-   Check that Type = Forest, Grassland, or Brush
 
 ```{r}
 # Set parameters 
@@ -272,7 +267,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_DateIn <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-#### Combine Setup Errors
+Combine Setup Errors
 
 ```{r}
 # Combine
@@ -383,7 +378,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_Datum <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-#### Combine Location Errors
+Combine Location Errors
 
 ```{r}
 # Combine
@@ -494,7 +489,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 # errors_MacroplotReport_SlopeTransect <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-#### Combine Position Errors
+Combine Position Errors
 
 ```{r}
 # # Combine
@@ -575,7 +570,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_MonStatus <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-#### Combine Sample Event Errors
+Combine Sample Event Errors
 
 ```{r}
 # Combine
@@ -590,7 +585,7 @@ if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
   errors_MacroplotReport_SampleEvent <- errors_MacroplotReport_SampleEvent}
 ```
 
-### Combine Macroplot Report Errors
+Combine Macroplot Report Errors
 
 ```{r}
 errors_MacroplotReport <- rbind(errors_MacroplotReport_Setup, errors_blank_meta, errors_MacroplotReport_Location, errors_blank_meta, errors_MacroplotReport_SampleEvent)
@@ -598,7 +593,7 @@ errors_MacroplotReport <- rbind(errors_MacroplotReport_Setup, errors_blank_meta,
 remove(errors_MacroplotReport_Setup, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent)
 ```
 
-# Project Unit Assignment Report
+## Project Unit Assignment Report
 
 [Problem:]{.underline} Project Unit Assignment Report is missing information
 
@@ -649,7 +644,7 @@ values_check <- values_data %in% values_valid
 errors_ProjectUnitReport_MultiPU <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-### Combine Project Unit Report Errors
+Combine Project Unit Report Errors
 
 ```{r}
 errors_ProjectUnitReport <- unique(rbind(errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU))
@@ -663,7 +658,7 @@ if(nrow(errors_ProjectUnitReport) > 1) {
   errors_ProjectUnitReport <- errors_ProjectUnitReport}
 ```
 
-# Sample Event Report
+## Sample Event Report
 
 [Problem:]{.underline} Sample Event Report is missing information or is inconsistent with the Macroplot Report
 
@@ -764,7 +759,7 @@ values_check <- values_data == values_valid
 errors_SampleEventReport_MonStatus <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-### Combine Sample Event Report Errors
+Combine Sample Event Report Errors
 
 ```{r}
 errors_SampleEventReport <- unique(rbind(errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2, errors_SampleEventReport_MonStatus))
@@ -800,10 +795,10 @@ errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:7]) %>%
 
 ```{r}
 # Table of results for quick check
-#kable(errors_all, "pipe")
+kable(errors_all, "pipe")
 
 # Save as CSV or XLSX 
-condformat2excel(errors_all, paste0(path_errors, paste0(target_park, "_errors_metadata_formatted.xlsx")), sheet_name = path_errors_name, overwrite_wb = TRUE)
+condformat2excel(errors_all, paste0(path_errors, paste0(target_park, "_errors_metadata.xlsx")), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
 
 # METADATA REPORT: MERGE AND SAVE
