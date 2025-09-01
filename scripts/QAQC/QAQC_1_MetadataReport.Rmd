@@ -122,11 +122,11 @@ qaqc_meta <- function(data, query, query_message, values_check) {
 here()
 
 # designate target park(s)
-target_park <- "GETT"
+target_park <- "ANTI"
 
 # Load in data.
 path_data <- paste0("E:/Allie/R/NER/data/", target_park, "/")
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/_metadata/"
+#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/_metadata/"
 #path_data <- paste0(path_file, target_park, "/")
 path_errors <- paste0(here(), "/output/errors/")
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
@@ -197,7 +197,7 @@ SampleEventReport <- SampleEventReport %>%
   select(!c(MacroPlot_Name, SampleEvent_LegacyMonitoringStatus, MonitoringStatus_Name, ProjectUnit_Name, SampleEvent_Date))
 ```
 
-# Park Summary: [`r target_park`]{style="color:red"}
+# Park: [`r target_park`]{style="color:red"}
 
 ## Macroplot Report
 
@@ -211,15 +211,16 @@ SampleEventReport <- SampleEventReport %>%
 
 ```{r}
 # Set parameters 
-data <- MacroplotReport_MetaData
+data <- MacroplotReport_MetaData %>% 
+  extract(Macroplot, regex = "([0-9]+)", into = c("Macroplot_Num"), remove = F)
 query <- "Macroplot Report - Setup"
-query_message <- "Macroplot" 
-values_data <- data$Macroplot
-values_valid <- ""
+query_message <- "Macroplot naming convention is incorrect. Macroplot Number" 
+values_data <- data$Macroplot_Num
+values_valid <- is.na(data$Macroplot_Num)
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_MacroplotReport_Macroplot1 <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_MacroplotNum <- qaqc_meta(data, query, query_message, values_check)
 ```
 
 -   Check that Purpose is not blank and is written correctly
@@ -271,9 +272,9 @@ Combine Setup Errors
 
 ```{r}
 # Combine
-errors_MacroplotReport_Setup <- unique(rbind(errors_MacroplotReport_Macroplot1, errors_MacroplotReport_Purpose, errors_MacroplotReport_Type, errors_MacroplotReport_DateIn))
+errors_MacroplotReport_Setup <- unique(rbind(errors_MacroplotReport_MacroplotNum, errors_MacroplotReport_Purpose, errors_MacroplotReport_Type, errors_MacroplotReport_DateIn))
 
-remove(errors_MacroplotReport_Macroplot1, errors_MacroplotReport_Purpose, errors_MacroplotReport_Type, errors_MacroplotReport_DateIn)
+remove(errors_MacroplotReport_MacroplotNum, errors_MacroplotReport_Purpose, errors_MacroplotReport_Type, errors_MacroplotReport_DateIn)
 
 if(nrow(errors_MacroplotReport_Setup) > 1) {
   errors_MacroplotReport_Setup <- errors_MacroplotReport_Setup %>%
@@ -522,7 +523,7 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_MacroplotReport_Macroplot2 <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_Macroplot <- qaqc_meta(data, query, query_message, values_check)
 ```
 
 -   Check that SampleEventDate is not blank
@@ -574,9 +575,9 @@ Combine Sample Event Errors
 
 ```{r}
 # Combine
-errors_MacroplotReport_SampleEvent <- unique(rbind(errors_MacroplotReport_Macroplot2, errors_MacroplotReport_SampleEventDate, errors_MacroplotReport_MonStatusOrd, errors_MacroplotReport_MonStatus))
+errors_MacroplotReport_SampleEvent <- unique(rbind(errors_MacroplotReport_Macroplot, errors_MacroplotReport_SampleEventDate, errors_MacroplotReport_MonStatusOrd, errors_MacroplotReport_MonStatus))
 
-remove(errors_MacroplotReport_Macroplot2, errors_MacroplotReport_SampleEventDate, errors_MacroplotReport_MonStatusOrd, errors_MacroplotReport_MonStatus)
+remove(errors_MacroplotReport_Macroplot, errors_MacroplotReport_SampleEventDate, errors_MacroplotReport_MonStatusOrd, errors_MacroplotReport_MonStatus)
 
 if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
   errors_MacroplotReport_SampleEvent <- errors_MacroplotReport_SampleEvent %>%
@@ -815,8 +816,9 @@ SampleEventReport_merge <- SampleEventReport %>%
 #### Merge Macroplot Report and Sample Event Report
 MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot", "SampleEventDate", "MonStatus")) %>%
   relocate(AdministrationUnit_Name, .before = Macroplot) %>%
-  relocate(ProjectUnit, .before = Purpose) %>%
-  relocate(Macroplot, .after = Purpose) %>%
+  relocate(ProjectUnit, .after = Purpose) %>%
+  relocate(Type, .after = Purpose) %>% 
+  relocate(Macroplot, .after = Type) %>%
   relocate(SampleEventDate, .after = Visited) %>%
   relocate(MonStatus, .after = LegacyMonStatus) %>%
   relocate(LocatedBy, .before = StartPoint)
