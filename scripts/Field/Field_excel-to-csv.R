@@ -6,11 +6,11 @@
 # and name them appropriately
 
 # Folder Setup:
-# Navigate to where you store FX excel data files (e.g. data/GRCA/FMH/2023/Collected/)
-# In this folder, create a folder called "_CSV_Import to FFI"
+# Navigate to where you store FX excel data files (e.g. Data/GRCA/FMH/2023/Collected/)
+# In this folder, create a folder called "CSV_Import to FFI"
 # Put all your completed data collection excel spreadsheets into the "Collected" folder.
 #   Make sure excel files are named as follows: MonitoringType_Plot#_Status (e.g. PIPN_08_02Year05.xlsx)
-# The "_CSV_Import to FFI" folder should be empty. This is where CSVs will be stored after running this code.
+# The "CSV_Import to FFI" folder should be empty. This is where CSVs will be stored after running this code.
 
 
 ################################################################################
@@ -31,30 +31,34 @@ library(here)
 # MAKE SURE FILE PATHS ARE CORRECT
 ################################################################################
 
-#identify working directory (specifically user name)
+# identify working directory (specifically user name)
 here()
 
-#load in data and name them based on file path
-#change file path based on user name!
-my_path_data <- "C:/Users/alalor/OneDrive - DOI/_FireFX/Data Collection/NER/RICH/Collected/"
-my_path_csv <- "C:/Users/alalor/OneDrive - DOI/_FireFX/Data Collection/NER/RICH/Collected/CSV_Import to FFI/"
+# select target park
+target_park <- "RICH"
+
+# load in data and name them based on file path
+# change file path based on user name!
+my_path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/Data Collection/"
+my_path_data <- paste0(my_path_file, target_park, "/Collected/")
+my_path_csv <- paste0(my_path_file, target_park, "/Collected/CSV_Import to FFI/")
 
 
 ################################################################################
 # CREATE LIST OF DATA NEEDED
 ################################################################################
 
-#create list of file names
+# create list of file names
 file_names_list <- list.files(my_path_data)
 
-#specify file path each excel sheet
+# specify file path each excel sheet
 file_path <- paste0(my_path_data, file_names_list)
 
-#add file paths and names to a dataframe. Filter by only excel files
+# add file paths and names to a dataframe. Filter by only excel files
 file_names_df <- data.frame(FilePath = file_path, text = file_names_list) %>%
   filter(grepl(".xlsx", text)) %>%
   separate(text, sep = ".xlsx", into = ("Plot_Status")) %>%
-  separate("Plot_Status", sep = "_", into = c("MonitoringType", "Plot", "Read", "Tablet"), remove = FALSE)
+  separate("Plot_Status", sep = "_", into = c("Park", "BurnUnit", "Plot", "Tablet"), remove = FALSE)
 
 
 ################################################################################
@@ -71,44 +75,72 @@ for(i in 1:nrow(file_names_df)) {
   FuelsDuffLitt <- read_excel(path, sheet = "Fuels Duff-Litt")
   FuelsFine <- read_excel(path, sheet = "Fuels FWD")
   HerbsPoints <- read_excel(path, sheet = "Herbs (Points)")
-  HerbsObs <- read_excel(path, sheet = "Herbs-Ob (Sp Comp)")
-  Shrubs <- read_excel(path, sheet = "Shrubs (Belt)")
+  HerbsSpComp <- read_excel(path, sheet = "Herbs-Ob (Sp Comp)")
+  #Shrubs <- read_excel(path, sheet = "Shrubs (Belt)")
   Seedlings <- read_excel(path, sheet = "Seedlings (Quad)")
   Trees <- read_excel(path, sheet = "Trees")
-  PostBurn <- read_excel(path, sheet = "Post Burn")
+  #PostBurn <- read_excel(path, sheet = "Post Burn")
 
   #create csv paths
   my_path_csv_Fuels1000 <- paste0(my_path_csv, name, "_Fuels1000.csv")
   my_path_csv_FuelsDuffLitt <- paste0(my_path_csv, name, "_FuelsDuffLitt.csv")
   my_path_csv_FuelsFine <- paste0(my_path_csv, name, "_FuelsFine.csv")
   my_path_csv_HerbsPoints <- paste0(my_path_csv, name, "_HerbsPoints.csv")
-  my_path_csv_HerbsObs<- paste0(my_path_csv, name, "_HerbsObs.csv")
-  my_path_csv_Shrubs<- paste0(my_path_csv, name, "_Shrubs.csv")
+  my_path_csv_HerbsSpComp<- paste0(my_path_csv, name, "_HerbsSpComp.csv")
+  #my_path_csv_Shrubs<- paste0(my_path_csv, name, "_Shrubs.csv")
   my_path_csv_Seedlings <- paste0(my_path_csv, name, "_Seedlings.csv")
   my_path_csv_Trees <- paste0(my_path_csv, name, "_Trees.csv")
-  my_path_csv_PostBurn <- paste0(my_path_csv, name, "_PostBurn.csv")
+  #my_path_csv_PostBurn <- paste0(my_path_csv, name, "_PostBurn.csv")
 
-  #identify duplicate species in HerbsObs
-  DuplicateHerbs <-
-    merge(HerbsPoints, HerbsObs, by = "Species") %>%
-    select(Species) %>%
-    distinct(Species)
-  DuplicateShrubs <-
-    merge(Shrubs, HerbsObs, by = "Species") %>%
-    select(Species) %>%
-    distinct(Species)
-  DuplicateSeedlings <-
-    merge(Seedlings, HerbsObs, by = "Species") %>%
-    select(Species) %>%
-    distinct(Species)
-  DuplicateTrees <-
-    merge(Trees, HerbsObs, by = "Species") %>%
-    select(Species) %>%
-    distinct(Species)
-
-  # Remove duplicate species from Herbs Obs)
-  DuplicateSpecies <- rbind(DuplicateHerbs, DuplicateShrubs, DuplicateSeedlings, DuplicateTrees)
-  HerbsObs <- anti_join(HerbsObs, DuplicateSpecies, by = "Species")
+  # reorganize HerbsPoints for additional species hits
+  HerbsPoints_add <- HerbsPoints %>%
+    pivot_longer(
+      cols = matches("^[2-8]spp|^[2-8]spp_GUID"),
+      names_to = c("extra", ".value"),
+      names_pattern = "([2-8])(.+)"
+    ) %>%
+    filter(!is.na(spp)) %>%     # only keep extra species that exist
+    mutate(
+      Species = spp,
+      Status = "L",
+      Spp_GUID = spp_GUID,
+      `Scientific Name` = "",
+      Order = Order + as.integer(extra) - 1,
+      Height = NA                # remove height for extras
+    ) %>%
+    select(!c(extra, spp, spp_GUID))
+  # Combine original rows + new rows
+  HerbsPoints <- bind_rows(HerbsPoints, HerbsPoints_add) %>%
+    select(-matches("^[2-8]spp"),
+           -matches("^[2-8]status"),
+           -matches("^[2-8]spp_GUID")) %>% 
+    arrange(Transect, Point, Order)
+  
+  # isolate unique species in all protocols
+  UniqueSpecies_HerbsSpComp <- HerbsSpComp %>% 
+    mutate(Species = toupper(Species)) %>% 
+    distinct(Species, Spp_GUID)
+  UniqueSpecies_HerbsPoints <- HerbsPoints %>% 
+    mutate(Species = toupper(Species)) %>% 
+    distinct(Species, Spp_GUID)
+  UniqueSpecies_Seedlings <- Seedlings %>% 
+    mutate(Species = toupper(Species)) %>% 
+    distinct(Species, Spp_GUID)
+  UniqueSpecies_Trees <- Trees %>% 
+    mutate(Species = toupper(Species)) %>% 
+    distinct(Species, Spp_GUID)
+  # combine all species
+  UniqueSpecies_all <- rbind(UniqueSpecies_HerbsPoints, UniqueSpecies_Seedlings, UniqueSpecies_Trees) %>% 
+    filter(!is.na(Species)) %>% 
+    distinct(Species, Spp_GUID)
+  # identify species found in other protocols but not in HerbsSpComp
+  UniqueSpecies_missing <- anti_join(UniqueSpecies_all, UniqueSpecies_HerbsSpComp)
+  # merge all species with HerbsSpComp
+  HerbsSpComp <- merge(HerbsSpComp, UniqueSpecies_missing, by = c("Species", "Spp_GUID"), all = T) %>% 
+    mutate(Species = toupper(Species),
+           Status = "L") %>% 
+    arrange(Species)
+  
   # Count Herb heights to make sure some data is present
   HerbsPointsCount <- sum(!is.na(HerbsPoints$Height))
 
@@ -125,7 +157,7 @@ for(i in 1:nrow(file_names_df)) {
     subset(Count != "0") %>%
     mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
-  HerbsObs <- subset(HerbsObs, Species != "") %>%
+  HerbsSpComp <- subset(HerbsSpComp, Species != "") %>%
     mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
   Seedlings <- subset(Seedlings, Species != "") %>%
@@ -151,8 +183,8 @@ for(i in 1:nrow(file_names_df)) {
   else{write.csv(FuelsFine, my_path_csv_FuelsFine, quote=FALSE, row.names = FALSE, na = "")}
   if(dim(HerbsPoints)[1] == 0) {print(paste0(name," ","Herbs Points is empty"))}
      else{write.csv(HerbsPoints, my_path_csv_HerbsPoints, quote=FALSE, row.names = FALSE, na = "")}
-  if(dim(HerbsObs)[1] == 0) {print(paste0(name," ","Herbs Obs is empty"))}
-     else{write.csv(HerbsObs, my_path_csv_HerbsObs, quote=FALSE, row.names = FALSE, na = "")}
+  if(dim(HerbsSpComp)[1] == 0) {print(paste0(name," ","Herbs Obs is empty"))}
+     else{write.csv(HerbsSpComp, my_path_csv_HerbsSpComp, quote=FALSE, row.names = FALSE, na = "")}
   if(dim(Shrubs)[1] == 0) {print(paste0(name," ","Shrubs is empty"))}
      else{write.csv(Shrubs, my_path_csv_Shrubs, quote=FALSE, row.names = FALSE, na = "")}
   if(dim(Seedlings)[1] == 0) {print(paste0(name," ","Seedlings is empty"))}
