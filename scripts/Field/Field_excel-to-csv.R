@@ -113,12 +113,15 @@ for(i in 1:nrow(file_names_df)) {
     distinct(Species, Spp_GUID)
   UniqueSpecies_HerbsPoints <- HerbsPoints %>% 
     mutate(Species = toupper(Species)) %>% 
+    filter(Status == "L") %>%
     distinct(Species, Spp_GUID)
   UniqueSpecies_Seedlings <- Seedlings %>% 
     mutate(Species = toupper(Species)) %>% 
+    filter(Status == "L") %>%
     distinct(Species, Spp_GUID)
   UniqueSpecies_Trees <- Trees %>% 
     mutate(Species = toupper(Species)) %>% 
+    filter(Status == "L") %>%
     distinct(Species, Spp_GUID)
   # combine all species
   UniqueSpecies_all <- rbind(UniqueSpecies_HerbsPoints, UniqueSpecies_Seedlings, UniqueSpecies_Trees) %>% 
