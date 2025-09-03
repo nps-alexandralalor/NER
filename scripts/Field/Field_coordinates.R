@@ -13,7 +13,8 @@ df <- read.csv(paste0(path_data, "All Plots All Parks_2011.csv"))
 df <- df %>%
   mutate(UTM.Zone = ifelse(Hemisphere == "N" & grepl("S$", UTM.Zone),
                            sub("S$", "N", UTM.Zone),
-                           UTM.Zone))
+                           UTM.Zone)) %>% 
+  mutate(Hemisphere = "N")
 
 # Conversion function
 convert_utm <- function(easting, northing, zone) {
