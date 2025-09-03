@@ -6,10 +6,9 @@
 # and name them appropriately
 
 # Folder Setup:
-# Navigate to where you store FX excel data files (e.g. Data/GRCA/FMH/2023/Collected/)
-# In this folder, create a folder called "CSV_Import to FFI"
+# Navigate to where you store FX excel data files (e.g. Data/PARK/YEAR/Collected/)
 # Put all your completed data collection excel spreadsheets into the "Collected" folder.
-#   Make sure excel files are named as follows: MonitoringType_Plot#_Status (e.g. PIPN_08_02Year05.xlsx)
+# Within this folder, create a folder called "CSV_Import to FFI"
 # The "CSV_Import to FFI" folder should be empty. This is where CSVs will be stored after running this code.
 
 
@@ -57,8 +56,7 @@ file_path <- paste0(my_path_data, file_names_list)
 # add file paths and names to a dataframe. Filter by only excel files
 file_names_df <- data.frame(FilePath = file_path, text = file_names_list) %>%
   filter(grepl(".xlsx", text)) %>%
-  separate(text, sep = ".xlsx", into = ("Plot_Status")) %>%
-  separate("Plot_Status", sep = "_", into = c("Park", "BurnUnit", "Plot", "Tablet"), remove = FALSE)
+  separate(text, sep = ".xlsx", into = ("FileName"))
 
 
 ################################################################################
@@ -76,10 +74,10 @@ for(i in 1:nrow(file_names_df)) {
   FuelsFine <- read_excel(path, sheet = "Fuels FWD")
   HerbsPoints <- read_excel(path, sheet = "Herbs (Points)")
   HerbsSpComp <- read_excel(path, sheet = "Herbs-Ob (Sp Comp)")
-  #Shrubs <- read_excel(path, sheet = "Shrubs (Belt)")
+  Shrubs <- read_excel(path, sheet = "Shrubs (Belt)")
   Seedlings <- read_excel(path, sheet = "Seedlings (Quad)")
   Trees <- read_excel(path, sheet = "Trees")
-  #PostBurn <- read_excel(path, sheet = "Post Burn")
+  PostBurn <- read_excel(path, sheet = "Post Burn")
 
   #create csv paths
   my_path_csv_Fuels1000 <- paste0(my_path_csv, name, "_Fuels1000.csv")
@@ -87,33 +85,26 @@ for(i in 1:nrow(file_names_df)) {
   my_path_csv_FuelsFine <- paste0(my_path_csv, name, "_FuelsFine.csv")
   my_path_csv_HerbsPoints <- paste0(my_path_csv, name, "_HerbsPoints.csv")
   my_path_csv_HerbsSpComp<- paste0(my_path_csv, name, "_HerbsSpComp.csv")
-  #my_path_csv_Shrubs<- paste0(my_path_csv, name, "_Shrubs.csv")
+  my_path_csv_Shrubs<- paste0(my_path_csv, name, "_Shrubs.csv")
   my_path_csv_Seedlings <- paste0(my_path_csv, name, "_Seedlings.csv")
   my_path_csv_Trees <- paste0(my_path_csv, name, "_Trees.csv")
-  #my_path_csv_PostBurn <- paste0(my_path_csv, name, "_PostBurn.csv")
+  my_path_csv_PostBurn <- paste0(my_path_csv, name, "_PostBurn.csv")
 
   # reorganize HerbsPoints for additional species hits
   HerbsPoints_add <- HerbsPoints %>%
-    pivot_longer(
-      cols = matches("^[2-8]spp|^[2-8]spp_GUID"),
-      names_to = c("extra", ".value"),
-      names_pattern = "([2-8])(.+)"
-    ) %>%
+    pivot_longer(cols = matches("^[2-8]spp|^[2-8]spp_GUID"),
+                 names_to = c("extra", ".value"),
+                 names_pattern = "([2-8])(.+)") %>%
     filter(!is.na(spp)) %>%     # only keep extra species that exist
-    mutate(
-      Species = spp,
-      Status = "L",
-      Spp_GUID = spp_GUID,
-      `Scientific Name` = "",
-      Order = Order + as.integer(extra) - 1,
-      Height = NA                # remove height for extras
-    ) %>%
+    mutate(Species = spp,
+           Status = "L",
+           Spp_GUID = spp_GUID,
+           Order = Order + as.integer(extra) - 1,
+           Height = NA) %>%
     select(!c(extra, spp, spp_GUID))
   # Combine original rows + new rows
   HerbsPoints <- bind_rows(HerbsPoints, HerbsPoints_add) %>%
-    select(-matches("^[2-8]spp"),
-           -matches("^[2-8]status"),
-           -matches("^[2-8]spp_GUID")) %>% 
+    select(Index, Transect, Point, Tape, Order, Height, Species, Status, Comment, UV1, UV2, UV3, Spp_GUID) %>% 
     arrange(Transect, Point, Order)
   
   # isolate unique species in all protocols
@@ -139,6 +130,9 @@ for(i in 1:nrow(file_names_df)) {
   HerbsSpComp <- merge(HerbsSpComp, UniqueSpecies_missing, by = c("Species", "Spp_GUID"), all = T) %>% 
     mutate(Species = toupper(Species),
            Status = "L") %>% 
+    relocate(Species, .before = Status) %>% 
+    relocate(Status, .after = Species) %>% 
+    relocate(Spp_GUID, .after = UV3) %>% 
     arrange(Species)
   
   # Count Herb heights to make sure some data is present
