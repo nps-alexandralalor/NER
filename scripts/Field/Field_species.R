@@ -2,8 +2,7 @@
 # Email: alexandra_lalor@nps.gov, allielalor@gmail.com
 # Date Created: 2025-07-30
 #
-# To take data from excel files and save individual protocols/tabs as CSVs,
-# and name them appropriately
+# Combine species outputs for complete plot list
 
 
 ################################################################################
@@ -27,9 +26,14 @@ library(here)
 #identify working directory (specifically user name)
 here()
 
-#load in data and name them based on file path
-path_data <- "C:/Users/alalor/OneDrive - DOI/_FireFX/Data Collection/NER/RICH/Template/Species/"
-path_clean <- paste0(here(), "/output/data_clean/")
+# select target park
+target_park <- "GETT"
+target_plot <-"Plot 14"
+
+# load in data and name them based on file path
+# change file path based on user name!
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/Data Collection/"
+path_data <- paste0(path_file, target_park, "/Template/CSV_Old Data/")
 
 
 ################################################################################
@@ -37,69 +41,44 @@ path_clean <- paste0(here(), "/output/data_clean/")
 ################################################################################
 
 # Load in data
-Species <- read.csv(paste0(path_data, "RICH_species.csv"))
-MH_HerbsObs <- read.csv(paste0(path_data, "RICH_MalvernHill_Cover - Species Composition (metric)_XPT.csv"), quote = "")
-MH_HerbsPoints <- read.csv(paste0(path_data, "RICH_MalvernHill_Cover - Points (metric)_XPT.csv"), quote = "")
-CH_HerbsObs <- read.csv(paste0(path_data, "RICH_ColdHarbor_Cover - Species Composition (metric)_XPT.csv"), quote = "")
-CH_HerbsPoints <- read.csv(paste0(path_data, "RICH_MalvernHill_Cover - Points (metric)_XPT.csv"), quote = "")
+HerbsPoints <- read.csv(paste0(path_data, target_plot, "_Cover - Points (metric).csv"), skip = 2)
+HerbsSpComp <- read.csv(paste0(path_data, target_plot, "_Cover - Species Composition (metric).csv"), skip = 2)
 
 
 ################################################################################
 # CLEAN DATA
 ################################################################################
 
-#ensure no commas exist
-Species <- Species %>% 
-  mutate(LocalSpecies_CommonName = gsub(',', ";", LocalSpecies_CommonName),
-         LocalSpecies_LifeCycle = gsub(',', ";", LocalSpecies_LifeCycle),
-         LocalSpecies_Comment = gsub(',', ";", LocalSpecies_Comment))
+# change column name
+HerbsSpComp <- HerbsSpComp %>% 
+  mutate(Species = Item.Code) %>% 
+  select(!Item.Code)
 
 
 ################################################################################
-# MERGE PROTOCOLS
+# MERGE SPECIES
 ################################################################################
 
-#identify all species in herbs protocols
-MH_Herbs <- merge(MH_HerbsPoints, MH_HerbsObs, by = "Species.Symbol", all = T) %>% 
-  filter(Species.Symbol != "") %>% 
-  mutate(LocalSpecies_Symbol = Species.Symbol) %>% 
-  select(LocalSpecies_Symbol) %>% 
-  mutate(MalvernHill = "yes")
+# isolate unique species in all protocols
+UniqueSpecies_HerbsPoints <- HerbsPoints %>% 
+  filter(Status == "L") %>% 
+  distinct(Species)
+UniqueSpecies_HerbsSpComp <- HerbsSpComp %>% 
+  distinct(Species)
 
-CH_Herbs <- merge(CH_HerbsPoints, CH_HerbsObs, by = "Species.Symbol", all = T) %>% 
-  filter(Species.Symbol != "") %>% 
-  mutate(LocalSpecies_Symbol = Species.Symbol) %>% 
-  select(LocalSpecies_Symbol) %>% 
-  mutate(ColdHarbor = "yes")
+# identify species found in HerbsPoints but not in HerbsSpComp
+UniqueSpecies_missing <- anti_join(UniqueSpecies_HerbsPoints, UniqueSpecies_HerbsSpComp)
 
+# merge all species with HerbsSpComp
+HerbsSpComp_new <- merge(HerbsSpComp, UniqueSpecies_missing, by = c("Species"), all = T) %>% 
+  select(Species) %>% 
+  arrange(Species)
 
-################################################################################
-# MERGE WITH MASTER LIST
-################################################################################
-
-#ensure no commas exist
-Species <- Species %>% 
-  mutate(LocalSpecies_CommonName = gsub(',', ";", LocalSpecies_CommonName),
-         LocalSpecies_LifeCycle = gsub(',', ";", LocalSpecies_LifeCycle),
-         LocalSpecies_Comment = gsub(',', ";", LocalSpecies_Comment))
-
-#identify all species in herbs protocols
-Species_all_1 <- merge(Species, MH_Herbs, by = "LocalSpecies_Symbol", all = T) %>% 
-  mutate(MalvernHill = ifelse(is.na(MalvernHill), "no", MalvernHill))
-
-Species_all <- merge(Species_all_1, CH_Herbs, by = "LocalSpecies_Symbol", all = T) %>% 
-  mutate(ColdHarbor = ifelse(is.na(ColdHarbor), "no", ColdHarbor))
 
 ################################################################################
 # SAVE
 ################################################################################
 
-write.csv(Species_all, paste0(path_clean, "RICH_species_all.csv"), quote=FALSE, row.names = FALSE, na = "") 
-
-
-
-
-
-
+write.csv(HerbsSpComp_new, paste0(path_data, target_plot, "_CoverSpComp.csv"), quote=FALSE, row.names = FALSE, na = "") 
 
 
