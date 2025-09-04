@@ -102,7 +102,7 @@ zone_Allegheny <- c("CUVA", "NERI")
 zone_MTTS <- c("APCO", "FRSP", "RICH", "SHEN")
 
 MetadataReport <- MetadataReport %>% 
-  mutate(Region = "NER") %>% 
+  mutate(Region = ifelse(AdministrationUnit_Name %in% c(zone_NCA), "NCR", "NER")) %>% 
   mutate(Zone = ifelse(AdministrationUnit_Name %in% c(zone_NewEngland, zone_MidAtlantic), "North",
                        ifelse(AdministrationUnit_Name %in% c(zone_Allegheny, zone_MTTS), "South", "NCA"))) %>% 
   mutate(Unit = ifelse(AdministrationUnit_Name %in% zone_NewEngland, "NewEngland",
