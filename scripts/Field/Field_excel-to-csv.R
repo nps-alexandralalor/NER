@@ -58,6 +58,9 @@ file_names_df <- data.frame(FilePath = file_path, text = file_names_list) %>%
   filter(grepl(".xlsx", text)) %>%
   separate(text, sep = ".xlsx", into = ("FileName"))
 
+# identify substrate codes (needed for Herbs QAQC)
+substrate <- c("BOLE", "DUFF", "HAY", "LITT", "LITTER", "MOSS", "ROCK", "SOIL", "WOOD")
+
 
 ################################################################################
 # MAIN CODE / DO THE THING!
@@ -113,15 +116,15 @@ for(i in 1:nrow(file_names_df)) {
     distinct(Species, Spp_GUID)
   UniqueSpecies_HerbsPoints <- HerbsPoints %>% 
     mutate(Species = toupper(Species)) %>% 
-    filter(Status == "L") %>%
+    filter(!Species %in% substrate) %>%
     distinct(Species, Spp_GUID)
   UniqueSpecies_Seedlings <- Seedlings %>% 
     mutate(Species = toupper(Species)) %>% 
-    filter(Status == "L") %>%
+    filter(!Species %in% substrate) %>%
     distinct(Species, Spp_GUID)
   UniqueSpecies_Trees <- Trees %>% 
     mutate(Species = toupper(Species)) %>% 
-    filter(Status == "L") %>%
+    filter(!Species %in% substrate) %>%
     distinct(Species, Spp_GUID)
   # combine all species
   UniqueSpecies_all <- rbind(UniqueSpecies_HerbsPoints, UniqueSpecies_Seedlings, UniqueSpecies_Trees) %>% 
