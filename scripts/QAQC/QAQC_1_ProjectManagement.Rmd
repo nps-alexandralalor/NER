@@ -17,6 +17,8 @@ output:
 
 # Before Starting
 
+This code is intended to quality check plot metadata, including the Macroplot Report, Project Unit Assignment Report, and Sample Event Report. These reports can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server. This code also produces a clean Metadata Report, which combines the Macroplot Report, Project Unit Assignment Report, and Sample Event Report into a single flat file, which is used in subsequent R scripts.
+
 ### Setup
 
 ```{r setup, include=FALSE}
