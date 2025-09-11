@@ -65,7 +65,6 @@ file_names_df <- data.frame(FilePath = file_path, text = file_names_list) %>%
 
 
 
-
 ################################################################################
 # MAIN CODE / DO THE THING!
 ################################################################################
@@ -159,7 +158,8 @@ for(i in 1:nrow(file_names_df)) {
   # merge all species with HerbsSpComp
   HerbsSpComp <- merge(HerbsSpComp, UniqueSpecies_all_missing, by = c("Species", "Spp_GUID"), all = T) %>% 
     mutate(Species = toupper(Species),
-           Status = "L") %>% 
+           Status = "L",
+           `Seen?` = ifelse(is.na(`Seen?`), "Y", `Seen?`)) %>% 
     relocate(Species, .before = SizeCl) %>% 
     relocate(Status, .after = Species) %>% 
     relocate(Spp_GUID, .after = UV3) %>% 
@@ -187,7 +187,7 @@ for(i in 1:nrow(file_names_df)) {
     select(!Count) %>% 
     mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
-  HerbsSpComp <- subset(HerbsSpComp, `Seen?` %in% c("N", "n")) %>%
+  HerbsSpComp <- subset(HerbsSpComp, !`Seen?` %in% c("N", "n")) %>%
     mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
   Seedlings <- subset(Seedlings, Species != "") %>%
