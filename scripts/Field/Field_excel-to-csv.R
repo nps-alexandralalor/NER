@@ -34,7 +34,7 @@ library(here)
 here()
 
 # select target park
-target_park <- "RICH"
+target_park <- "GETT"
 
 # load in data and name them based on file path
 # change file path based on user name!
@@ -58,8 +58,12 @@ file_names_df <- data.frame(FilePath = file_path, text = file_names_list) %>%
   filter(grepl(".xlsx", text)) %>%
   separate(text, sep = ".xlsx", into = ("FileName"))
 
-# identify substrate codes (needed for Herbs QAQC)
-substrate <- c("BOLE", "DUFF", "HAY", "LITT", "LITTER", "MOSS", "ROCK", "SOIL", "WOOD")
+
+################################################################################
+# PRACTICE CODE
+################################################################################
+
+
 
 
 ################################################################################
@@ -68,6 +72,11 @@ substrate <- c("BOLE", "DUFF", "HAY", "LITT", "LITTER", "MOSS", "ROCK", "SOIL", 
 
 #separate excel files into tabs, save as CSVs, and name them appropriately
 for(i in 1:nrow(file_names_df)) {
+  
+  #############
+  ### Setup ###
+  #############
+  
   path <- file_names_df[i,1]
   name <- file_names_df[i,2]
 
@@ -93,6 +102,10 @@ for(i in 1:nrow(file_names_df)) {
   my_path_csv_Trees <- paste0(my_path_csv, name, "_Trees.csv")
   my_path_csv_PostBurn <- paste0(my_path_csv, name, "_PostBurn.csv")
 
+  ############################################
+  ### Herbs Points protocol reorganization ###
+  ############################################
+  
   # reorganize HerbsPoints for additional species hits
   HerbsPoints_add <- HerbsPoints %>%
     pivot_longer(cols = matches("^[2-8]spp|^[2-8]spp_GUID"),
@@ -107,8 +120,18 @@ for(i in 1:nrow(file_names_df)) {
     select(!c(extra, spp, spp_GUID))
   # Combine original rows + new rows
   HerbsPoints <- bind_rows(HerbsPoints, HerbsPoints_add) %>%
+    mutate(Species = toupper(Species)) %>% 
     select(Index, Transect, Point, Tape, Order, Height, Species, Status, Comment, UV1, UV2, UV3, Spp_GUID) %>% 
     arrange(Transect, Point, Order)
+  
+  # Count Herb heights to make sure some data is present
+  HerbsPointsCount <- sum(!is.na(HerbsPoints$Height))
+  # identify substrate codes
+  substrate <- c("BOLE", "DUFF", "HAY", "LITT", "LITTER", "MOSS", "ROCK", "SOIL", "WOOD")
+  
+  ############################################
+  ### Herbs SpComp protocol reorganization ###
+  ############################################
   
   # isolate unique species in all protocols
   UniqueSpecies_HerbsSpComp <- HerbsSpComp %>% 
@@ -130,21 +153,27 @@ for(i in 1:nrow(file_names_df)) {
   UniqueSpecies_all <- rbind(UniqueSpecies_HerbsPoints, UniqueSpecies_Seedlings, UniqueSpecies_Trees) %>% 
     filter(!is.na(Species)) %>% 
     distinct(Species, Spp_GUID)
+  
   # identify species found in other protocols but not in HerbsSpComp
-  UniqueSpecies_missing <- anti_join(UniqueSpecies_all, UniqueSpecies_HerbsSpComp)
+  UniqueSpecies_all_missing <- anti_join(UniqueSpecies_all, UniqueSpecies_HerbsSpComp)
   # merge all species with HerbsSpComp
-  HerbsSpComp <- merge(HerbsSpComp, UniqueSpecies_missing, by = c("Species", "Spp_GUID"), all = T) %>% 
+  HerbsSpComp <- merge(HerbsSpComp, UniqueSpecies_all_missing, by = c("Species", "Spp_GUID"), all = T) %>% 
     mutate(Species = toupper(Species),
            Status = "L") %>% 
-    relocate(Species, .before = Status) %>% 
+    relocate(Species, .before = SizeCl) %>% 
     relocate(Status, .after = Species) %>% 
     relocate(Spp_GUID, .after = UV3) %>% 
     arrange(Species)
+  # # identify if this version of HerbsSpComp is the primary version
+  # HerbsSpComp <- HerbsSpComp %>% 
+  #   mutate(Primary = ifelse(("N" %in% HerbsSpComp$`Seen?`) == TRUE, FALSE, TRUE))
   
-  # Count Herb heights to make sure some data is present
-  HerbsPointsCount <- sum(!is.na(HerbsPoints$Height))
+  
+  #########################
+  ### All protocol QAQC ###
+  #########################
 
-  # QAQC all protocols: Delete empty rows, Change numbers in index column into ascending order
+  # Delete empty rows, Change numbers in index column into ascending order
   Fuels1000 <- subset(Fuels1000, Dia != "") %>%
     mutate(Index = row_number())
   FuelsDuffLitt <- subset(FuelsDuffLitt, LittDep != "") %>%
@@ -155,9 +184,10 @@ for(i in 1:nrow(file_names_df)) {
   HerbsPoints <-
     mutate(HerbsPoints, Count = HerbsPointsCount) %>%
     subset(Count != "0") %>%
+    select(!Count) %>% 
     mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
-  HerbsSpComp <- subset(HerbsSpComp, Species != "") %>%
+  HerbsSpComp <- subset(HerbsSpComp, `Seen?` %in% c("N", "n")) %>%
     mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
   Seedlings <- subset(Seedlings, Species != "") %>%
@@ -173,7 +203,11 @@ for(i in 1:nrow(file_names_df)) {
     map_df(str_replace_all, pattern = ",", replacement = ";")
   PostBurn <- subset(PostBurn, Sub != "") %>%
     mutate(Index = row_number())
-
+  
+  ##################
+  ### Save files ###
+  ##################
+  
   #create CSVs, exclude blank data frames
   if(dim(Fuels1000)[1] == 0) {print(paste0(name," ","Fuels CWD is empty"))}
     else{write.csv(Fuels1000, my_path_csv_Fuels1000, quote=FALSE, row.names = FALSE, na = "")}
@@ -183,7 +217,7 @@ for(i in 1:nrow(file_names_df)) {
   else{write.csv(FuelsFine, my_path_csv_FuelsFine, quote=FALSE, row.names = FALSE, na = "")}
   if(dim(HerbsPoints)[1] == 0) {print(paste0(name," ","Herbs Points is empty"))}
      else{write.csv(HerbsPoints, my_path_csv_HerbsPoints, quote=FALSE, row.names = FALSE, na = "")}
-  if(dim(HerbsSpComp)[1] == 0) {print(paste0(name," ","Herbs Obs is empty"))}
+  if(dim(HerbsSpComp)[1] == 0) {print(paste0(name," ","Herbs SpComp is empty"))}
      else{write.csv(HerbsSpComp, my_path_csv_HerbsSpComp, quote=FALSE, row.names = FALSE, na = "")}
   if(dim(Shrubs)[1] == 0) {print(paste0(name," ","Shrubs is empty"))}
      else{write.csv(Shrubs, my_path_csv_Shrubs, quote=FALSE, row.names = FALSE, na = "")}
