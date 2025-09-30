@@ -60,15 +60,15 @@ library(here)
 
 ```{r}
 # Blank data frame
-errors_blank_meta <- data.frame("SavedQuery" = "", "Macroplot" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+errors_blank_species <- data.frame("SavedQuery" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
 
 # QAQC function
-qaqc_meta <- function(data, query, query_message, values_check) {
+qaqc_species <- function(data, query, query_message, values_check) {
   
   # Check if there is data to QAQC
   if(nrow(data) == 0) {
   # If there is no data, default to "No Error" data frame
-  errors <- errors_blank_meta %>%
+  errors <- errors_blank_species %>%
     mutate(SavedQuery = query,
            Error = "No Error")
   # If there is data, perform error check
@@ -91,11 +91,11 @@ qaqc_meta <- function(data, query, query_message, values_check) {
     # NA values are treated as "false" (missing data is not valid)
     filter(!(values_check %>% replace_na(FALSE))) %>%   
     # Select relevant columns to view errors
-    select("SavedQuery", "Macroplot", "Error", "Fixed", "Explanation", "Queryers")
+    select("SavedQuery", "Error", "Fixed", "Explanation", "Queryers")
   
   # Next, check if there are duplicate errors
   errors_temp <- errors %>% 
-    get_dupes(SavedQuery, Macroplot, Error)
+    get_dupes(SavedQuery, Error)
   # Merge duplicate errors
   errors <- unique(merge(errors, errors_temp, all = T))
   # If duplicate errors exist, add number of duplicates to error message
@@ -107,7 +107,7 @@ qaqc_meta <- function(data, query, query_message, values_check) {
   # Check if there are no errors
   if (nrow(errors) == 0) {  
     # If there are no errors, default to "No Error" data frame
-    errors <- errors_blank_meta %>%
+    errors <- errors_blank_species %>%
       mutate(SavedQuery = query,
              Error = "No Error")
     # If there are errors, keep error log you just created
@@ -151,6 +151,12 @@ SpeciesReport <- SpeciesReport %>%
 SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
 ```
 
+### Define Substrates
+
+```{r}
+substrate <- c("BOLE", "DUFF", "HAY", "LITT", "LITTER", "MOSS", "ROCK", "SOIL", "WOOD")
+```
+
 # Park: [`r target_park`]{style="color:red"}
 
 ## Species Report
@@ -176,19 +182,19 @@ SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
 -   Check that LocalSpecies_UV1 is not blank
 -   Check that LocalSpecies_UV2 is not blank
 -   Check that LocalSpecies_UV3 is not blank
--   Check that LocalSpecies_PreferedLifeForm is not blank
+-   Check that LocalSpecies_PreferedLifeForm = Graminoid, Grass-like, Forb/herb, Vine, Shrub, Subshrub, Tree, or Undefined
 
 ```{r}
 # Set parameters 
-data <- MacroplotReport_SampleEvents
-query <- "Macroplot Report - Sample Events"
-query_message <- "Macroplot" 
-values_data <- data$Macroplot
-values_valid <- ""
-values_check <- values_data != values_valid
+data <- SpeciesReport
+query <- "LocalSpecies_PreferedLifeForm"
+query_message <- "Life Form" 
+values_data <- data$LocalSpecies_PreferedLifeForm
+values_valid <- c("Graminoid", "Grass-like", "Forb/herb", "Vine", "Shrub", "Subshrub", "Tree", "Undefined")
+values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_MacroplotReport_Macroplot <- qaqc_meta(data, query, query_message, values_check)
+errors_SpeciesReport_LifeForm <- qaqc_species(data, query, query_message, values_check)
 ```
 
 [Problem:]{.underline} Species Report is missing information related to Master Species columns
@@ -197,15 +203,75 @@ errors_MacroplotReport_Macroplot <- qaqc_meta(data, query, query_message, values
 
 MasterSpecies_ScientificName
 
--   Check that MasterSpecies_ScientificName is not blank
+-   Filter to exclude substrate codes. Check that MasterSpecies_ScientificName is not blank
 
--   Check that MasterSpecies_ITIS_TSN is not blank
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrate)
+query <- "MasterSpecies_ScientificName"
+query_message <- paste0("Code = ", data$LocalSpecies_Symbol, ". Scientific Name") 
+values_data <- data$MasterSpecies_ScientificName
+values_valid <- ""
+values_check <- values_data != values_valid
 
--   Check that MasterSpecies_Genus is not blank
+# Identify errors
+errors_SpeciesReport_ScientificName <- qaqc_species(data, query, query_message, values_check)
+```
 
--   Check that MasterSpecies_Family is not blank
+-   Filter to exclude substrate codes. Check that MasterSpecies_ITIS_TSN is not blank
 
--   Check that MasterSpecies_NotBiological is not blank
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrate)
+query <- "MasterSpecies_ITIS_TSN"
+query_message <- paste0("Code = ", data$LocalSpecies_Symbol, ". TSN") 
+values_data <- data$MasterSpecies_ITIS_TSN
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_SpeciesReport_TSN <- qaqc_species(data, query, query_message, values_check)
+```
+
+-   Filter to exclude substrate codes. Check that MasterSpecies_Genus is not blank
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrate)
+query <- "MasterSpecies_Genus"
+query_message <- paste0("Code = ", data$LocalSpecies_Symbol, ". Genus") 
+values_data <- data$MasterSpecies_Genus
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_SpeciesReport_Genus <- qaqc_species(data, query, query_message, values_check)
+```
+
+-   Filter to exclude substrate codes. Check that MasterSpecies_Family is not blank
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrate)
+query <- "MasterSpecies_Family"
+query_message <- paste0("Code = ", data$LocalSpecies_Symbol, ". Family") 
+values_data <- data$MasterSpecies_Family
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_SpeciesReport_Family <- qaqc_species(data, query, query_message, values_check)
+```
+
+-   Filter to exclude substrate codes. Check that MasterSpecies_NotBiological is not blank
+
+```{r}
+
+```
 
 Combine Species Errors
 
