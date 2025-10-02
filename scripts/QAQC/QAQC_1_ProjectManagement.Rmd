@@ -124,7 +124,7 @@ qaqc_meta <- function(data, query, query_message, values_check) {
 here()
 
 # designate target park(s)
-target_park <- "GETT"
+target_park <- "SHEN"
 
 # Load in data.
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
@@ -247,7 +247,7 @@ data <- MacroplotReport_MetaData
 query <- "Macroplot Report - Setup"
 query_message <- "Type" 
 values_data <- data$Type
-values_valid <- c("Forest", "Grassland", "Brush")
+values_valid <- c("Forest", "Grassland", "Brush", "CBI", "Control", "Inventory", "Measured", "Other", "RA", "Shrubland")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -350,7 +350,7 @@ values_check <- values_data == values_valid
 errors_MacroplotReport_UTM_Y <- qaqc_meta(data, query, query_message, values_check)
 ```
 
--   Check that UTM_Zone = 17N, 18N, or 19N
+-   Check that UTM_Zone = 17, 18, or 19
 
 ```{r}
 # Set parameters 
@@ -358,7 +358,7 @@ data <- MacroplotReport_MetaData
 query <- "Macroplot Report - Location"
 query_message <- "UTM_Zone" 
 values_data <- data$UTM_Zone
-values_valid <- c("17N", "18N", "19N")
+values_valid <- c("17", "18", "19")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -373,7 +373,7 @@ data <- MacroplotReport_MetaData
 query <- "Macroplot Report - Location"
 query_message <- "Datum" 
 values_data <- data$Datum
-values_valid <- c("NAD83")
+values_valid <- c("NAD83", "NAD 83")
 values_check <- values_data %in% values_valid
 
 # Identify errors
