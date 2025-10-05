@@ -124,10 +124,11 @@ qaqc_meta <- function(data, query, query_message, values_check) {
 here()
 
 # designate target park(s)
-target_park <- "SHEN"
+target_park <- "VAFO"
 
 # Load in data.
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+path_file <- "E:/Allie/R/NER/data/"
+#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 path_data <- paste0(path_file, target_park, "/")
 path_errors <- paste0(here(), "/output/errors/")
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
@@ -358,7 +359,7 @@ data <- MacroplotReport_MetaData
 query <- "Macroplot Report - Location"
 query_message <- "UTM_Zone" 
 values_data <- data$UTM_Zone
-values_valid <- c("17", "18", "19")
+values_valid <- c(17, 18, 19)
 values_check <- values_data %in% values_valid
 
 # Identify errors
