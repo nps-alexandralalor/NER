@@ -1,6 +1,7 @@
 install.packages("sf")
 library(sf)
 library(dplyr)
+library(purrr)
 library(here)
 
 # file path
@@ -20,59 +21,62 @@ df_raw <- read.csv(paste0(path_data, target_park, "_MetadataReport.csv"), quote 
 df_locations <- df_raw %>% 
   select(!c(SampleEventTeam, SampleEventComment, LegacyMonStatus, MonStatus, Protocols, Visited, SampleEventDate)) %>% 
   distinct() %>% 
-  select(c(AdministrationUnit_Name, Purpose, Type, Macroplot, ProjectUnit, Latitude, Longitude, UTM_X, UTM_Y, UTM_Zone, Datum, PDOP, Precision))
+  select(c(AdministrationUnit_Name, Purpose, Type, Macroplot, ProjectUnit, UTM_X, UTM_Y, UTM_Zone, Datum, PDOP, Precision))
 
 # Filter
-df_locations_FMH <- df_locations %>% 
-  filter(Type == "Forest",
-         ProjectUnit != "GrayBirch (INACTIVE)")
+df_filtered <- df_locations %>% 
+  filter(UTM_X != 0.0,
+         !is.na(UTM_X)) %>% 
+  mutate(UTM_Zone = 17,
+         Datum = gsub(" ", "", Datum),
+         Datum = ifelse(Datum == "", "NAD83", Datum),
+         Datum = ifelse(Datum == "NAD84", "NAD83", Datum))
 
+################
+# Functions to convert coordinates
+################
 
-
-
-
-# Fix inconsistent zone formats (e.g., '18S' marked as Northern hemisphere)
-df <- df_locations_FMH %>%
-  mutate(UTM_Zone = ifelse(grepl("S$", UTM_Zone),
-                           sub("S$", "", UTM_Zone),
-                           UTM_Zone))
-  select(!c(Latitude, Longitude))
+# Function to get EPSG based on Datum and Zone
+get_epsg <- function(datum, zone) {
+  if (toupper(datum) == "NAD27") {
+    return(26700 + zone)   # NAD27 / UTM zone XXN
+  } else if (toupper(datum) == "NAD83") {
+    return(26900 + zone)   # NAD83 / UTM zone XXN
+  } else if (toupper(datum) == "WGS84") {
+    return(32600 + zone)   # WGS84 / UTM zone XXN
+  } else {
+    return(NA_integer_)
+  }
+}
 
 # Conversion function
-convert_utm_1 <- function(easting, northing, zone) {
-  zone_num <- as.numeric(gsub("[^0-9]", "", zone))
-  is_south <- grepl("S$", zone)
-  
-  epsg_code <- ifelse(is_south, 32700, 32600) + zone_num
-  utm_sf <- st_as_sf(data.frame(x = easting, y = northing),
-                     coords = c("x", "y"),
-                     crs = paste0("EPSG:", epsg_code))
-  latlon <- st_transform(utm_sf, crs = 4326)
-  coords <- st_coordinates(latlon)
-  return(data.frame(Latitude = coords[,2], Longitude = coords[,1]))
-}
-
-convert_utm <- function(easting, northing, zone) {
+convert_utm <- function(easting, northing, zone, EPSG) {
   zone_num <- as.numeric(zone)
-  epsg_code <- 32600 + zone_num
   utm_sf <- st_as_sf(data.frame(x = easting, y = northing),
                      coords = c("x", "y"),
-                     crs = paste0("EPSG:", epsg_code))
+                     crs = EPSG)
   latlon <- st_transform(utm_sf, crs = 4326)
   coords <- st_coordinates(latlon)
   return(data.frame(Latitude = coords[,2], Longitude = coords[,1]))
 }
 
-# Apply conversion row-wise
+
+################
+# Convert coordinates
+################
+
+# Add EPSG column to correctly convert different Datums
+df <- df_filtered %>% 
+  mutate(EPSG = map2_int(Datum, UTM_Zone, get_epsg))
+
+# Convert to Lat Long using UTM_X, UTM_Y, UTM_Zone, and EPSG (converted Datum)
 df_coords <- bind_rows(lapply(1:nrow(df), function(i) {
-  convert_utm(df$UTM_X[i], df$UTM_Y[i], df$UTM_Zone[i])
+  convert_utm(df$UTM_X[i], df$UTM_Y[i], df$UTM_Zone[i], df$EPSG[i])
 }))
 
-
-
-
 # Final dataframe with lat/lon
-df_final <- bind_cols(df, df_coords)
+df_final <- bind_cols(df, df_coords) %>% 
+  select(!c(EPSG))
 
 # Preview
 head(df_final)
