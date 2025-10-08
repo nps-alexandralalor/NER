@@ -124,11 +124,11 @@ qaqc_meta <- function(data, query, query_message, values_check) {
 here()
 
 # designate target park(s)
-target_park <- "VAFO"
+target_park <- "SHEN"
 
 # Load in data.
-path_file <- "E:/Allie/R/NER/data/"
-#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+#path_file <- "E:/Allie/R/NER/data/"
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 path_data <- paste0(path_file, target_park, "/")
 path_errors <- paste0(here(), "/output/errors/")
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
@@ -203,9 +203,9 @@ SampleEventReport <- SampleEventReport %>%
 
 ## Macroplot Report
 
-### Setup
+### Installation
 
-[Problem:]{.underline} Macroplot Report is missing information related to plot setup
+[Problem:]{.underline} Macroplot Report is missing information related to plot installation
 
 [Procedure:]{.underline}
 
@@ -214,8 +214,8 @@ SampleEventReport <- SampleEventReport %>%
 ```{r}
 # Set parameters 
 data <- MacroplotReport_MetaData %>% 
-  extract(Macroplot, regex = "([0-9]+)", into = c("Macroplot_Num"), remove = F)
-query <- "Macroplot Report - Setup"
+  extract(Macroplot, regex = "([0-9]+[0-9]+)", into = c("Macroplot_Num"), remove = F)
+query <- "Macroplot Report - Installation"
 query_message <- "Macroplot naming convention is incorrect. Macroplot Number" 
 values_data <- data$Macroplot_Num
 values_valid <- is.na(data$Macroplot_Num)
@@ -230,10 +230,10 @@ errors_MacroplotReport_MacroplotNum <- qaqc_meta(data, query, query_message, val
 ```{r}
 # Set parameters 
 data <- MacroplotReport_MetaData
-query <- "Macroplot Report - Setup"
+query <- "Macroplot Report - Installation"
 query_message <- "Purpose" 
 values_data <- data$Purpose
-values_valid <- c("Fire Effects Monitoring")
+values_valid <- c("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -245,7 +245,7 @@ errors_MacroplotReport_Purpose <- qaqc_meta(data, query, query_message, values_c
 ```{r}
 # Set parameters 
 data <- MacroplotReport_MetaData
-query <- "Macroplot Report - Setup"
+query <- "Macroplot Report - Installation"
 query_message <- "Type" 
 values_data <- data$Type
 values_valid <- c("Forest", "Grassland", "Brush", "CBI", "Control", "Inventory", "Measured", "Other", "RA", "Shrubland")
@@ -260,7 +260,7 @@ errors_MacroplotReport_Type <- qaqc_meta(data, query, query_message, values_chec
 ```{r}
 # Set parameters 
 data <- MacroplotReport_MetaData
-query <- "Macroplot Report - Setup"
+query <- "Macroplot Report - Installation"
 query_message <- "Date In" 
 values_data <- data$DateIn
 values_valid <- is.na(data$DateIn)
@@ -274,15 +274,15 @@ Combine Setup Errors
 
 ```{r}
 # Combine
-errors_MacroplotReport_Setup <- unique(rbind(errors_MacroplotReport_MacroplotNum, errors_MacroplotReport_Purpose, errors_MacroplotReport_Type, errors_MacroplotReport_DateIn))
+errors_MacroplotReport_Installation <- unique(rbind(errors_MacroplotReport_MacroplotNum, errors_MacroplotReport_Purpose, errors_MacroplotReport_Type, errors_MacroplotReport_DateIn))
 
 remove(errors_MacroplotReport_MacroplotNum, errors_MacroplotReport_Purpose, errors_MacroplotReport_Type, errors_MacroplotReport_DateIn)
 
-if(nrow(errors_MacroplotReport_Setup) > 1) {
-  errors_MacroplotReport_Setup <- errors_MacroplotReport_Setup %>%
+if(nrow(errors_MacroplotReport_Installation) > 1) {
+  errors_MacroplotReport_Installation <- errors_MacroplotReport_Installation %>%
     filter(Error != "No Error")
 } else {
-  errors_MacroplotReport_Setup <- errors_MacroplotReport_Setup}
+  errors_MacroplotReport_Installation <- errors_MacroplotReport_Installation}
 ```
 
 ### Location
@@ -374,7 +374,7 @@ data <- MacroplotReport_MetaData
 query <- "Macroplot Report - Location"
 query_message <- "Datum" 
 values_data <- data$Datum
-values_valid <- c("NAD83", "NAD 83")
+values_valid <- c("NAD83")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -396,9 +396,9 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
   errors_MacroplotReport_Location <- errors_MacroplotReport_Location}
 ```
 
-### Position
+### Site Characteristics
 
-[Problem:]{.underline} Macroplot Report is missing information related to plot position on the landscape
+[Problem:]{.underline} Macroplot Report is missing information related to plot site characteristics
 
 [Procedure:]{.underline}
 
@@ -407,7 +407,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 ```{r}
 # # Set parameters 
 # data <- MacroplotReport_MetaData
-# query <- "Macroplot Report - Position"
+# query <- "Macroplot Report - Site Characteristics"
 # query_message <- "Elevation" 
 # values_data <- data$Elevation
 # values_valid <- ""
@@ -422,7 +422,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 ```{r}
 # # Set parameters 
 # data <- MacroplotReport_MetaData
-# query <- "Macroplot Report - Position"
+# query <- "Macroplot Report - Site Characteristics"
 # query_message <- "Elevation Units" 
 # values_data <- data$ElevationUnits
 # values_valid <- c("feet")
@@ -437,7 +437,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 ```{r}
 # # Set parameters 
 # data <- MacroplotReport_MetaData
-# query <- "Macroplot Report - Position"
+# query <- "Macroplot Report - Site Characteristics"
 # query_message <- "Azimuth" 
 # values_data <- data$Azimuth
 # values_valid <- seq(0, 359, by = 1)
@@ -452,7 +452,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 ```{r}
 # # Set parameters 
 # data <- MacroplotReport_MetaData
-# query <- "Macroplot Report - Position"
+# query <- "Macroplot Report - Site Characteristics"
 # query_message <- "Aspect" 
 # values_data <- data$Aspect
 # values_valid <- seq(0, 359, by = 1)
@@ -467,7 +467,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 ```{r}
 # # Set parameters 
 # data <- MacroplotReport_MetaData
-# query <- "Macroplot Report - Position"
+# query <- "Macroplot Report - Site Characteristics"
 # query_message <- "Slope Hill" 
 # values_data <- data$SlopeHill
 # values_valid <- seq(0, 40, by = 1)
@@ -482,7 +482,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 ```{r}
 # # Set parameters 
 # data <- MacroplotReport_MetaData
-# query <- "Macroplot Report - Position"
+# query <- "Macroplot Report - Site Characteristics"
 # query_message <- "Slope Transect" 
 # values_data <- data$SlopeTransect
 # values_valid <- seq(0, 40, by = 1)
@@ -492,19 +492,19 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 # errors_MacroplotReport_SlopeTransect <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-Combine Position Errors
+Combine Site Characteristics Errors
 
 ```{r}
 # # Combine
-# errors_MacroplotReport_Position <- unique(rbind(errors_MacroplotReport_Elevation, errors_MacroplotReport_ElevationUnits, errors_MacroplotReport_Azimuth, errors_MacroplotReport_Aspect, errors_MacroplotReport_SlopeHill, errors_MacroplotReport_SlopeTransect))
+# errors_MacroplotReport_SiteCharacteristics <- unique(rbind(errors_MacroplotReport_Elevation, errors_MacroplotReport_ElevationUnits, errors_MacroplotReport_Azimuth, errors_MacroplotReport_Aspect, errors_MacroplotReport_SlopeHill, errors_MacroplotReport_SlopeTransect))
 # 
 # remove(errors_MacroplotReport_Elevation, errors_MacroplotReport_ElevationUnits, errors_MacroplotReport_Azimuth, errors_MacroplotReport_Aspect, errors_MacroplotReport_SlopeHill, errors_MacroplotReport_SlopeTransect)
 # 
-# if(nrow(errors_MacroplotReport_Position) > 1) {
-#   errors_MacroplotReport_Position <- errors_MacroplotReport_Position %>%
+# if(nrow(errors_MacroplotReport_SiteCharacteristics) > 1) {
+#   errors_MacroplotReport_SiteCharacteristics <- errors_MacroplotReport_SiteCharacteristics %>%
 #     filter(Error != "No Error")
 # } else {
-#   errors_MacroplotReport_Position <- errors_MacroplotReport_Position}
+#   errors_MacroplotReport_SiteCharacteristics <- errors_MacroplotReport_SiteCharacteristics}
 ```
 
 ### Sample Events
@@ -591,9 +591,9 @@ if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
 Combine Macroplot Report Errors
 
 ```{r}
-errors_MacroplotReport <- rbind(errors_MacroplotReport_Setup, errors_blank_meta, errors_MacroplotReport_Location, errors_blank_meta, errors_MacroplotReport_SampleEvent)
+errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_blank_meta, errors_MacroplotReport_Location, errors_blank_meta, errors_MacroplotReport_SampleEvent)
 
-remove(errors_MacroplotReport_Setup, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent)
+remove(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent)
 ```
 
 ## Project Unit Assignment Report
