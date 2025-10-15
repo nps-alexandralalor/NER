@@ -130,7 +130,8 @@ target_park <- "SHEN"
 #path_file <- "E:/Allie/R/NER/data/"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 path_data <- paste0(path_file, target_park, "/")
-path_errors <- paste0(here(), "/output/errors/")
+#path_errors <- paste0(here(), "/output/errors/")
+path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 ```
 
@@ -240,7 +241,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_Purpose <- qaqc_meta(data, query, query_message, values_check)
 ```
 
--   Check that Type = Forest, Grassland, or Brush
+-   Check that Type is one of the available options
 
 ```{r}
 # Set parameters 
@@ -325,10 +326,11 @@ errors_MacroplotReport_Longitude <- qaqc_meta(data, query, query_message, values
 
 ```{r}
 # Set parameters 
-data <- MacroplotReport_MetaData
+data <- MacroplotReport_MetaData %>% 
+  mutate(UTM_X_digits = round(UTM_X))
 query <- "Macroplot Report - Location"
 query_message <- "UTM_X (easting) should have 6 digits. Digits" 
-values_data <- nchar(data$UTM_X)
+values_data <- nchar(data$UTM_X_digits)
 values_valid <- 6
 values_check <- values_data == values_valid
 
@@ -340,10 +342,11 @@ errors_MacroplotReport_UTM_X <- qaqc_meta(data, query, query_message, values_che
 
 ```{r}
 # Set parameters 
-data <- MacroplotReport_MetaData
+data <- MacroplotReport_MetaData %>% 
+  mutate(UTM_Y_digits = round(UTM_Y))
 query <- "Macroplot Report - Location"
 query_message <- "UTM_Y (northing) should have 7 digits. Digits" 
-values_data <- nchar(data$UTM_Y)
+values_data <- nchar(data$UTM_Y_digits)
 values_valid <- 7
 values_check <- values_data == values_valid
 
@@ -374,7 +377,7 @@ data <- MacroplotReport_MetaData
 query <- "Macroplot Report - Location"
 query_message <- "Datum" 
 values_data <- data$Datum
-values_valid <- c("NAD83")
+values_valid <- c("NAD83", "NAD27")
 values_check <- values_data %in% values_valid
 
 # Identify errors
