@@ -13,6 +13,7 @@ target_park <- "SHEN"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 path_data <- paste0(path_file, target_park, "/")
 path_output <- paste0(here(), "/output/data_clean/")
+path_output <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/data_clean/"
 
 # Load CSV
 df_raw <- read.csv(paste0(path_data, target_park, "_MetadataReport.csv"), quote = "")
@@ -26,11 +27,7 @@ df_locations <- df_raw %>%
 # Filter
 df_filtered <- df_locations %>% 
   filter(UTM_X != 0.0,
-         !is.na(UTM_X)) %>% 
-  mutate(UTM_Zone = 17,
-         Datum = gsub(" ", "", Datum),
-         Datum = ifelse(Datum == "", "NAD83", Datum),
-         Datum = ifelse(Datum == "NAD84", "NAD83", Datum))
+         !is.na(UTM_X))
 
 ################
 # Functions to convert coordinates
@@ -78,11 +75,7 @@ df_coords <- bind_rows(lapply(1:nrow(df), function(i) {
 df_final <- bind_cols(df, df_coords) %>% 
   select(!c(EPSG))
 
-# Preview
-head(df_final)
-
 # save file
 write.csv(df_final, paste0(path_output, target_park, "_PlotCoordinates.csv"), quote=FALSE, row.names = FALSE, na = "") 
 
 
-_______________________________________________________________________
