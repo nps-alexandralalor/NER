@@ -34,7 +34,7 @@ library(here)
 here()
 
 # select target park
-target_park <- "GETT"
+target_park <- "TEST"
 
 # load in data and name them based on file path
 # change file path based on user name!
@@ -70,7 +70,7 @@ name <- file_names_df[1,2]
 
 #read tabs of excel files, bring them into R
 Fuels1000 <- read_excel(path, sheet = "Fuels CWD")
-FuelsDuffLitt <- read_excel(path, sheet = "Fuels Duff-Litt")
+#FuelsDuffLitt <- read_excel(path, sheet = "Fuels Duff-Litt")
 FuelsFine <- read_excel(path, sheet = "Fuels FWD")
 HerbsPoints <- read_excel(path, sheet = "Herbs (Points)")
 HerbsSpComp <- read_excel(path, sheet = "Herbs-Ob (Sp Comp)")
