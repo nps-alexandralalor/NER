@@ -1,10 +1,17 @@
+# Created by: Alexandra Lalor
+# Email: alexandra_lalor@nps.gov, allielalor@gmail.com
+# Date Created: 2025-11-05
+#
+# To convert UTM coordinates to Lat Long coordinates
+
+# install packages
 install.packages("sf")
+
+# load packages
 library(sf)
 library(dplyr)
 library(purrr)
 library(here)
-
-# file path
 
 # designate target park(s)
 target_park <- "SHEN"
