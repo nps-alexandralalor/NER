@@ -210,7 +210,7 @@ SampleEventReport <- SampleEventReport %>%
 
 [Procedure:]{.underline}
 
--   Check that Macroplot is not blank
+-   Check that Macroplot is not blank and has correct naming convention. Plots should have a 2-digit number associated with it (e.g. Plot 01, Plot 02, Plot 03, etc.)
 
 ```{r}
 # Set parameters 
@@ -226,7 +226,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_MacroplotNum <- qaqc_meta(data, query, query_message, values_check)
 ```
 
--   Check that Purpose is not blank and is written correctly
+-   Check that Purpose is not blank and is written correctly ("Fire Monitoring Handbook" or "Composite Burn Index").
 
 ```{r}
 # Set parameters 
@@ -234,14 +234,14 @@ data <- MacroplotReport_MetaData
 query <- "Macroplot Report - Installation"
 query_message <- "Purpose" 
 values_data <- data$Purpose
-values_valid <- c("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment")
+values_valid <- c("Fire Monitoring Handbook", "Composite Burn Index")
 values_check <- values_data %in% values_valid
 
 # Identify errors
 errors_MacroplotReport_Purpose <- qaqc_meta(data, query, query_message, values_check)
 ```
 
--   Check that Type is one of the available options
+-   Check that Type is one of the available options ("Forest", "Grassland", "Brush", "CBI", "Control", "Inventory", "Measured", "Other", or "RA")
 
 ```{r}
 # Set parameters 
@@ -271,7 +271,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_DateIn <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-Combine Setup Errors
+Combine Installation Errors
 
 ```{r}
 # Combine
@@ -369,7 +369,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_UTM_Zone <- qaqc_meta(data, query, query_message, values_check)
 ```
 
--   Check that Datum = NAD83
+-   Check that Datum = NAD83 or NAD27
 
 ```{r}
 # Set parameters 
@@ -594,7 +594,8 @@ if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
 Combine Macroplot Report Errors
 
 ```{r}
-errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_blank_meta, errors_MacroplotReport_Location, errors_blank_meta, errors_MacroplotReport_SampleEvent)
+errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent) %>% 
+  arrange(Macroplot)
 
 remove(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent)
 ```
