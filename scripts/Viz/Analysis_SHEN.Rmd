@@ -53,6 +53,7 @@ library(knitr)
 # here is useful for easily finding the working directory of any project
 library(here)
 ```
+
 ### Set Target Values
 
 ```{r}
@@ -75,9 +76,6 @@ here()
 #path_file <- "E:/Allie/R/NER/data/"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 path_data <- paste0(path_file, target_park, "/", target_project, "_")
-path_errors <- paste0(here(), "/output/errors/")
-#path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
-path_errors_name <- paste0(target_park, " Data QAQC Errors")
 ```
 
 ### Load Data
@@ -328,3 +326,41 @@ HerbsPoints_header <- HerbsPoints_all %>%
   filter(!is.na(Visited), Year %in% years)
 ```
 
+# ANALYSIS
+
+```{r}
+Trees_data_graph <- Trees_data %>% 
+  mutate(Status = toupper(Status)) %>% 
+  mutate(NoDead = count())
+```
+
+```{r}
+graph_sum_Disturbances %>% 
+  filter(AdministrationUnit_Name == "RICH") %>% 
+  ggplot(aes(x = DisturbanceDate, y = Disturbance_Type)) +
+  geom_line(aes(group = Disturbance_Type)) +
+  geom_point(aes(fill = Disturbance_Type), shape = 21) +
+  facet_grid(Type ~ AdministrationUnit_Name) +
+  #geom_text(size = 4) +
+  #geom_label_repel(aes(size = 4)) +
+  labs(title = "Disturbance History",
+       y = "Park",
+       x = "Year",
+       fill = "Disturbance Type") +
+  #scale_fill_manual(values=c('yellowgreen', "yellow", 'orange', "red", "darkred","grey")) +
+  scale_x_date(date_labels = "%Y", date_breaks = "1 year") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+        axis.title = element_text(size = 12, face="bold"),
+        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+        axis.text.y = element_text(size = 8),
+        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
+```
+
+```{r}
+Trees_data_graph %>% 
+  ggplot(aes(x = MacroPlot.Name, y = )) %>% 
+  geom_bar(aes(group = Status))
+```
