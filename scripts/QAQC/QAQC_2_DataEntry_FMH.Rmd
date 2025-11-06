@@ -21,6 +21,26 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 # BEFORE STARTING
 
+This code is intended to quality check plot data for protocols listed below. This data can be downloaded via Query tab on the FFI Remote App Server by selecting each protocol/method and exporting the file.
+
+-   Surface Fuels - 1000Hr
+
+-   Surface Fuels - Duff_Litter
+
+-   Surface Fuels - Fine
+
+-   Post Burn Severity
+
+-   Trees - Individuals (metric)
+
+-   Density - Quadrats (metric)
+
+-   Density - Belts (metric)
+
+-   Cover - Species Composition (metric)
+
+-   Cover - Points (metric)
+
 ### Install Packages (if needed)
 
 ```{r}
@@ -30,6 +50,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 # install.packages("condformat")
 # install.packages("knitr")
 # install.packages("here")
+# install.packages("EnvStats")
 ```
 
 ### Load Packages
@@ -115,6 +136,16 @@ qaqc <- function(data, query, query_message, values_check) {
 }
 ```
 
+### Set Target Values
+
+```{r}
+# designate target park(s)
+target_park <- "SHEN"
+target_project <- "BigMeadows"
+# designate target year or years
+years <- c(2025)
+```
+
 ### Adjust File Paths
 
 Make sure to update file paths to be specific for your data.
@@ -124,9 +155,12 @@ Make sure to update file paths to be specific for your data.
 here()
 
 # Load in data.
-path_data <- "X:/FFI Data Management/Exports from FFI/GRCA_FMH/2025-01-23/"
+#path_file <- "E:/Allie/R/NER/data/"
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+path_data <- paste0(path_file, target_park, "/", target_project, "_")
 path_errors <- paste0(here(), "/output/errors/")
-path_errors_name <- "GRCA FMH QAQC Errors"
+#path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
+path_errors_name <- paste0(target_park, " Data QAQC Errors")
 ```
 
 ### Load Data
@@ -136,7 +170,7 @@ path_errors_name <- "GRCA FMH QAQC Errors"
 Fuels1000_all <- read.csv(paste0(path_data, "Surface Fuels - 1000Hr_XPT.csv"), quote = "")
 FuelsDuffLitt_all <- read.csv(paste0(path_data, "Surface Fuels - Duff_Litter_XPT.csv"), quote = "")
 FuelsFine_all <- read.csv(paste0(path_data, "Surface Fuels - Fine_XPT.csv"), quote = "")
-PostBurn_all <- read.csv(paste0(path_data, "Post Burn Severity_XPT.csv"), quote = "")
+PostBurn_all <- read.csv(paste0(path_data, "Post Burn Severity (metric)_XPT.csv"), quote = "")
 Trees_all <- read.csv(paste0(path_data, "Trees - Individuals (metric)_XPT.csv"), quote = "")
 Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), quote = "")
 Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), quote = "")
@@ -263,13 +297,6 @@ HerbsPoints_all <- HerbsPoints_all %>%
   mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
   # Remove Month, Day, and Time columns
   select(!c("Month", "Day", "Time"))
-```
-
-### Set Target Values
-
-```{r}
-# designate target year or years
-years <- c(2022, 2023, 2024)
 ```
 
 ### Filter Data
@@ -449,36 +476,19 @@ values_check <- values_data == values_valid
 errors_Fuels1000_NumTran <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that North Rim TranLen = 50 (or very close). North Rim plots include PIAB, PIEN, and PIPN.
+-   Check that TranLen = 50 (or very close).
 
 ```{r}
 # Set parameters 
-data <- Fuels1000_header %>% 
-  filter(MacroPlot.Purpose %in% c("PIAB", "PIEN", "PIPN"))
+data <- Fuels1000_header
 query <- "Fuel 1000 Header" 
-query_message <- "NRim Transect Length" 
+query_message <- "Transect Length" 
 values_data <- data$TranLen 
 values_valid <- 50  
 values_check <-values_data == values_valid
 
 # Identify errors
-errors_Fuels1000_TranLen_N <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that South Rim TranLen = 100 (or very close). South Rim plots include PIED and PIPO.
-
-```{r}
-# Set parameters 
-data <- Fuels1000_header %>% 
-  filter(MacroPlot.Purpose %in% c("PIED", "PIPO"))
-query <- "Fuel 1000 Header" 
-query_message <- "SRim Transect Length" 
-values_data <- data$TranLen 
-values_valid <- 100 
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_Fuels1000_TranLen_S <- qaqc(data, query, query_message, values_check)
+errors_Fuels1000_TranLen <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that FieldTeam is [not]{.underline} blank
@@ -517,9 +527,9 @@ errors_Fuels1000_EntryTeam <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Combine
-errors_Fuels1000_Header <- unique(rbind(errors_Fuels1000_NumTran, errors_Fuels1000_TranLen_N, errors_Fuels1000_TranLen_S, errors_Fuels1000_FieldTeam, errors_Fuels1000_EntryTeam))
+errors_Fuels1000_Header <- unique(rbind(errors_Fuels1000_NumTran, errors_Fuels1000_TranLen, errors_Fuels1000_FieldTeam, errors_Fuels1000_EntryTeam))
 
-remove(errors_Fuels1000_NumTran, errors_Fuels1000_TranLen_N, errors_Fuels1000_TranLen_S, errors_Fuels1000_FieldTeam, errors_Fuels1000_EntryTeam)
+remove(errors_Fuels1000_NumTran, errors_Fuels1000_TranLen, errors_Fuels1000_FieldTeam, errors_Fuels1000_EntryTeam)
 
 if(nrow(errors_Fuels1000_Header) > 1) {
   errors_Fuels1000_Header <- errors_Fuels1000_Header %>%
@@ -570,21 +580,6 @@ values_check <- values_data >= values_valid
 errors_Fuels1000_Dia_Min <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that diameter values are measured at 0.5 increments.
-
-```{r}
-# Set parameters
-data <- Fuels1000_data
-query <- "Fuel 1000 Dia"
-query_message <- paste0("Log ", data$LogNum, ". ", "Precision error. Diameter")
-values_data <- data$Dia
-values_valid <- seq(0, 100, by = 0.5)
-values_check <- (values_data %in% values_valid) %>% replace_na(TRUE)
-
-# Identify errors
-errors_Fuels1000_Dia_Precision <- qaqc(data, query, query_message, values_check)
-```
-
 -   Check that diameter values are reasonable.
 
 ```{r}
@@ -611,7 +606,7 @@ errors_Fuels1000_Dia_Max <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Combine
-errors_Fuels1000_Dia <- unique(rbind(errors_Fuels1000_Dia_Min, errors_Fuels1000_Dia_Precision, errors_Fuels1000_Dia_Max))
+errors_Fuels1000_Dia <- unique(rbind(errors_Fuels1000_Dia_Min, errors_Fuels1000_Dia_Max))
 
 remove(errors_Fuels1000_Dia_Min, errors_Fuels1000_Dia_Precision, errors_Fuels1000_Dia_Max)
 
@@ -624,11 +619,11 @@ if(nrow(errors_Fuels1000_Dia) > 1) {
 
 ### Fuel 1000 FuelConst
 
-[Problem:]{.underline} Incorrect coarse woody debris fuel constant entered for PIAB or PIED or PIEN or PIPN or PIPO. Fuel constant name should correspond to the MacroPlot Purpose.
+[Problem:]{.underline} Incorrect coarse woody debris fuel constant entered.
 
 [Procedure:]{.underline}
 
--   Check that CWDFuConSt = MacroPlot.Purpose
+-   Check that CWDFuConSt = "Default", "Hardwood", "Hardwood (summer)", "Pine/Hardwood Mixed", "Pine/Hardwood Mix"
 
 ```{r}
 # Set parameters
@@ -636,8 +631,8 @@ data <- Fuels1000_data
 query <- "Fuel 1000 FuelConst"
 query_message <- "Fuel Constant"
 values_data <- data$CWDFuConSt
-values_valid <- data$MacroPlot.Purpose
-values_check <- values_data == values_valid
+values_valid <- c("Default", "Hardwood", "Hardwood (summer)", "Pine/Hardwood Mixed", "Pine/Hardwood Mix")
+values_check <- values_data %in% values_valid
 
 # Identify errors
 errors_Fuels1000_FuelConst <- qaqc(data, query, query_message, values_check)
@@ -683,7 +678,7 @@ data <- Fuels1000_data
 query <- "Fuel 1000 Slope"
 query_message <- paste0("Transect = ", data$Transect, ". ", "Slope")
 values_data <- data$Slope
-values_valid <- seq(0, 40, by = 1)
+values_valid <- seq(-40, 40, by = 1)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -844,11 +839,11 @@ if(nrow(errors_FuelsDuffLitt_Header) > 1) {
 
 ### Fuel DL FuelConst
 
-[Problem:]{.underline} Incorrect duff & litter fuel constant entered for PIAB or PIED or PIEN or PIPN or PIPO. Fuel constant name should correspond to the MacroPlot Purpose.
+[Problem:]{.underline} Incorrect duff & litter fuel constant entered.
 
 [Procedure:]{.underline}
 
--   Check that DLFuConSt = MacroPlot.Purpose
+-   Check that DLFuConSt = "Default", "Hardwood", "Hardwood (summer)", "Pine/Hardwood Mixed", "Pine/Hardwood Mix"
 
 ```{r}
 # Set parameters 
@@ -856,8 +851,8 @@ data <- FuelsDuffLitt_data
 query <- "Fuel DL FuelConst" 
 query_message <- "Fuel Constant" 
 values_data <- data$DLFuConSt 
-values_valid <- data$MacroPlot.Purpose 
-values_check <- values_data == values_valid
+values_valid <- c("Default", "Hardwood", "Hardwood (summer)", "Pine/Hardwood Mixed", "Pine/Hardwood Mix")
+values_check <- values_data %in% values_valid
 
 # Identify errors
 errors_FuelsDuffLitt_FuelConst <- qaqc(data, query, query_message, values_check)
@@ -869,7 +864,7 @@ errors_FuelsDuffLitt_FuelConst <- qaqc(data, query, query_message, values_check)
 
 [Procedure:]{.underline}
 
--   Check that OffSet = False
+-   Check that OffSet = True or False
 
 ```{r}
 # Set parameters 
@@ -877,8 +872,8 @@ data <- FuelsDuffLitt_data
 query <- "Fuel DL OffSet" 
 query_message <- "OffSet" 
 values_data <- data$OffSet
-values_valid <- "False"
-values_check <- values_data == values_valid
+values_valid <- c("True", "False")
+values_check <- values_data %in% values_valid
 
 # Identify errors
 errors_FuelsDuffLitt_OffSet <- qaqc(data, query, query_message, values_check)
@@ -1204,11 +1199,11 @@ errors_FuelsFine_Azimuth <- qaqc(data, query, query_message, values_check)
 
 ### Fuel Fine FuelConst
 
-[Problem:]{.underline} Incorrect fine woody debris fuel constant entered for PIAB or PIED or PIEN or PIPN or PIPO. Fuel constant name should correspond to the MacroPlot Purpose.
+[Problem:]{.underline} Incorrect fine woody debris fuel constant entered.
 
 [Procedure:]{.underline}
 
--   Check that FWDFuConSt = MacroPlot.Purpose
+-   Check that FWDFuConSt = "Default", "Hardwood", "Hardwood (summer)", "Pine/Hardwood Mixed", "Pine/Hardwood Mix"
 
 ```{r}
 # Set parameters 
@@ -1216,8 +1211,8 @@ data <- FuelsFine_data
 query <- "Fuel Fine FuelConst" 
 query_message <- "Fuel Constant" 
 values_data <- data$FWDFuConSt 
-values_valid <- data$MacroPlot.Purpose  
-values_check <- values_data == values_valid
+values_valid <- c("Default", "Hardwood", "Hardwood (summer)", "Pine/Hardwood Mixed", "Pine/Hardwood Mix")
+values_check <- values_data %in% values_valid
 
 # Identify errors
 errors_FuelsFine_FuelConst <- qaqc(data, query, query_message, values_check)
@@ -1237,7 +1232,7 @@ data <- FuelsFine_data
 query <- "Fuel Fine Slope"
 query_message <- paste0("Transect = ", data$Transect, ". ", "Slope")
 values_data <- data$Slope
-values_valid <- seq(0, 40, by = 1)
+values_valid <- seq(-40, 40, by = 1)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -1862,69 +1857,20 @@ if(nrow(errors_Trees_Header) > 1) {
 
 [Procedure:]{.underline}
 
--   Filter by Status = L and DBH = Overstory. Check that LiCrBHt is [not]{.underline} blank
+-   Check that LiCrBHt is blank
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(Status == "L", DBH > 15.0)
+data <- Trees_data
 data$LiCrBHt[is.na(data$LiCrBHt)] <- ""
 query <- "Trees CBH" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = L. DBH = overstory. Live Crown Base Height")
-values_data <- data$LiCrBHt
-values_valid <- ""
-values_check <- values_data != values_valid
-
-# Identify errors
-errors_Trees_CBH_Live <- qaqc(data, query, query_message, values_check)
-```
-
--   Filter by Status = D. Check that LiCrBHt is blank
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(Status == "D")
-data$LiCrBHt[is.na(data$LiCrBHt)] <- ""
-query <- "Trees CBH" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = D. Live Crown Base Height")
+query_message <- paste0("Tag ", data$TagNo, ". ", "Live Crown Base Height")
 values_data <- data$LiCrBHt
 values_valid <- ""
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_Trees_CBH_Dead <- qaqc(data, query, query_message, values_check)
-```
-
--   Filter by Status = L. Check that LiCrBHt \< Ht
-
-```{r}
-# Set parameters
-data <- Trees_data %>% 
-  filter(!is.na(LiCrBHt), Status == "L")
-query <- "Trees CBH" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Height shorter than CBH. CBH")
-values_data <- data$LiCrBHt
-values_valid <- data$Ht
-values_check <- values_data < values_valid
-
-# Identify errors
-errors_Trees_CBH_Ht <- qaqc(data, query, query_message, values_check)
-```
-
-#### Combine CBH Errors
-
-```{r}
-# Combine
-errors_Trees_CBH <- unique(rbind(errors_Trees_CBH_Live, errors_Trees_CBH_Dead, errors_Trees_CBH_Ht))
-
-remove(errors_Trees_CBH_Live, errors_Trees_CBH_Dead, errors_Trees_CBH_Ht)
-
-if(nrow(errors_Trees_CBH) > 1) {
-  errors_Trees_CBH <- errors_Trees_CBH %>%
-    filter(Error != "No Error")
-} else {
-  errors_Trees_CBH <- errors_Trees_CBH}
+errors_Trees_CBH <- qaqc(data, query, query_message, values_check)
 ```
 
 ### Trees Crown Class
@@ -2522,51 +2468,28 @@ errors_Trees_Duplicate <- qaqc(data, query, query_message, values_check)
 
 ### Trees Height
 
-[Problem:]{.underline} Incorrect values entered for height. Standing trees should have height values. Overstory trees should have reasonable height values. Pole trees should correspond to an established height class.
+[Problem:]{.underline} Incorrect values entered for height. Overstory trees should not have height values. Pole trees should correspond to an established height class.
 
 [Procedure:]{.underline}
 
--   Filter for standing trees. Check that Ht exists.
+-   Filter for Overstory trees. Check that Ht is blank.
 
 ```{r}
-# Set parameters 
-data <- Trees_data %>% 
-   filter(!CrwnCl %in% c("DD", "BBD", "CUS"))
-data$Ht[is.na(data$Ht)] <- ""
-query <- "Trees Height" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Standing tree. Height")
-values_data <- data$Ht
-values_valid <- ""
-values_check <- values_data != values_valid
-
-# Identify errors
-errors_Trees_Height_Standing <- qaqc(data, query, query_message, values_check)
-```
-
--   Filter for Overstory trees. Check that Ht is not excessively large.
-
-```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- Trees_all %>%
-  filter(!is.na(Ht), DBH > 15.0)
-data_outlier <- rosnerTest(data_temp$Ht)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_Ht <- ifelse(length(outliers) == 0, max(data_temp$Ht), min(outliers) - 1)
-
 # Set parameters 
 data <- Trees_data %>% 
    filter(DBH > 15.0)
+data$Ht[is.na(data$Ht)] <- ""
 query <- "Trees Height" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "DBH = overstory. Possible outlier. Height")
+query_message <- paste0("Tag ", data$TagNo, ". ", "DBH = overstory. Height")
 values_data <- data$Ht
-values_valid <- max_Ht
-values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
+values_valid <- ""
+values_check <- values_data == values_valid
 
 # Identify errors
 errors_Trees_Height_Overstory <- qaqc(data, query, query_message, values_check)
 ```
 
--   Filter for Pole trees. Check that Ht = 0.6, 1, 2, 3, 4, 5, 6, 7, 8, 9, or 10 or blank.
+-   Filter for Pole trees. Check that Ht = 1, 2, 3, 4, 5, 6, 7, 8, 9, or 10 or blank.
 
 ```{r}
 # Set parameters 
@@ -2575,7 +2498,7 @@ data <- Trees_data %>%
 query <- "Trees Height" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "DBH = pole. Height")
 values_data <- data$Ht
-values_valid <- c("", 0.6, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+values_valid <- c("", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -2586,9 +2509,9 @@ errors_Trees_Height_Pole <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Combine
-errors_Trees_Height <- unique(rbind(errors_Trees_Height_Standing, errors_Trees_Height_Overstory, errors_Trees_Height_Pole))
+errors_Trees_Height <- unique(rbind(errors_Trees_Height_Overstory, errors_Trees_Height_Pole))
 
-remove(errors_Trees_Height_Standing, errors_Trees_Height_Overstory, errors_Trees_Height_Pole)
+remove(errors_Trees_Height_Overstory, errors_Trees_Height_Pole)
 
 if(nrow(errors_Trees_Height) > 1) {
   errors_Trees_Height <- errors_Trees_Height %>%
@@ -2690,8 +2613,6 @@ if(nrow(errors_Trees_NonPost_Severity) > 1) {
 
 [Problem]{.underline}: Char height missing or excessively large for standing trees during the immediate post-fire sample events in FMH plots. Char height entered for trees that are no longer standing.
 
-[Note]{.underline}: Post-burn measurements were not collected on pole-sized trees 1990-2002.
-
 [Procedure:]{.underline}
 
 -   DD trees. Filter to include all POST reads (01Post, 02Post, etc). Filter for DD crown classes (DD, BBD, and CUS). Check that CharHt is blank.
@@ -2733,52 +2654,35 @@ errors_Trees_Post_Char_Standing <- qaqc(data, query, query_message, values_check
 -   Max char. Filter to include all POST reads (01Post, 02Post, etc). Check that CharHt is not excessively high.
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- Trees_all %>%
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
-         !is.na(CharHt))
-data_outlier <- rosnerTest(data_temp$CharHt)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_Char <- ifelse(length(outliers) == 0, max(data_temp$CharHt), min(outliers) - 1)
+# # Perform Rosner's Test for outliers using all values
+# data_temp <- Trees_all %>%
+#   filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+#          !is.na(CharHt))
+# data_outlier <- rosnerTest(data_temp$CharHt)
+# outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
+# max_Char <- ifelse(length(outliers) == 0, max(data_temp$CharHt), min(outliers) - 1)
 
-# Set parameters 
-data <- Trees_data %>% 
+# Set parameters
+data <- Trees_data %>%
   filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
          !is.na(CharHt))
-query <- "Trees Post Char" 
+query <- "Trees Post Char"
 query_message <- paste0("Tag ", data$TagNo, ". ", "Possible outlier. Char Height")
 values_data <- data$CharHt
-values_valid <- max_Char
+values_valid <- 20
 values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 
 # Identify errors
 errors_Trees_Post_Char_Max <- qaqc(data, query, query_message, values_check)
 ```
 
--   Char vs Ht. Filter to include all POST reads (01Post, 02Post, etc). Check that CharHt \<= Ht.
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
-         !is.na(CharHt))
-query <- "Trees Post Char" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Height shorter than Char. Char Height")
-values_data <- data$CharHt
-values_valid <- data$Ht
-values_check <- values_data <= values_valid
-
-# Identify errors
-errors_Trees_Post_Char_Ht <- qaqc(data, query, query_message, values_check)
-```
-
 #### Combine Post Char Errors
 
 ```{r}
 # Combine
-errors_Trees_Post_Char <- unique(rbind(errors_Trees_Post_Char_DD, errors_Trees_Post_Char_Standing, errors_Trees_Post_Char_Max, errors_Trees_Post_Char_Ht))
+errors_Trees_Post_Char <- unique(rbind(errors_Trees_Post_Char_DD, errors_Trees_Post_Char_Standing, errors_Trees_Post_Char_Max))
 
-remove(errors_Trees_Post_Char_DD, errors_Trees_Post_Char_Standing, errors_Trees_Post_Char_Max, errors_Trees_Post_Char_Ht)
+remove(errors_Trees_Post_Char_DD, errors_Trees_Post_Char_Standing, errors_Trees_Post_Char_Max)
 
 if(nrow(errors_Trees_Post_Char) > 1) {
   errors_Trees_Post_Char <- errors_Trees_Post_Char %>%
@@ -2790,8 +2694,6 @@ if(nrow(errors_Trees_Post_Char) > 1) {
 ### Trees Post ScorchHt
 
 [Problem]{.underline}: Scorch height missing or excessively large for live trees during the immediate post-fire sample events in FMH plots. Scorch height entered for trees that are no longer standing or are broken.
-
-[Note]{.underline}: Post-burn measurements were not collected on pole-sized trees 1990-2002.
 
 [Procedure:]{.underline}
 
@@ -2836,14 +2738,6 @@ errors_Trees_Post_Scorch_Dead <- qaqc(data, query, query_message, values_check)
 -   Live trees. Filter to include all POST reads (01Post, 02Post, etc). Filter for Status = L. Check that ScorchHt is not blank or excessively high.
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- Trees_all %>%
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
-         !is.na(ScorchHt))
-data_outlier <- rosnerTest(data_temp$ScorchHt)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_Scorch <- ifelse(length(outliers) == 0, max(data_temp$ScorchHt), min(outliers) - 1)
-
 # Set parameters 
 data <- Trees_data %>% 
   filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
@@ -2851,37 +2745,20 @@ data <- Trees_data %>%
 query <- "Trees Post Scorch" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "Status = L. Possible outlier. Scorch Height")
 values_data <- data$ScorchHt
-values_valid <- max_Scorch
+values_valid <- 20
 values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 
 # Identify errors
 errors_Trees_Post_Scorch_Live <- qaqc(data, query, query_message, values_check)
 ```
 
--   Scorch vs Ht. Filter to include all POST reads (01Post, 02Post, etc). Check that ScorchHt \<= Ht.
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
-         !is.na(ScorchHt))
-query <- "Trees Post Scorch" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Height shorter than Scorch. Scorch Height")
-values_data <- data$ScorchHt
-values_valid <- data$Ht
-values_check <- values_data <= values_valid
-
-# Identify errors
-errors_Trees_Post_Scorch_Ht <- qaqc(data, query, query_message, values_check)
-```
-
 #### Combine Post ScorchHt Errors
 
 ```{r}
 # Combine
-errors_Trees_Post_ScorchHt <- unique(rbind(errors_Trees_Post_Scorch_DD, errors_Trees_Post_Scorch_Dead, errors_Trees_Post_Scorch_Live, errors_Trees_Post_Scorch_Ht))
+errors_Trees_Post_ScorchHt <- unique(rbind(errors_Trees_Post_Scorch_DD, errors_Trees_Post_Scorch_Dead, errors_Trees_Post_Scorch_Live))
 
-remove(errors_Trees_Post_Scorch_DD, errors_Trees_Post_Scorch_Dead, errors_Trees_Post_Scorch_Live, errors_Trees_Post_Scorch_Ht)
+remove(errors_Trees_Post_Scorch_DD, errors_Trees_Post_Scorch_Dead, errors_Trees_Post_Scorch_Live)
 
 if(nrow(errors_Trees_Post_ScorchHt) > 1) {
   errors_Trees_Post_ScorchHt <- errors_Trees_Post_ScorchHt %>%
@@ -2893,8 +2770,6 @@ if(nrow(errors_Trees_Post_ScorchHt) > 1) {
 ### Trees Post ScorchPct
 
 [Problem]{.underline}: Scorch % missing or excessively large for live trees during the immediate post-fire sample events in FMH plots. Scorch % entered incorrectly for trees that are no longer standing.
-
-[Note]{.underline}: Post-burn measurements were not collected on pole-sized trees 1990-2002.
 
 [Procedure:]{.underline}
 
@@ -2991,7 +2866,7 @@ values_check <- values_data %in% values_valid
 errors_Trees_Quarter_Overstory <- qaqc(data, query, query_message, values_check)
 ```
 
--   Filter for Pole trees. Check that QTR = 1 or 2.
+-   Filter for Pole trees. Check that QTR = 1.
 
 ```{r}
 data <- Trees_data %>% 
@@ -2999,7 +2874,7 @@ data <- Trees_data %>%
 query <- "Trees Quarter" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "DBH = pole. Quarter")
 values_data <- data$QTR
-values_valid <- c(1, 2)
+values_valid <- c(1)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -3046,8 +2921,6 @@ errors_Trees_Status <- qaqc(data, query, query_message, values_check)
 
 [Problem:]{.underline} Incorrect subplot fraction entered for trees.
 
-[Note:]{.underline} In some cases pole SubFrac will differ from 0.5 if a smaller area was sampled in a particular year. Check yearly procedures to confirm correct values.
-
 [Procedure:]{.underline}
 
 -   If DBH = overstory, then check that SubFrac = 1
@@ -3066,7 +2939,7 @@ values_check <- values_data == values_valid
 errors_Trees_SubFrac_Overstory <- qaqc(data, query, query_message, values_check)
 ```
 
--   If DBH = pole, then check that SubFrac = 0.5
+-   If DBH = pole, then check that SubFrac = 0.25
 
 ```{r}
 # Set parameters 
@@ -3075,7 +2948,7 @@ data <- Trees_data %>%
 query <- "Trees SubFrac" 
 query_message <- paste0("DBH = pole. Subplot Fraction")
 values_data <- data$SubFrac
-values_valid <- 0.5
+values_valid <- 0.25
 values_check <- values_data == values_valid
 
 # Identify errors
@@ -3099,7 +2972,7 @@ if(nrow(errors_Trees_SubFrac) > 1) {
 
 ### Trees UV
 
-[Problem]{.underline}: X present in the UV columns signifying respective data (DBH, Ht, or LiCrBHT) weren’t assessed.
+[Problem]{.underline}: UV columns are not blank.
 
 [Procedure]{.underline}:
 
@@ -3514,8 +3387,6 @@ if(nrow(errors_Trees_Zero) > 1) {
 ## Trees Errors
 
 ```{r}
-# errors_Trees <- unique(rbind(errors_Trees_Complete, errors_Trees_Header, errors_Trees_CBH, errors_Trees_CrwnCl, errors_Trees_DamCd, errors_Trees_DBH, errors_Trees_DD, errors_Trees_Duplicate, errors_Trees_Height, errors_Trees_LifeForm, errors_Trees_NonPost_Severity, errors_Trees_Post_Char, errors_Trees_Post_ScorchHt, errors_Trees_Post_ScorchPct, errors_Trees_Quarter, errors_Trees_Status, errors_Trees_SubFrac, errors_Trees_UV))
-
 errors_Trees <- rbind(errors_Trees_Complete, errors_blank, errors_Trees_Header, errors_blank, errors_Trees_CBH, errors_blank, errors_Trees_CrwnCl, errors_blank, errors_Trees_DamCd, errors_blank, errors_Trees_DBH, errors_blank, errors_Trees_DD, errors_blank, errors_Trees_Duplicate, errors_blank, errors_Trees_Height, errors_blank, errors_Trees_LifeForm, errors_blank, errors_Trees_NonPost_Severity, errors_blank, errors_Trees_Post_Char, errors_blank, errors_Trees_Post_ScorchHt, errors_blank, errors_Trees_Post_ScorchPct, errors_blank, errors_Trees_Quarter, errors_blank, errors_Trees_Status, errors_blank, errors_Trees_SubFrac, errors_blank, errors_Trees_UV, errors_blank, errors_Trees_Zero)
 
 remove(errors_Trees_Complete, errors_Trees_Header, errors_Trees_CBH, errors_Trees_CrwnCl, errors_Trees_DamCd, errors_Trees_DBH, errors_Trees_DD, errors_Trees_Duplicate, errors_Trees_Height, errors_Trees_LifeForm, errors_Trees_NonPost_Severity, errors_Trees_Post_Char, errors_Trees_Post_ScorchHt, errors_Trees_Post_ScorchPct, errors_Trees_Quarter, errors_Trees_Status, errors_Trees_SubFrac, errors_Trees_UV, errors_Trees_Zero)
@@ -3577,28 +3448,11 @@ errors_Seedlings_Complete <- qaqc(data, query, query_message, values_check)
 
 [Procedure:]{.underline}
 
--   Filter for PIED, PIPO, and PIPN plots. Check that Area = 250
+-   Check that Area = 50
 
 ```{r}
 # Set parameters 
-data <- Seedlings_header %>% 
-  filter(MacroPlot.Purpose %in% c("PIED", "PIPO", "PIPN"))
-query <- "Dens Quad Header" 
-query_message <- paste0("Correct Value = 250. Area")
-values_data <- data$Area
-values_valid <- 250
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_Seedlings_Area_1 <- qaqc(data, query, query_message, values_check)
-```
-
--   Filter for PIEN and PIAB plots. Check that Area = 50
-
-```{r}
-# Set parameters 
-data <- Seedlings_header %>% 
-  filter(MacroPlot.Purpose %in% c("PIEN", "PIAB"))
+data <- Seedlings_header
 query <- "Dens Quad Header" 
 query_message <- paste0("Correct Value = 50. Area")
 values_data <- data$Area
@@ -3606,31 +3460,14 @@ values_valid <- 50
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_Seedlings_Area_2 <- qaqc(data, query, query_message, values_check)
+errors_Seedlings_Area <- qaqc(data, query, query_message, values_check)
 ```
 
--   Filter for PIED, PIPO, and PIPN plots. Check that QuadWid = 25
+-   Check that QuadWid = 10
 
 ```{r}
 # Set parameters 
-data <- Seedlings_header %>% 
-  filter(MacroPlot.Purpose %in% c("PIED", "PIPO", "PIPN"))
-query <- "Dens Quad Header" 
-query_message <- paste0("Correct Value = 25. Quad Width")
-values_data <- data$QuadWid
-values_valid <- 25
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_Seedlings_QuadWid_1 <- qaqc(data, query, query_message, values_check)
-```
-
--   Filter for PIEN and PIAB plots. Check that QuadWid = 10
-
-```{r}
-# Set parameters 
-data <- Seedlings_header %>% 
-  filter(MacroPlot.Purpose %in% c("PIEN", "PIAB"))
+data <- Seedlings_header
 query <- "Dens Quad Header" 
 query_message <- paste0("Correct Value = 10. Quad Width")
 values_data <- data$QuadWid
@@ -3638,31 +3475,14 @@ values_valid <- 10
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_Seedlings_QuadWid_2 <- qaqc(data, query, query_message, values_check)
+errors_Seedlings_QuadWid <- qaqc(data, query, query_message, values_check)
 ```
 
--   Filter for PIED, PIPO, and PIPN plots. Check that QuadLen = 10
+-   Check that QuadLen = 5
 
 ```{r}
 # Set parameters 
-data <- Seedlings_header %>% 
-  filter(MacroPlot.Purpose %in% c("PIED", "PIPO", "PIPN"))
-query <- "Dens Quad Header" 
-query_message <- paste0("Correct Value = 10. Quad Length")
-values_data <- data$QuadLen
-values_valid <- 10
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_Seedlings_QuadLen_1 <- qaqc(data, query, query_message, values_check)
-```
-
--   Filter for PIEN and PIAB plots. Check that QuadLen = 5
-
-```{r}
-# Set parameters 
-data <- Seedlings_header %>% 
-  filter(MacroPlot.Purpose %in% c("PIEN", "PIAB"))
+data <- Seedlings_header
 query <- "Dens Quad Header" 
 query_message <- paste0("Correct Value = 5. Quad Length")
 values_data <- data$QuadLen
@@ -3670,7 +3490,7 @@ values_valid <- 5
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_Seedlings_QuadLen_2 <- qaqc(data, query, query_message, values_check)
+errors_Seedlings_QuadLen <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that NumTran = 1
@@ -3738,9 +3558,9 @@ errors_Seedlings_EntryTeam <- qaqc(data, query, query_message, values_check)
 #### Combine Header Errors
 
 ```{r}
-errors_Seedlings_Header <- unique(rbind(errors_Seedlings_Area_1, errors_Seedlings_Area_2, errors_Seedlings_QuadWid_1, errors_Seedlings_QuadWid_2, errors_Seedlings_QuadLen_1, errors_Seedlings_QuadLen_2, errors_Seedlings_NumTran, errors_Seedlings_NumQuadTran, errors_Seedlings_FieldTeam, errors_Seedlings_EntryTeam))
+errors_Seedlings_Header <- unique(rbind(errors_Seedlings_Area, errors_Seedlings_QuadWid, errors_Seedlings_QuadLen, errors_Seedlings_NumTran, errors_Seedlings_NumQuadTran, errors_Seedlings_FieldTeam, errors_Seedlings_EntryTeam))
 
-remove(errors_Seedlings_Area_1, errors_Seedlings_Area_2, errors_Seedlings_QuadWid_1, errors_Seedlings_QuadWid_2, errors_Seedlings_QuadLen_1, errors_Seedlings_QuadLen_2, errors_Seedlings_NumTran, errors_Seedlings_NumQuadTran, errors_Seedlings_FieldTeam, errors_Seedlings_EntryTeam)
+remove(errors_Seedlings_Area, errors_Seedlings_QuadWid, errors_Seedlings_QuadLen, errors_Seedlings_NumTran, errors_Seedlings_NumQuadTran, errors_Seedlings_FieldTeam, errors_Seedlings_EntryTeam)
 
 if(nrow(errors_Seedlings_Header) > 1) {
   errors_Seedlings_Header <- errors_Seedlings_Header %>%
@@ -3812,7 +3632,7 @@ if(nrow(errors_Seedlings_Count) > 1) {
 
 [Procedure:]{.underline}
 
--   Sort by Height. Check that Height = 0.6, 1, 2, 3, 4, 5, 6, 7, 8, 9, or 10
+-   Sort by Height. Check that Height = 4 or 5
 
 ```{r}
 # Set parameters 
@@ -3820,7 +3640,7 @@ data <- Seedlings_data
 query <- "Dens Quad Height" 
 query_message <- paste0("SubFrac = ", data$SubFrac, ". ", "Species = ", data$Species.Symbol, ". ", "Height")
 values_data <- data$Height
-values_valid <- c(0.6, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+values_valid <- c(4, 5)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -4743,7 +4563,7 @@ values_check <- values_data == values_valid
 errors_HerbsPoints_NumTran <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that TranLen = 49.8 or 50
+-   Check that TranLen = 30, 49.8, or 50
 
 ```{r}
 # Set parameters 
@@ -4751,14 +4571,14 @@ data <- HerbsPoints_header
 query <- "Cvr Pts Header" 
 query_message <- paste0("Transect Length")
 values_data <- data$TranLen
-values_valid <- c(49.8, 50)
+values_valid <- c(30, 49.8, 50)
 values_check <- values_data %in% values_valid
 
 # Identify errors
 errors_HerbsPoints_TranLen <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that NumPtsTran = 166
+-   Check that NumPtsTran = 100 or 166
 
 ```{r}
 # Set parameters 
@@ -4766,8 +4586,8 @@ data <- HerbsPoints_header
 query <- "Cvr Pts Header" 
 query_message <- paste0("Number of Points per Transect")
 values_data <- data$NumPtsTran
-values_valid <- 166
-values_check <- values_data == values_valid
+values_valid <- c(100, 166)
+values_check <- values_data %in% values_valid
 
 # Identify errors
 errors_HerbsPoints_NumPtsTran <- qaqc(data, query, query_message, values_check)
@@ -5282,8 +5102,5 @@ errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:8]) %>%
 kable(errors_all, "pipe")
 
 # Save as CSV or XLSX 
-path_errors
-# write.csv(errors_all, paste0(path_errors, "errors_GRCA_FMH.csv"), quote=FALSE, row.names = FALSE, na = "") 
-#write_xlsx(errors_all, paste0(path_errors, "errors_GRCA_FMH.xlsx"))
-condformat2excel(errors_all, paste0(path_errors, "errors_GRCA_FMH_formatted.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+condformat2excel(errors_all, paste0(path_errors, paste0(target_park, "_errors_data_FMH.xlsx")), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
