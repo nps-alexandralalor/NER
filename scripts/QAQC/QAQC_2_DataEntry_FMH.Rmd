@@ -1,5 +1,5 @@
 ---
-title: "Grand Canyon QAQC for FMH Data"
+title: "QAQC for FMH Data"
 author: "Alexandra Lalor"
 output:
   html_document:
