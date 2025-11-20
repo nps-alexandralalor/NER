@@ -636,7 +636,7 @@ values_check <- values_data != values_valid
 errors_ProjectUnitReport_ProjectUnit <- qaqc_meta(data, query, query_message, values_check)
 ```
 
--   Check that Multi_PU = N. If Multi_PU = Y, you will need to isolate which Project Unit contains the primary data for the analysis of interest.
+-   Check that Multi_PU = N or Y. If Multi_PU = Y, you will need to isolate which Project Unit contains the primary data for the analysis of interest.
 
 ```{r}
 # Set parameters 
@@ -644,7 +644,7 @@ data <- ProjectUnitReport
 query <- "Project Unit Report"
 query_message <- "Multi Project Units" 
 values_data <- data$Multi_PU
-values_valid <- c("N")
+values_valid <- c("N", "Y")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -817,6 +817,7 @@ MacroplotReport_merge <- merge(MacroplotReport_MetaData, MacroplotReport_SampleE
 
 #### Filter Sample Event Report for merging
 SampleEventReport_merge <- SampleEventReport %>%
+  filter(ProjectUnit != "ALL") %>% 
   select(!c(Multi_PU, LegacyMonitoringStatus))
 
 #### Merge Macroplot Report and Sample Event Report
