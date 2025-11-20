@@ -41,7 +41,7 @@ This code is intended to quality check plot data for protocols listed below. Thi
 
 -   Cover - Points (metric)
 
-### Install Packages (if needed)
+### Install Packages (if needed)  {.hidden}
 
 ```{r}
 # install.packages("tidyverse")
@@ -53,7 +53,7 @@ This code is intended to quality check plot data for protocols listed below. Thi
 # install.packages("EnvStats")
 ```
 
-### Load Packages
+### Load Packages  {.hidden}
 
 ```{r}
 # tidyverse and dplyr have lots of useful functions for data cleaning
@@ -74,11 +74,11 @@ library(knitr)
 library(here)
 ```
 
-### Create Function
+### Create Function  {.hidden}
 
 ```{r}
 # Blank data frame
-errors_blank <- data.frame("SavedQuery" = "", "MacroPlot.Name" = "", "Date" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>%
+errors_blank <- data.frame("SavedQuery" = "", "SampleEvent_TreatmentUnit" = "", "MacroPlot.Name" = "", "Date" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>%
   mutate(Date = as.Date(Date))
 
 # QAQC function
@@ -110,7 +110,7 @@ qaqc <- function(data, query, query_message, values_check) {
     # NA values are treated as "false" (missing data is not valid)
     filter(!(values_check %>% replace_na(FALSE))) %>%   
     # Select relevant columns to view errors
-    select("SavedQuery", "MacroPlot.Name", "Date", "Error", "Fixed", "Explanation", "Queryers")
+    select("SavedQuery", "SampleEvent_TreatmentUnit", "MacroPlot.Name", "Date", "Error", "Fixed", "Explanation", "Queryers")
   
   # Next, check if there are duplicate errors
   errors_temp <- errors %>% 
@@ -136,17 +136,17 @@ qaqc <- function(data, query, query_message, values_check) {
 }
 ```
 
-### Set Target Values
+### Set Target Values  {.hidden}
 
 ```{r}
 # designate target park(s)
 target_park <- "SHEN"
-target_project <- "BigMeadows"
+#target_project <- "BigMeadows"
 # designate target year or years
 years <- c(2025)
 ```
 
-### Adjust File Paths
+### Adjust File Paths  {.hidden}
 
 Make sure to update file paths to be specific for your data.
 
@@ -157,13 +157,13 @@ here()
 # Load in data.
 #path_file <- "E:/Allie/R/NER/data/"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
-path_data <- paste0(path_file, target_park, "/", target_project, "_")
+path_data <- paste0(path_file, target_park, "/Data/", target_park, "_")
 path_errors <- paste0(here(), "/output/errors/")
 #path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
 path_errors_name <- paste0(target_park, " Data QAQC Errors")
 ```
 
-### Load Data
+### Load Data  {.hidden}
 
 ```{r}
 # Load in data
@@ -178,7 +178,7 @@ HerbsObs_all <- read.csv(paste0(path_data, "Cover - Species Composition (metric)
 HerbsPoints_all <- read.csv(paste0(path_data, "Cover - Points (metric)_XPT.csv"), quote = "")
 ```
 
-### Clean Data
+### Clean Data  {.hidden}
 
 ```{r}
 #####
@@ -299,7 +299,7 @@ HerbsPoints_all <- HerbsPoints_all %>%
   select(!c("Month", "Day", "Time"))
 ```
 
-### Filter Data
+### Filter Data  {.hidden}
 
 ```{r}
 #####
@@ -410,6 +410,8 @@ HerbsPoints_data <- HerbsPoints_all %>%
 HerbsPoints_header <- HerbsPoints_all %>%
   filter(!is.na(Visited), Year %in% years)
 ```
+
+### Selected park: [`r target_park`]{style="color:red"}
 
 ### Selected year(s): [`r years`]{style="color:red"}
 
@@ -523,7 +525,7 @@ values_check <- values_data != values_valid
 errors_Fuels1000_EntryTeam <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Header Errors
+#### Combine Header Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -602,7 +604,7 @@ values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 errors_Fuels1000_Dia_Max <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Diameter Errors
+#### Combine Diameter Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -822,7 +824,7 @@ values_check <- values_data != values_valid
 errors_FuelsDuffLitt_EntryTeam <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Header Errors
+#### Combine Header Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -971,7 +973,7 @@ values_check <- values_data <= values_valid
 errors_FuelsDuffLitt_DuffDep <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Values Errors
+#### Combine Values Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -1161,7 +1163,7 @@ values_check <- values_data != values_valid
 errors_FuelsFine_EntryTeam <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Header Errors
+#### Combine Header Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -1275,7 +1277,7 @@ values_check <- values_data == values_valid
 errors_FuelsFine_Slope_FineCWD <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Slope Errors
+#### Combine Slope Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -1383,7 +1385,7 @@ values_check <- values_data %in% values_valid
 errors_FuelsFine_HunHr <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Values Errors
+#### Combine Values Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -1569,7 +1571,7 @@ values_check <- values_data != values_valid
 errors_PostBurn_EntryTeam <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Header Errors
+#### Combine Header Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -1683,7 +1685,7 @@ values_check <- values_data %in% values_valid
 errors_PostBurn_Veg <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Values Errors
+#### Combine Values Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -1836,7 +1838,7 @@ values_check <- values_data != values_valid
 errors_Trees_EntryTeam <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Header Errors
+#### Combine Header Errors  {.hidden}
 
 ```{r}
 # Save to master error list 
@@ -1959,7 +1961,7 @@ values_check <- values_data %in% values_valid
 errors_Trees_CrwnCl_Pole <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Crown Class Errors
+#### Combine Crown Class Errors  {.hidden}
 
 ```{r}
 # Save to master error list 
@@ -2281,7 +2283,7 @@ values_check <- values_data %in% values_valid
 errors_Trees_DamCd_4_Blank_5 <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Damage Errors
+#### Combine Damage Errors  {.hidden}
 
 ```{r}
 # Damage Errors Live Trees
@@ -2357,7 +2359,7 @@ values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 errors_Trees_DBH_Max <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine DBH Errors
+#### Combine DBH Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -2425,7 +2427,7 @@ values_check <- values_data == values_valid
 errors_Trees_DD_LiCrBHt <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine DD Errors
+#### Combine DD Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -2505,7 +2507,7 @@ values_check <- values_data %in% values_valid
 errors_Trees_Height_Pole <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Height Errors
+#### Combine Height Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -2594,7 +2596,7 @@ values_check <- values_data == values_valid
 errors_Trees_NonPost_Severity_CrScPct <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Non-Post Severity Errors
+#### Combine Non-Post Severity Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -2676,7 +2678,7 @@ values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 errors_Trees_Post_Char_Max <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Post Char Errors
+#### Combine Post Char Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -2752,7 +2754,7 @@ values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 errors_Trees_Post_Scorch_Live <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Post ScorchHt Errors
+#### Combine Post ScorchHt Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -2829,7 +2831,7 @@ values_check <- values_data <= values_valid
 errors_Trees_Post_ScorchPct_Live <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Post ScorchPct Errors
+#### Combine Post ScorchPct Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -2881,7 +2883,7 @@ values_check <- values_data %in% values_valid
 errors_Trees_Quarter_Pole <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Quarter Errors
+#### Combine Quarter Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -2910,7 +2912,7 @@ data <- Trees_data
 query <- "Trees Status" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "Status")
 values_data <- data$Status
-values_valid <- c("L", "D")
+values_valid <- c("L", "D", "X")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -2955,7 +2957,7 @@ values_check <- values_data == values_valid
 errors_Trees_SubFrac_Pole <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine SubFrac Errors
+#### Combine SubFrac Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -3020,7 +3022,7 @@ values_check <- values_data == values_valid
 errors_Trees_UV3 <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine UV Errors
+#### Combine UV Errors  {.hidden}
 
 ```{r}
 # Combine
@@ -3370,7 +3372,7 @@ values_check <- values_data == values_valid
 errors_Trees_YCoord <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Zero Errors
+#### Combine Zero Errors  {.hidden}
 
 ```{r}
 errors_Trees_Zero <- unique(rbind(errors_Trees_Age, errors_Trees_CKR, errors_Trees_CrFuBHt, errors_Trees_CrwnRad, errors_Trees_CrwnRto, errors_Trees_DamSev, errors_Trees_DecayCl, errors_Trees_DRC, errors_Trees_EqDia, errors_Trees_GrwthRt, errors_Trees_LaddBaseHt, errors_Trees_LaddMaxHt, errors_Trees_Mort, errors_Trees_NuDeStems, errors_Trees_NuLiStems, errors_Trees_XCoord, errors_Trees_YCoord))
@@ -3555,7 +3557,7 @@ values_check <- values_data != values_valid
 errors_Seedlings_EntryTeam <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Header Errors
+#### Combine Header Errors  {.hidden}
 
 ```{r}
 errors_Seedlings_Header <- unique(rbind(errors_Seedlings_Area, errors_Seedlings_QuadWid, errors_Seedlings_QuadLen, errors_Seedlings_NumTran, errors_Seedlings_NumQuadTran, errors_Seedlings_FieldTeam, errors_Seedlings_EntryTeam))
@@ -3612,7 +3614,7 @@ values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 errors_Seedlings_Count_Max <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Count Errors
+#### Combine Count Errors  {.hidden}
 
 ```{r}
 errors_Seedlings_Count <- unique(rbind(errors_Seedlings_Count_Min, errors_Seedlings_Count_Max))
@@ -3790,7 +3792,7 @@ values_check <- values_data == values_valid
 errors_Seedlings_SizeCl <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Zero Errors
+#### Combine Zero Errors  {.hidden}
 
 ```{r}
 errors_Seedlings_Zero <- unique(rbind(errors_Seedlings_AgeCl, errors_Seedlings_SizeCl))
@@ -3976,7 +3978,7 @@ values_check <- values_data != values_valid
 errors_Shrubs_EntryTeam <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Header Errors
+#### Combine Header Errors  {.hidden}
 
 ```{r}
 errors_Shrubs_Header <- unique(rbind(errors_Shrubs_NumTran, errors_Shrubs_TranLen, errors_Shrubs_TranWid, errors_Shrubs_Area, errors_Shrubs_NumSubBelt, errors_Shrubs_FieldTeam, errors_Shrubs_EntryTeam))
@@ -4054,7 +4056,7 @@ values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 errors_Shrubs_Count_Max <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Count Errors
+#### Combine Count Errors  {.hidden}
 
 ```{r}
 errors_Shrubs_Count <- unique(rbind(errors_Shrubs_Count_Min, errors_Shrubs_Count_Max))
@@ -4211,7 +4213,7 @@ values_check <- values_data == values_valid
 errors_Shrubs_SizeCl <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Zero Errors
+#### Combine Zero Errors  {.hidden}
 
 ```{r}
 errors_Shrubs_Zero <- unique(rbind(errors_Shrubs_Height, errors_Shrubs_SizeCl))
@@ -4353,7 +4355,7 @@ values_check <- values_data != values_valid
 errors_HerbsObs_EntryTeam <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Header Errors
+#### Combine Header Errors  {.hidden}
 
 ```{r}
 errors_HerbsObs_Header <- unique(rbind(errors_HerbsObs_MinCovLevel, errors_HerbsObs_Area, errors_HerbsObs_FieldTeam, errors_HerbsObs_EntryTeam))
@@ -4464,7 +4466,7 @@ values_check <- values_data == values_valid
 errors_HerbsObs_SizeCl <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Zero Errors
+#### Combine Zero Errors  {.hidden}
 
 ```{r}
 errors_HerbsObs_Zero <- unique(rbind(errors_HerbsObs_AgeCl, errors_HerbsObs_Height, errors_HerbsObs_SizeCl))
@@ -4640,7 +4642,7 @@ values_check <- values_data != values_valid
 errors_HerbsPoints_EntryTeam <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Header Errors
+#### Combine Header Errors  {.hidden}
 
 ```{r}
 errors_HerbsPoints_Header <- unique(rbind(errors_HerbsPoints_NumTran, errors_HerbsPoints_TranLen, errors_HerbsPoints_NumPtsTran, errors_HerbsPoints_Offset))
@@ -4746,7 +4748,7 @@ values_check <- values_data == values_valid
 errors_HerbsPoints_Height_Substrate <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Height Errors
+#### Combine Height Errors  {.hidden}
 
 ```{r}
 errors_HerbsPoints_Height <- unique(rbind(errors_HerbsPoints_Height_Max, errors_HerbsPoints_Height_Precision, errors_HerbsPoints_Height_Order1, errors_HerbsPoints_Height_Order, errors_HerbsPoints_Height_Substrate))
@@ -4808,7 +4810,7 @@ errors_HerbsPoints_Order_Duplicate <- qaqc(data, query, query_message, values_ch
 data <- HerbsPoints_data %>% 
   filter(Preferred_Lifeform == "Undefined")
 query <- "Cvr Pts Order" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order = ", data$Order, ". ", "Species = ", data$Species.Symbol, ". ", "Order")
+query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Species = ", data$Species.Symbol, ". ", "Order")
 values_data <- data$Order
 values_valid <- 1
 values_check <- values_data == values_valid
@@ -4817,7 +4819,7 @@ values_check <- values_data == values_valid
 errors_HerbsPoints_Order_Substrate <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Order Errors
+#### Combine Order Errors  {.hidden}
 
 ```{r}
 errors_HerbsPoints_Order <- unique(rbind(errors_HerbsPoints_Order_Number, errors_HerbsPoints_Order_Duplicate, errors_HerbsPoints_Order_Substrate))
@@ -4879,7 +4881,7 @@ values_check <- values_data == values_valid
 errors_HerbsPoints_Point_Missing <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Point Errors
+#### Combine Point Errors  {.hidden}
 
 ```{r}
 errors_HerbsPoints_Point <- unique(rbind(errors_HerbsPoints_Point_Number, errors_HerbsPoints_Point_Missing))
@@ -4947,7 +4949,7 @@ values_check <- values_data %in% values_valid
 errors_HerbsPoints_Status_Substrate <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Status Errors
+#### Combine Status Errors  {.hidden}
 
 ```{r}
 errors_HerbsPoints_Status <- unique(rbind(errors_HerbsPoints_Status_Annual, errors_HerbsPoints_Status_Perennial, errors_HerbsPoints_Status_Substrate))
@@ -5037,32 +5039,32 @@ remove(errors_HerbsPoints_Complete, errors_HerbsPoints_Header, errors_HerbsPoint
 
 ```{r}
 # Create protocol separators
-errors_blank_Fuels1000 <- data.frame("SavedQuery" = "PROTOCOL - FUEL 1000","MacroPlot.Name" = "","Date" = "","Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>% 
-  mutate(Date = as.Date(Date))
+errors_blank_Fuels1000 <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - FUEL 1000")
 
-errors_blank_FuelsDuffLitt <- data.frame("SavedQuery" = "PROTOCOL - FUEL DUFF LITTER","MacroPlot.Name" = "","Date" = "","Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>% 
-  mutate(Date = as.Date(Date))
+errors_blank_FuelsDuffLitt <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - FUEL DUFF LITTER")
 
-errors_blank_FuelsFine <- data.frame("SavedQuery" = "PROTOCOL - FUEL FINE","MacroPlot.Name" = "","Date" = "","Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>% 
-  mutate(Date = as.Date(Date))
+errors_blank_FuelsFine <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - FUEL FINE")
 
-errors_blank_PostBurn <- data.frame("SavedQuery" = "PROTOCOL - POST BURN","MacroPlot.Name" = "","Date" = "","Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>% 
-  mutate(Date = as.Date(Date))
+errors_blank_PostBurn <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - POST BURN")
 
-errors_blank_Trees <- data.frame("SavedQuery" = "PROTOCOL - TREES","MacroPlot.Name" = "","Date" = "","Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>% 
-  mutate(Date = as.Date(Date))
+errors_blank_Trees <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - TREES")
 
-errors_blank_Seedlings <- data.frame("SavedQuery" = "PROTOCOL - SEEDLINGS","MacroPlot.Name" = "","Date" = "","Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>% 
-  mutate(Date = as.Date(Date))
+errors_blank_Seedlings <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - SEEDLINGS")
 
-errors_blank_Shrubs <- data.frame("SavedQuery" = "PROTOCOL - SHRUBS","MacroPlot.Name" = "","Date" = "","Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>% 
-  mutate(Date = as.Date(Date))
+errors_blank_Shrubs <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - SHRUBS")
 
-errors_blank_HerbsObs <- data.frame("SavedQuery" = "PROTOCOL - HERBS OBSERVED","MacroPlot.Name" = "","Date" = "","Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>% 
-  mutate(Date = as.Date(Date))
+errors_blank_HerbsObs <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - HERBS OBSERVED")
 
-errors_blank_HerbsPoints <- data.frame("SavedQuery" = "PROTOCOL - HERBS POINTS","MacroPlot.Name" = "","Date" = "","Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>% 
-  mutate(Date = as.Date(Date))
+errors_blank_HerbsPoints <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - HERBS POINTS")
 ```
 
 ```{r}
@@ -5093,8 +5095,7 @@ errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:8]) %>%
                      colours = c("Standard"="#C6E0B4",
                                  "Post"="#FFC000",
                                  "Protocol" = "#969696"),
-                     na.value = "#FFFFFF") %>%
-  select(!c("Color"))
+                     na.value = "#FFFFFF")
 ```
 
 ```{r}
