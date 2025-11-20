@@ -190,14 +190,16 @@ for (i in 1:nrow(file_names_df)) {
   ### All protocol QAQC ###
   #########################
   
-  # Delete empty rows, Change numbers in index column into ascending order
+  # Delete empty rows, change numbers in index column into ascending order, replace commas with semicolons
   if (!is.null(Fuels1000)) {
     Fuels1000 <- subset(Fuels1000, Dia != "") %>%
-    mutate(Index = row_number())
+    mutate(Index = row_number()) %>% 
+    map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(FuelsDuffLitt)) {
   FuelsDuffLitt <- subset(FuelsDuffLitt, LittDep != "") %>%
-    mutate(Index = row_number())
+    mutate(Index = row_number()) %>% 
+    map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(FuelsFine)) {
   FuelsFine <- subset(FuelsFine, OneHr != "") %>%
@@ -236,7 +238,8 @@ for (i in 1:nrow(file_names_df)) {
   }
   if (!is.null(PostBurn)) {
   PostBurn <- subset(PostBurn, Sub != "") %>%
-    mutate(Index = row_number())
+    mutate(Index = row_number()) %>% 
+    map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   
   
