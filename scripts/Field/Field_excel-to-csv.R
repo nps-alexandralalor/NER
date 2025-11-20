@@ -34,7 +34,7 @@ library(here)
 here()
 
 # select target park
-target_park <- "TEST"
+target_park <- "SHEN"
 
 # load in data and name them based on file path
 # change file path based on user name!
@@ -221,17 +221,27 @@ for (i in 1:nrow(file_names_df)) {
   }
   if (!is.null(Seedlings)) {
   Seedlings <- subset(Seedlings, Species != "") %>%
+    mutate(Species = toupper(Species)) %>%
     mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(Shrubs)) {
   Shrubs <- subset(Shrubs, Species != "") %>%
+    mutate(Species = toupper(Species)) %>%
     mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(Trees)) {
   Trees <- subset(Trees, Status != "X") %>%
     arrange(SubFrac, QTR, TagNo) %>%
+    mutate(Species = toupper(Species),
+           Status = toupper(Status),
+           CrwnCl = toupper(CrwnCl),
+           DamCd1 = toupper(DamCd1),
+           DamCd2 = toupper(DamCd2),
+           DamCd3 = toupper(DamCd3),
+           DamCd4 = toupper(DamCd4),
+           DamCd5 = toupper(DamCd5)) %>%
     mutate(Index = row_number()) %>%
     mutate(IsVerified = "TRUE") %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
