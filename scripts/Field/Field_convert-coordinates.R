@@ -29,7 +29,7 @@ df_raw <- read.csv(paste0(path_data, target_park, "_MetadataReport.csv"), quote 
 df_locations <- df_raw %>% 
   select(!c(SampleEventTeam, SampleEventComment, LegacyMonStatus, MonStatus, Protocols, Visited, SampleEventDate)) %>% 
   distinct() %>% 
-  select(c(AdministrationUnit_Name, Purpose, Type, Macroplot, ProjectUnit, UTM_X, UTM_Y, UTM_Zone, Datum, PDOP, Precision))
+  select(c(AdministrationUnit_Name, Purpose, Type, Macroplot, ProjectUnit, UTM_X, UTM_Y, UTM_Zone, Datum))
 
 # Filter
 df_filtered <- df_locations %>% 
