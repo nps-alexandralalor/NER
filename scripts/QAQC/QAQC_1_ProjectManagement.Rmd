@@ -91,7 +91,7 @@ qaqc_meta <- function(data, query, query_message, values_check) {
     # NA values are treated as "false" (missing data is not valid)
     filter(!(values_check %>% replace_na(FALSE))) %>%   
     # Select relevant columns to view errors
-    select("SavedQuery", "Macroplot", "Error", "Fixed", "Explanation", "Queryers")
+    select(colnames(errors_blank_meta))
   
   # Next, check if there are duplicate errors
   errors_temp <- errors %>% 
