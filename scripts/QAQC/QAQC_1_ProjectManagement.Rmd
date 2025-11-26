@@ -19,7 +19,7 @@ output:
 
 This code is intended to quality check plot metadata, including the Macroplot Report, Project Unit Assignment Report, and Sample Event Report. These reports can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server. This code also produces a clean Metadata Report, which combines the Macroplot Report, Project Unit Assignment Report, and Sample Event Report into a single flat file. The Metadata Report is used in subsequent R scripts.
 
-### Setup  {.hidden}
+### Setup {.hidden}
 
 ```{r setup, include=FALSE}
 ## Markdown Options
@@ -56,7 +56,7 @@ library(knitr)
 library(here)
 ```
 
-### Create Function  {.hidden}
+### Create Function {.hidden}
 
 ```{r}
 # Blank data frame
@@ -117,12 +117,9 @@ qaqc_meta <- function(data, query, query_message, values_check) {
 }
 ```
 
-### Adjust File Paths  {.hidden}
+### Adjust File Paths {.hidden}
 
 ```{r import data, include=FALSE}
-# Identify working directory.
-here()
-
 # designate target park(s)
 target_park <- "SHEN"
 
@@ -135,7 +132,7 @@ path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 ```
 
-### Load Data  {.hidden}
+### Load Data {.hidden}
 
 ```{r load data, include=FALSE}
 ## Load Data
@@ -144,7 +141,7 @@ ProjectUnitReport <- read.csv(paste0(path_data, target_park, "_", "ProjectUnitAs
 SampleEventReport <- read.csv(paste0(path_data, target_park, "_", "SampleEventReport.csv"))
 ```
 
-### Clean Data  {.hidden}
+### Clean Data {.hidden}
 
 ```{r}
 #### Macroplot Report
@@ -271,7 +268,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_DateIn <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-#### Combine Installation Errors  {.hidden}
+#### Combine Installation Errors {.hidden}
 
 ```{r}
 # Combine
@@ -384,7 +381,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_Datum <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-#### Combine Location Errors  {.hidden}
+#### Combine Location Errors {.hidden}
 
 ```{r}
 # Combine
@@ -495,7 +492,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 # errors_MacroplotReport_SlopeTransect <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-#### Combine Site Characteristics Errors  {.hidden}
+#### Combine Site Characteristics Errors {.hidden}
 
 ```{r}
 # # Combine
@@ -576,7 +573,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_MonStatus <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-#### Combine Sample Event Errors  {.hidden}
+#### Combine Sample Event Errors {.hidden}
 
 ```{r}
 # Combine
@@ -591,7 +588,7 @@ if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
   errors_MacroplotReport_SampleEvent <- errors_MacroplotReport_SampleEvent}
 ```
 
-### Combine Macroplot Report Errors  {.hidden}
+### Combine Macroplot Report Errors {.hidden}
 
 ```{r}
 errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent)
@@ -648,7 +645,7 @@ values_check <- values_data %in% values_valid
 errors_ProjectUnitReport_MultiPU <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-#### Combine Project Unit Report Errors  {.hidden}
+#### Combine Project Unit Report Errors {.hidden}
 
 ```{r}
 errors_ProjectUnitReport <- unique(rbind(errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU))
@@ -763,7 +760,7 @@ values_check <- values_data == values_valid
 errors_SampleEventReport_MonStatus <- qaqc_meta(data, query, query_message, values_check)
 ```
 
-#### Combine Sample Event Report Errors  {.hidden}
+#### Combine Sample Event Report Errors {.hidden}
 
 ```{r}
 errors_SampleEventReport <- unique(rbind(errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2, errors_SampleEventReport_MonStatus))
