@@ -34,7 +34,7 @@ library(here)
 here()
 
 # select target park
-target_park <- "SHEN"
+target_park <- "TEST"
 
 # load in data and name them based on file path
 # change file path based on user name!
@@ -83,13 +83,13 @@ for (i in 1:nrow(file_names_df)) {
   }
   
   # read only if the sheet exists
-  Fuels1000     <- safe_read_excel(path, "Fuels CWD")
-  FuelsDuffLitt <- safe_read_excel(path, "Fuels Duff-Litt")
-  FuelsFine     <- safe_read_excel(path, "Fuels FWD")
-  HerbsPoints   <- safe_read_excel(path, "Herbs (Points)")
-  HerbsSpComp   <- safe_read_excel(path, "Herbs-Ob (Sp Comp)")
-  Shrubs        <- safe_read_excel(path, "Shrubs (Belt)")
-  Seedlings     <- safe_read_excel(path, "Seedlings (Quad)")
+  Fuels1000     <- safe_read_excel(path, "Fuels (CWD)")
+  FuelsDuffLitt <- safe_read_excel(path, "Fuels (Duff-Litt)")
+  FuelsFine     <- safe_read_excel(path, "Fuels (FWD)")
+  HerbsPoints   <- safe_read_excel(path, "Herbs (Cvr Points)")
+  HerbsSpComp   <- safe_read_excel(path, "Herbs (Cvr Sp Comp)")
+  Shrubs        <- safe_read_excel(path, "Shrubs (Dens Belts)")
+  Seedlings     <- safe_read_excel(path, "Seedlings (Dens Quads)")
   Trees         <- safe_read_excel(path, "Trees")
   PostBurn      <- safe_read_excel(path, "Post Burn")
   
@@ -113,21 +113,22 @@ for (i in 1:nrow(file_names_df)) {
   if (!is.null(HerbsPoints)) {
     # reorganize HerbsPoints for additional species hits
     HerbsPoints_add <- HerbsPoints %>%
-      # creates 8 new rows for additional species, replicating all info
-      # creates new columns with unique species and GUIDs
+      # creates new rows for additional species (2spp - 8spp), replicating all info from first species
+      # creates new columns (Order_extra, spp, spp_GUID) with extra species and GUIDs
       pivot_longer(cols = matches("^[2-8]spp|^[2-8]spp_GUID"),
-                   names_to = c("extra", ".value"),
-                   names_pattern = "([2-8])(.+)") %>%
+                   names_to = c("Order_extra", ".value"), names_pattern = "([2-8])(.+)") %>% 
+      # renames extra columns for clarity, 
+      rename(Species_extra = spp, Spp_GUID_extra = spp_GUID) %>% 
       # filter out blank species entries
-      filter(!is.na(spp)) %>%
-      # replace replicated data with correct data (new species, GUID, status, order, and height)
-      mutate(Species = spp,
+      filter(!is.na(Species_extra)) %>% 
+      # replace replicated data with correct data (new Species, Spp_GUID, Status, Order, and Height)
+      mutate(Species = Species_extra,
              Status = "L",
-             Spp_GUID = spp_GUID,
-             Order = Order + as.integer(extra) - 1,
-             Height = NA) %>%
+             Spp_GUID = Spp_GUID_extra,
+             Order = as.numeric(Order_extra),
+             Height = NA) %>% 
       # remove extra columns
-      select(!c(extra, spp, spp_GUID))
+      select(!c(Order_extra, Species_extra, Spp_GUID_extra))
     # Combine original rows + new rows
     HerbsPoints <- bind_rows(HerbsPoints, HerbsPoints_add) %>%
       mutate(Species = toupper(Species)) %>%
@@ -170,7 +171,7 @@ for (i in 1:nrow(file_names_df)) {
       distinct(Species, Spp_GUID)
     
     # identify species found in other protocols but not in HerbsSpComp
-    UniqueSpecies_all_missing <- anti_join(UniqueSpecies_all, UniqueSpecies_HerbsSpComp)
+    suppressMessages(UniqueSpecies_all_missing <- anti_join(UniqueSpecies_all, UniqueSpecies_HerbsSpComp))
     # merge all species with HerbsSpComp
     HerbsSpComp <- merge(HerbsSpComp, UniqueSpecies_all_missing, by = c("Species", "Spp_GUID"), all = T) %>% 
       mutate(Species = toupper(Species),
