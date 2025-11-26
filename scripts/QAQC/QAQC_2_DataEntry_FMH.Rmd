@@ -110,11 +110,11 @@ qaqc <- function(data, query, query_message, values_check) {
     # NA values are treated as "false" (missing data is not valid)
     filter(!(values_check %>% replace_na(FALSE))) %>%   
     # Select relevant columns to view errors
-    select("SavedQuery", "SampleEvent_TreatmentUnit", "MacroPlot.Name", "Date", "Error", "Fixed", "Explanation", "Queryers")
+    select(colnames(errors_blank))
   
   # Next, check if there are duplicate errors
   errors_temp <- errors %>% 
-    get_dupes(SavedQuery,MacroPlot.Name, Date, Error)
+    get_dupes(SavedQuery, MacroPlot.Name, Date, Error)
   # Merge duplicate errors
   errors <- unique(merge(errors, errors_temp, all = T))
   # If duplicate errors exist, add number of duplicates to error message
@@ -158,8 +158,8 @@ here()
 #path_file <- "E:/Allie/R/NER/data/"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 path_data <- paste0(path_file, target_park, "/Data/", target_park, "_")
-path_errors <- paste0(here(), "/output/errors/")
-#path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
+#path_errors <- paste0(here(), "/output/errors/")
+path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
 path_errors_name <- paste0(target_park, " Data QAQC Errors")
 ```
 
