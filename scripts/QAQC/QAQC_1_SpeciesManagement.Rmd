@@ -19,7 +19,7 @@ output:
 
 This code is intended to quality check species metadata, including the Local Species Report. This report can be downloaded via the Species menu on the Species Management tab on the FFI Remote App Server.
 
-### Setup
+### Setup  {.hidden}
 
 ```{r setup, include=FALSE}
 ## Markdown Options
@@ -56,11 +56,11 @@ library(knitr)
 library(here)
 ```
 
-### Create Function
+### Create Function  {.hidden}
 
 ```{r}
 # Blank data frame
-errors_blank_species <- data.frame("SavedQuery" = "", "Code" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+errors_blank <- data.frame("SavedQuery" = "", "LocalSpecies_Symbol" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
 
 # QAQC function
 qaqc_species <- function(data, query, query_message, values_check) {
@@ -68,7 +68,7 @@ qaqc_species <- function(data, query, query_message, values_check) {
   # Check if there is data to QAQC
   if(nrow(data) == 0) {
   # If there is no data, default to "No Error" data frame
-  errors <- errors_blank_species %>%
+  errors <- errors_blank %>%
     mutate(SavedQuery = query,
            Error = "No Error")
   # If there is data, perform error check
@@ -80,7 +80,6 @@ qaqc_species <- function(data, query, query_message, values_check) {
            # Populate the "SavedQuery" column with the query name
     mutate("SavedQuery" = query, 
            # Populate the "Error" column with the query message and relevant data
-           "Code" = LocalSpecies_Symbol,
            "Error" = paste(query_message, "=", values_data),
            # Create a blank "Fixed" column
            "Fixed" = "",
@@ -92,11 +91,11 @@ qaqc_species <- function(data, query, query_message, values_check) {
     # NA values are treated as "false" (missing data is not valid)
     filter(!(values_check %>% replace_na(FALSE))) %>%   
     # Select relevant columns to view errors
-    select("SavedQuery", "Code", "Error", "Fixed", "Explanation", "Queryers")
+    select(colnames(errors_blank))
   
   # Next, check if there are duplicate errors
   errors_temp <- errors %>% 
-    get_dupes(SavedQuery, Code, Error)
+    get_dupes(SavedQuery, LocalSpecies_Symbol, Error)
   # Merge duplicate errors
   errors <- unique(merge(errors, errors_temp, all = T))
   # If duplicate errors exist, add number of duplicates to error message
@@ -108,7 +107,7 @@ qaqc_species <- function(data, query, query_message, values_check) {
   # Check if there are no errors
   if (nrow(errors) == 0) {  
     # If there are no errors, default to "No Error" data frame
-    errors <- errors_blank_species %>%
+    errors <- errors_blank %>%
       mutate(SavedQuery = query,
              Error = "No Error")
     # If there are errors, keep error log you just created
@@ -118,7 +117,7 @@ qaqc_species <- function(data, query, query_message, values_check) {
 }
 ```
 
-### Adjust File Paths
+### Adjust File Paths  {.hidden}
 
 ```{r import data, include=FALSE}
 # Identify working directory.
@@ -131,18 +130,19 @@ target_park <- "SHEN"
 #path_file <- "E:/Allie/R/NER/data/"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 path_data <- paste0(path_file, target_park, "/")
-path_errors <- paste0(here(), "/output/errors/")
+#path_errors <- paste0(here(), "/output/errors/")
+path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
 path_errors_name <- paste0(target_park, " Species QAQC Errors")
 ```
 
-### Load Data
+### Load Data  {.hidden}
 
 ```{r load data, include=FALSE}
 ## Load Data
 SpeciesReport <- read.csv(paste0(path_data, target_park, "_", "SpeciesReport.csv"))
 ```
 
-### Clean Data
+### Clean Data  {.hidden}
 
 ```{r}
 SpeciesReport <- SpeciesReport %>%
@@ -153,7 +153,7 @@ SpeciesReport <- SpeciesReport %>%
 SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
 ```
 
-### Define Codes
+### Define Codes  {.hidden}
 
 ```{r}
 substrate <- c("BARE", "BOLE", "DUFF", "HAY", "LICHEN", "LITT", "LITTER", "MOSS", "ROCK", "ROOT", "SOIL", "WATER", "WOOD")
@@ -426,7 +426,7 @@ errors_SpeciesReport_NotBiological_T <- qaqc_species(data, query, query_message,
 
 ```{r}
 errors_SpeciesReport <- rbind(errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Nativity, errors_SpeciesReport_Invasive, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired) %>% 
-  arrange(Code)
+  arrange(LocalSpecies_Symbol)
 
 remove(errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Nativity, errors_SpeciesReport_Invasive, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired)
 
@@ -443,8 +443,8 @@ if(nrow(errors_SpeciesReport) > 1) {
 # Add blank rows between each tag number
 errors_SpeciesReport_blanks <- errors_SpeciesReport[1, ]
 for (i in 2:nrow(errors_SpeciesReport)) {
-  if (errors_SpeciesReport[i, "Code"] != errors_SpeciesReport[i - 1, "Code"]) {
-    errors_SpeciesReport_blanks <- rbind(errors_SpeciesReport_blanks, errors_blank_species, errors_SpeciesReport[i, ])
+  if (errors_SpeciesReport[i, "LocalSpecies_Symbol"] != errors_SpeciesReport[i - 1, "LocalSpecies_Symbol"]) {
+    errors_SpeciesReport_blanks <- rbind(errors_SpeciesReport_blanks, errors_blank, errors_SpeciesReport[i, ])
   } else {
     errors_SpeciesReport_blanks <- rbind(errors_SpeciesReport_blanks, errors_SpeciesReport[i, ])
   }
