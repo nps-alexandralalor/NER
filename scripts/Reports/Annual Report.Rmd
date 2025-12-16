@@ -1,0 +1,227 @@
+---
+title: "FFI Database Summary"
+subtitle: "Northeast Region"
+output: 
+  html_document:
+    toc: true
+    toc-float: true
+    code_download: true
+date: "`r Sys.Date()`"
+---
+
+# Purpose
+
+This report summarizes plot work by the NPS Fire Ecology Program. The included tables and graphs allow a user to quickly view the overall status of program, park, project, or protocol activities in an FFI admin unit.
+
+The code summarizes records in the Macroplot Report and Sample Event Report that can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server. You can recreate this Metadata Report by running code found in the file "QAQC_MetadataReport.R", under the scripts folder for this R project.
+
+### Setup
+
+```{r}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+## Install packages (if needed)
+
+# install.packages("tidyverse")
+# install.packages("kableExtra")
+# install.packages("ggplot2")
+```
+
+```{r}
+## Load Packages
+
+# "here" helps you easily find and reference your working directory
+library(here)
+# "tidyverse" has lots of useful functions for data cleaning
+library(tidyverse)
+# "kableExtra" is used to produce formatted tables
+library(kableExtra)
+library(ggplot2)
+library(stringr)
+library(DT)
+library(fs)
+```
+
+```{r}
+## Adjust File Paths
+
+# Identify working directory
+here()
+
+# Adjust File Paths
+path_data <- paste0("C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/")
+path_graphs <- paste0(here(), "/output/graphs/")
+```
+
+### Load Data
+
+Load in the Metadata Report. This Metadata Report was created by combining Macroplot Reports and Sample Event Reports from each Admin Unit, which can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
+
+```{r}
+# Load in data
+MetadataReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_MetadataReport.csv"), quote = "")
+MetadataReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_MetadataReport.csv"), quote = "")
+MetadataReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_MetadataReport.csv"), quote = "")
+MetadataReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_MetadataReport.csv"), quote = "")
+MetadataReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_MetadataReport.csv"), quote = "")
+MetadataReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_MetadataReport.csv"), quote = "")
+MetadataReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_MetadataReport.csv"), quote = "")
+MetadataReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_MetadataReport.csv"), quote = "")
+MetadataReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_MetadataReport.csv"), quote = "")
+MetadataReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_MetadataReport.csv"), quote = "")
+MetadataReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_MetadataReport.csv"), quote = "")
+MetadataReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_MetadataReport.csv"), quote = "")
+MetadataReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_MetadataReport.csv"), quote = "")
+MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"), quote = "")
+MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"), quote = "")
+```
+
+### Merge Data
+
+```{r}
+#MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_GETT, MetadataReport_RICH)
+
+MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+
+remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+```
+
+# Add Columns
+
+### Region
+
+-   Region (NER)
+
+-   Zone (e.g. South)
+
+-   Unit (e.g. MTTS)
+
+```{r}
+zone_NewEngland <- c("ACAD", "CACO")
+zone_MidAtlantic <- c("DEWA", "GATE", "GETT", "SARA", "VAFO")
+zone_NCA <- c("ANTI", "CATO", "MONO", "PRWI")
+zone_Allegheny <- c("CUVA", "NERI")
+zone_MTTS <- c("APCO", "FRSP", "RICH", "SHEN")
+
+MetadataReport <- MetadataReport %>% 
+  mutate(Region = ifelse(AdministrationUnit_Name %in% c(zone_NCA), "NCR", "NER")) %>% 
+  mutate(Zone = ifelse(AdministrationUnit_Name %in% c(zone_NewEngland, zone_MidAtlantic), "North",
+                       ifelse(AdministrationUnit_Name %in% c(zone_Allegheny, zone_MTTS), "South", "NCA"))) %>% 
+  mutate(Unit = ifelse(AdministrationUnit_Name %in% zone_NewEngland, "NewEngland",
+                       ifelse(AdministrationUnit_Name %in% zone_MidAtlantic, "MidAtlantic", 
+                              ifelse(AdministrationUnit_Name %in% zone_Allegheny, "Allegheny",
+                                    ifelse(AdministrationUnit_Name %in% zone_MTTS, "MTTS", "NCA"))))) %>%
+  relocate(Region, .before = AdministrationUnit_Name) %>% 
+  relocate(Zone, .before = AdministrationUnit_Name) %>%
+  relocate(Unit, .before = AdministrationUnit_Name)
+```
+
+### Macroplot
+
+-   Macroplot_Num (01, 02...)
+
+-   Purpose or PlotType (FMH, RAP...)
+
+-   DateIn_Year
+
+-   SampleEventDate_Year
+
+```{r}
+MetadataReport <- MetadataReport %>% 
+  extract(Macroplot, regex = "([0-9]+)", into = c("Macroplot_Num"), remove = F) %>% 
+  separate(Macroplot, sep = "(?=[0-9])", into = c("Macroplot_Code"), remove = F) %>%
+  mutate(Macroplot_Num = ifelse(is.na(Macroplot_Num), 0, Macroplot_Num)) %>% 
+  mutate(Macroplot_Num = as.numeric(Macroplot_Num)) %>% 
+  #mutate(PlotType = ifelse(grepl("(RA)", Macroplot), "RA", "FMH")) %>%
+  separate(DateIn, sep = "-", into = c("DateIn_Year", "Month", "Day"), remove = F) %>%
+  separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "Month", "Day"), remove = F) %>%
+  #relocate(PlotType, .after = Purpose) %>% 
+  select(!c(Month, Day))
+```
+
+# Tables
+
+```{r set parameters, include=F}
+### Select Data to Summarize 
+# use commas to build lists of acceptable values for filters  
+# designate target park(s) 
+unique(MetadataReport$AdministrationUnit_Name) 
+target_park <- c("CATO", "GETT", "MONO", "NERI", "RICH", "SHEN")  
+
+# designate target year or years 
+unique(MetadataReport$SampleEventDate_Year) 
+target_year <- c(2025)
+```
+
+```{r}
+MetadataReport_filter <- MetadataReport %>% 
+  filter(Type != "",
+         Visited != "")
+```
+
+### Overall Program Summary
+
+### Filtered Summaries
+
+# Table 1. Fire Effects Plot Workload
+
+The table below summarizes all projects with plots sampled in the current year.
+
+```{r year summ}
+## Summarise yearly plot activity
+
+# reduce to project summary with target year totals
+table1 <- MetadataReport %>% 
+  filter(AdministrationUnit_Name %in% target_park) %>% 
+  group_by(AdministrationUnit_Name, Purpose, Type, UV1) %>% 
+  dplyr::summarise(first_year = min(SampleEventDate_Year),
+            last_year = max(SampleEventDate_Year),
+            n_total_plots = n_distinct(Macroplot),
+            n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == format(Sys.Date(), "%Y")])) %>%  # designate current year
+  mutate("Plot Type" = ifelse(Purpose == "Fire Monitoring Handbook", paste0("FMH - ", Type), 
+                              ifelse(Purpose == "Rapid Assessment", paste0("RA - ", Type), Type))) %>% 
+  dplyr::rename("Park" = AdministrationUnit_Name,
+                "Monitoring Unit" = UV1)
+
+
+# filters project summary by those with plots this year
+target_year_summ <- table1 %>% 
+  filter(n_current_yr_plots > 0) %>% 
+  group_by(Park, `Monitoring Unit`, `Plot Type`) %>%
+  dplyr::summarise(`Years Data Collected<br>(start-end)` = paste0(first_year, "-", last_year),
+            `Annual Total<br>(2025)` = n_current_yr_plots,
+            `Total Plots` = n_total_plots,
+            .groups = "drop") %>%
+  arrange(Park, `Monitoring Unit`) %>% 
+  mutate_all(as.character)
+
+# Calculate totals
+year_summ_totals <- target_year_summ %>%
+  mutate(`Park` = "Total",
+         `Monitoring Unit` = "",
+         `Plot Type` = "",
+         `Years Data Collected<br>(start-end)` = "",
+         `Annual Total<br>(2025)` = sum(as.numeric(`Annual Total<br>(2025)`)),
+         `Total Plots` = sum(as.numeric(`Total Plots`))) %>% 
+  mutate_all(as.character) %>% 
+  slice_head()
+
+# Bind the totals row to the original data frame
+target_year_summ_w_totals <- bind_rows(target_year_summ, year_summ_totals)
+
+target_year_summ_w_totals %>%
+  kbl(escape = FALSE, # to render line break in column headers
+      align = "lllccc") %>%
+  kable_styling(bootstrap_options = c("striped","condensed"),
+                position = "left", fixed_thead = T) %>%
+  row_spec(0, font_size = 14, bold = TRUE) %>%
+  column_spec(3:6,extra_css = "vertical-align:middle;") %>% 
+  row_spec(nrow(target_year_summ_w_totals), font_size = 14, bold = TRUE)
+```
+
+# Table B-1. All Fire Effects Plots Established
+
+This table, found in Appendix B, summarizes the number of plots by type in each monitoring unit.
