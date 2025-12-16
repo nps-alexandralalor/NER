@@ -117,16 +117,20 @@ qaqc_meta <- function(data, query, query_message, values_check) {
 }
 ```
 
+### Target Park {.hidden}
+
+```{r}
+# designate target park(s)
+target_park <- "SHEN"
+```
+
 ### Adjust File Paths {.hidden}
 
 ```{r import data, include=FALSE}
-# designate target park(s)
-target_park <- "APCO"
-
 # Load in data.
 #path_file <- "E:/Allie/R/NER/data/"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
-path_data <- paste0(path_file, target_park, "/")
+path_data <- paste0(path_file, target_park, "/ProjectManagement/")
 #path_errors <- paste0(here(), "/output/errors/")
 path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
@@ -839,5 +843,5 @@ MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("
 MetadataReport[] <- lapply(MetadataReport, function(x) gsub(",", ";", x))
 
 # save metadata file as csv
-write.csv(MetadataReport, paste0(path_data, paste0(target_park, "_MetadataReport.csv")), quote=FALSE, row.names = FALSE, na = "") 
+write.csv(MetadataReport, paste0(path_file, target_park, "/", target_park, "_MetadataReport.csv"), quote=FALSE, row.names = FALSE, na = "") 
 ```
