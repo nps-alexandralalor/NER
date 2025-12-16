@@ -121,7 +121,7 @@ qaqc_meta <- function(data, query, query_message, values_check) {
 
 ```{r import data, include=FALSE}
 # designate target park(s)
-target_park <- "SHEN"
+target_park <- "APCO"
 
 # Load in data.
 #path_file <- "E:/Allie/R/NER/data/"
@@ -246,7 +246,7 @@ data <- MacroplotReport_MetaData
 query <- "Macroplot Report - Installation"
 query_message <- "Type" 
 values_data <- data$Type
-values_valid <- c("Forest", "Grassland", "Brush", "CBI", "Control", "Inventory", "Measured", "Other", "RA", "Shrubland")
+values_valid <- c("Forest", "Grassland", "Brush", "CBI", "Control", "Inventory", "Measured", "Other", "RA")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -587,6 +587,16 @@ if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
 } else {
   errors_MacroplotReport_SampleEvent <- errors_MacroplotReport_SampleEvent}
 ```
+
+### Comments
+
+[Problem:]{.underline} Macroplot Report is missing information related to plot comments
+
+[Procedure:]{.underline}
+
+-   Check that UV1 = Project Unit / Burn Unit
+-   Check that UV2 = Monitoring Type
+-   Check that UV3 = Vegetation Association
 
 ### Combine Macroplot Report Errors {.hidden}
 
