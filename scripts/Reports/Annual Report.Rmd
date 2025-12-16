@@ -135,7 +135,6 @@ MetadataReport <- MetadataReport %>%
   separate(Macroplot, sep = "(?=[0-9])", into = c("Macroplot_Code"), remove = F) %>%
   mutate(Macroplot_Num = ifelse(is.na(Macroplot_Num), 0, Macroplot_Num)) %>% 
   mutate(Macroplot_Num = as.numeric(Macroplot_Num)) %>% 
-  #mutate(PlotType = ifelse(grepl("(RA)", Macroplot), "RA", "FMH")) %>%
   separate(DateIn, sep = "-", into = c("DateIn_Year", "Month", "Day"), remove = F) %>%
   separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "Month", "Day"), remove = F) %>%
   #relocate(PlotType, .after = Purpose) %>% 
@@ -182,7 +181,8 @@ table1 <- MetadataReport %>%
             n_total_plots = n_distinct(Macroplot),
             n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == format(Sys.Date(), "%Y")])) %>%  # designate current year
   mutate("Plot Type" = ifelse(Purpose == "Fire Monitoring Handbook", paste0("FMH - ", Type), 
-                              ifelse(Purpose == "Rapid Assessment", paste0("RA - ", Type), Type))) %>% 
+                              ifelse(Purpose == "Rapid Assessment", paste0("RA - ", Type), 
+                                     ifelse(Purpose == "Inventory & Monitoring", "I&M - Oak Regeneration Research Plots", Type)))) %>% 
   dplyr::rename("Park" = AdministrationUnit_Name,
                 "Monitoring Unit" = UV1)
 
