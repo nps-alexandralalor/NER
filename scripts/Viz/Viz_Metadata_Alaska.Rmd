@@ -1,0 +1,231 @@
+---
+title: "Create FEM Annual Report Tables"
+subtitle: "ALASKA Admin Unit Example"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 2
+    toc_collapsed: false
+    code_download: true
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+---
+
+This code summarizes plot work by a Fire Ecology Program as represented in FFI. The included tables and enclosed code allow a user to quickly view the overall status project status in an FFI admin unit. The code summarizes records in the Sample Event Report and MacroPlot Report that can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
+
+```{r setup, include=FALSE}
+### Set up Environment
+## Load Packages
+library(stringr)
+library(tidyverse)
+library(DT)
+library(kableExtra)
+library(fs)
+library(here)
+
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE,
+                      warnings = FALSE, message = FALSE)
+```
+
+```{r import data, include=FALSE}
+### Import Data
+## Set Working Directory
+wDir <- here()
+wDir
+
+## Load Data
+# In FFI, in the Project Management tab, Utilities menu, select Sample Event Report to export sample event info for all projects.
+sample_events <- read.csv(path(wDir,"data/SampleEventReport.csv"),
+                   na.strings = c("","NA","N/A"), # replace blanks and text NA as actual NA
+                   fileEncoding = 'UTF-8-BOM')
+
+# Collect file date (e.g., when the SampleEventReport was downloaded)
+se_file_info <- file.info(path(wDir,"data/SampleEventReport.csv"))
+se_data_date <- paste0(format(se_file_info$mtime, "%b %d"), ", ",
+                       format(se_file_info$mtime, "%Y"))
+
+# In FFI, in the Project Management tab, Utilities menu, select MacroPlot Report to export macroplot info for all projects.
+macroplots <- read.csv(path(wDir,"data/MacroPlotReport.csv"),
+                   na.strings = c("","NA","N/A"), # replace blanks and text NA as actual NA
+                   fileEncoding = 'UTF-8-BOM')
+
+# separate header rows from macroplot report
+macroplot_headers <- macroplots %>% 
+  filter(is.na(SampleEventDate)) %>% 
+  mutate(across(where(is.character), str_trim)) # remove trailing/leading whitespace
+
+# Collect file date (e.g., when the MacroPlotReport was downloaded)
+mp_file_info <- file.info(path(wDir,"data/MacroPlotReport.csv"))
+mp_data_date <- paste0(format(mp_file_info$mtime, "%b %d"), ", ",
+                                 format(mp_file_info$mtime, "%Y"))
+
+```
+
+The ALASKA admin unit Sample Event Report returns a 9-column .csv with a default filename of "SampleEventReport.csv" and the following column headers. The data summarized herein was exported from FFI on [`r se_data_date`]{style="color:blue"}.
+
+```{r input sampel event data format, include=TRUE}
+se_header_list <- colnames(sample_events)
+print(se_header_list)
+
+```
+
+The ALASKA admin unit Macroplot Report, FFI produces a 39-column .csv with a default filename of "MacroPlotReport.csv" and the following column headers. The data summarized herein was exported from FFI on [`r mp_data_date`]{style="color:blue"}.
+
+```{r input macroplot data format, include=TRUE}
+mp_header_list <- colnames(macroplots)
+print(mp_header_list)
+
+```
+
+```{r manipulate data, include=FALSE}
+#### Manipulate and add columns to data
+## Create column for Park code via break down of ProjectUnit_Name
+sample_events2 <- sample_events %>% 
+  filter(Visited == "Y") %>% # filter data for only visited plots
+  mutate(across(where(is.character), str_trim)) %>% # remove trailing/leading whitespace
+  mutate(Park = gsub("\\-|_.*|-.*", "", ProjectUnit_Name)) %>% # returns all characters to left of either "-" or "_"
+  # separate Date column into Date and Time columns
+  separate(SampleEvent_Date, sep = " ", into = c("Date", "Time", "Period"), remove = FALSE) %>% 
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>% 
+  select(!c("Month", "Day", "Period", "Time")) # remove unneeded columns
+
+## Clean up known issues with plot naming schemes
+# create list of practice projects than can be left out
+practice_projects <- c("NULLNULL", "NA", "IN-ACTIVE",
+                       "NULLNULL WRST_MUS_HZF")
+
+# remove practice projects, correct strange plot entries and format date
+sample_events3 <- sample_events2 %>% 
+  filter(!ProjectUnit_Name %in% practice_projects) %>% # remove practice projects
+  filter(!is.na(ProjectUnit_Name)) %>% 
+  mutate(Park = case_when(Park == "Paired" ~ substr(MacroPlot_Name, 1, 4),
+                          TRUE ~ Park),
+         SampleEvent_Date = as.Date(Date, format = "%m/%d/%Y"))
+
+## Assign park name
+sample_events_final <- sample_events3 %>% 
+  mutate(Park_Name = case_when(Park == "DENA"~"Denali",
+                               Park == "BELA"~"Bering Land Bridge",
+                               Park == "CAKR"~"Cape Krusenstern",
+                               Park == "NOAT"~"Noatak",
+                               Park == "KOVA"~"Kobuk Valley",
+                               Park == "LACL"~"Lake Clark",
+                               Park == "WRST"~"Wrangell-St. Elias",
+                               Park == "GAAR"~"Gates of the Arctic",
+                               Park == "YUCH"~"Yukon-Charley",
+                               Park == "KATM"~"Katmai",
+                               Park == "ANIA"~"Aniakchak",
+                               Park == "KLGO"~"Klondike Gold Rush",
+                               Park == "Sitka"~"Sitka Historical",
+                               Park == "GLBA"~"Glacier Bay",
+                               Park == "KEFJ"~"Kenai Fjords",
+                               TRUE~NA))
+
+# Remove intermediary data frames to clean up workspace
+remove(sample_events2, sample_events3)
+
+```
+
+# Table 1. Fire Effects Plot Workload
+
+The table below summarizes all projects with plots sampled in the current year.
+
+```{r year summ}
+## Summarise yearly plot activity
+# gather info needed from sample event and macroplot tables
+table1_data <- sample_events_final %>%
+  left_join(select(macroplot_headers, Macroplot, Purpose), # select columns to join
+            join_by(MacroPlot_Name == Macroplot),
+            relationship = "many-to-many") %>% # expected many to many
+  group_by(MacroPlot_Name, SampleEvent_Date) %>% 
+  slice_head() %>% # select only first protocol for each sample event
+  select(Park_Name, ProjectUnit_Name, MacroPlot_Name, Purpose, Year, SampleEvent_Date)
+
+# reduce to project summary with target year totals
+table1_data_reduced <- table1_data %>% 
+  group_by(Park_Name, ProjectUnit_Name, Purpose) %>% 
+  summarise(first_year = min(Year),
+            last_year = max(Year),
+            n_total_plots = n_distinct(MacroPlot_Name),
+            n_current_yr_plots = n_distinct(MacroPlot_Name[Year == format(Sys.Date(), "%Y")])) # designate current year
+
+# filters project summary by those with plots this year
+target_year_summ <- table1_data_reduced %>% 
+  filter(n_current_yr_plots > 0) %>% 
+  group_by(Park_Name, ProjectUnit_Name, Purpose) %>%
+  summarise(`Years Data Collected<br>(start-end)` = paste0(first_year, "-", last_year),
+            `Annual Total<br>(2025)` = n_current_yr_plots,
+            `Total Plots` = n_total_plots,
+            .groups = "drop") %>%
+  rename(`Park` = Park_Name,
+         `Monitoring Unit` = ProjectUnit_Name,
+         `Plot Type (FMH Forest/Brush/Grass plot, photo point, Rapid Assessment, CBI, etc.)` = Purpose) %>%
+  arrange(`Park`, `Monitoring Unit`) %>% 
+  mutate_all(as.character)
+
+# Calculate totals
+year_summ_totals <- target_year_summ %>%
+  mutate(`Park` = "Total",
+         `Monitoring Unit` = "",
+         `Plot Type (FMH Forest/Brush/Grass plot, photo point, Rapid Assessment, CBI, etc.)` = "",
+         `Years Data Collected<br>(start-end)` = "",
+         `Annual Total<br>(2025)` = sum(as.numeric(`Annual Total<br>(2025)`)),
+         `Total Plots` = sum(as.numeric(`Total Plots`))) %>% 
+  mutate_all(as.character) %>% 
+  slice_head()
+
+# Bind the totals row to the original data frame
+target_year_summ_w_totals <- bind_rows(target_year_summ, year_summ_totals)
+
+target_year_summ_w_totals %>%
+  kbl(escape = FALSE, # to render line break in column headers
+      align = "lllccc") %>%
+  kable_styling(bootstrap_options = c("striped","condensed"),
+                position = "left", fixed_thead = T) %>%
+  row_spec(0, font_size = 14, bold = TRUE) %>%
+  column_spec(3:6,extra_css = "vertical-align:middle;") %>% 
+  row_spec(nrow(target_year_summ_w_totals), font_size = 14, bold = TRUE)
+
+```
+
+# Table B-1. All Fire Effects Plots Established
+
+This table, found in Appendix B, summarizes the number of plots by type in each monitoring unit.
+
+```{r all plot summ, warning=FALSE}
+## Summarise plot activity
+all_year_summ <- table1_data_reduced %>% 
+  group_by(Park_Name, ProjectUnit_Name, Purpose) %>%
+  summarise(`Years Data Collected<br>(start-end)` = paste0(first_year, "-", last_year),
+            `Total Plots` = n_total_plots,
+            .groups = "drop") %>%
+  rename(`Park` = Park_Name,
+         `Monitoring Unit` = ProjectUnit_Name,
+         `Plot Type (FMH Forest/Brush/Grass plot, photo point, Rapid Assessment, CBI, etc.)` = Purpose) %>%
+  arrange(`Park`, `Monitoring Unit`) %>% 
+  mutate_all(as.character)
+
+# Calculate totals
+all_year_summ_totals <- all_year_summ %>%
+  mutate(`Park` = "Total",
+         `Monitoring Unit` = "",
+         `Plot Type (FMH Forest/Brush/Grass plot, photo point, Rapid Assessment, CBI, etc.)` = "",
+         `Years Data Collected<br>(start-end)` = "",
+         `Total Plots` = sum(as.numeric(`Total Plots`))) %>% 
+  mutate_all(as.character) %>% 
+  slice_head()
+
+# Bind the totals row to the original data frame
+all_year_summ_w_totals <- bind_rows(all_year_summ, all_year_summ_totals)
+
+all_year_summ_w_totals %>%
+  kbl(escape = FALSE, # to render line break in column headers
+      align = "lllcc") %>%
+  kable_styling(bootstrap_options = c("striped","condensed"),
+                position = "left", fixed_thead = T) %>%
+  row_spec(0, font_size = 14, bold = TRUE) %>%
+  column_spec(3:5,extra_css = "vertical-align:middle;") %>% 
+  row_spec(nrow(all_year_summ_w_totals), font_size = 14, bold = TRUE)
+
+```
