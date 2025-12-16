@@ -49,7 +49,7 @@ library(ggplot2)
 here()
 
 # Adjust File Paths
-path_data <- paste0("E:/Allie/R/NER/data/")
+path_data <- paste0("C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/")
 path_graphs <- paste0(here(), "/output/graphs/")
 ```
 
@@ -59,29 +59,31 @@ Load in the Metadata Report. This Metadata Report was created by combining Macro
 
 ```{r}
 # Load in data
-MetadataReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_MetadataReport.csv"))
-MetadataReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_MetadataReport.csv"))
-#MetadataReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_MetadataReport.csv"))
-#MetadataReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_MetadataReport.csv"))
-#MetadataReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_MetadataReport.csv"))
-#MetadataReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_MetadataReport.csv"))
-#MetadataReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_MetadataReport.csv"))
-MetadataReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_MetadataReport.csv"))
-#MetadataReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_MetadataReport.csv"))
-#MetadataReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_MetadataReport.csv"))
-#MetadataReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_MetadataReport.csv"))
-MetadataReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_MetadataReport.csv"))
-#MetadataReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_MetadataReport.csv"))
-#MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"))
-#MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"))
+MetadataReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_MetadataReport.csv"), quote = "")
+MetadataReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_MetadataReport.csv"), quote = "")
+MetadataReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_MetadataReport.csv"), quote = "")
+MetadataReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_MetadataReport.csv"), quote = "")
+MetadataReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_MetadataReport.csv"), quote = "")
+MetadataReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_MetadataReport.csv"), quote = "")
+MetadataReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_MetadataReport.csv"), quote = "")
+MetadataReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_MetadataReport.csv"), quote = "")
+MetadataReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_MetadataReport.csv"), quote = "")
+MetadataReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_MetadataReport.csv"), quote = "")
+MetadataReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_MetadataReport.csv"), quote = "")
+MetadataReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_MetadataReport.csv"), quote = "")
+MetadataReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_MetadataReport.csv"), quote = "")
+MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"), quote = "")
+MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"), quote = "")
 ```
 
 ### Merge Data
 
 ```{r}
-MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_GETT, MetadataReport_RICH)
+#MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_GETT, MetadataReport_RICH)
 
-# MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+
+remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
 ```
 
 # Add Columns
@@ -205,11 +207,11 @@ MonStatus <- MonStatus %>%
 ### Merge
 
 ```{r}
-MetadataReport <- merge(MetadataReport, MonStatus, by = c("MonStatus"), all = T) %>% 
+MetadataReport_all <- merge(MetadataReport, MonStatus, by = c("MonStatus"), all = T) %>% 
   relocate(MonStatus, .after = SampleEventDate_Year) %>%
   relocate(LegacyMonStatus, .before = MonStatus)
 MetadataReport <- merge(MetadataReport, Disturbances, by = c("AdministrationUnit_Name", "Macroplot", "MonStatus", "SampleEventDate"), all = T) %>% 
-  relocate(AdministrationUnit_Name, .before = ProjectUnit) %>% 
+  relocate(AdministrationUnit_Name, .after = Unit) %>% 
   relocate(Macroplot, .after = Purpose) %>%
   relocate(Type, .after = Purpose) %>% 
   relocate(MonStatus, .after = LegacyMonStatus) %>% 
@@ -218,11 +220,30 @@ MetadataReport <- merge(MetadataReport, Disturbances, by = c("AdministrationUnit
 
 # Tables
 
+```{r set parameters, include=F}
+### Select Data to Summarize
+# use commas to build lists of acceptable values for filters
+
+# designate target park(s)
+unique(MetadataReport$AdministrationUnit_Name)
+target_park <- c("CATO", "GETT", "MONO", "NERI", "RICH")
+
+# designate target year or years
+unique(MetadataReport$SampleEventDate_Year)
+target_year <- c(2025)
+```
+
+```{r}
+MetadataReport_filter <- MetadataReport %>% 
+  filter(Type != "",
+         Visited != "")
+```
+
 ### Overall Program Summary
 
 ```{r program summary}
 ## Summarise projects and events by park
-program_summ <- MetadataReport %>%
+program_summ <- MetadataReport_filter %>%
   summarise(`Parks` = n_distinct(AdministrationUnit_Name),
             `Projects` = n_distinct(ProjectUnit),
             `Number of Plots` = n_distinct(Macroplot),
@@ -241,26 +262,42 @@ program_summ %>%
 
 ```{r}
 ## Summarise projects by park
-target_park_summ <- MetadataReport %>%
+target_park_summ <- MetadataReport_filter %>%
+  filter(AdministrationUnit_Name %in% target_park) %>% 
   group_by(`Park` = AdministrationUnit_Name) %>%
-  summarise(`Project Name` = unique(ProjectUnit),
+  summarise(`First Visit` = min(as.numeric(SampleEventDate_Year)),
+            `Latest Visit` = max(as.numeric(SampleEventDate_Year)),
+            `Number of Plots` = n_distinct(Macroplot),
+            `Monitoring Statuses` = n_distinct(MonStatus)) %>% 
+  arrange(`Park`) %>% 
+  ungroup() %>% 
+  mutate_all(as.character)
+
+
+
+target_park_summ <- MetadataReport_filter %>%
+  filter(Park == target_park) %>% 
+  group_by(`Project Name` = ProjectUnit) %>%
+  summarise(`Plot Type` = unique(PlotType_Name),
             `First Visit` = min(as.numeric(SampleEventDate_Year)),
             `Latest Visit` = max(as.numeric(SampleEventDate_Year)),
             `Number of Plots` = n_distinct(Macroplot),
             `Monitoring Statuses` = n_distinct(MonStatus),
             `Protocols Used` = n_distinct(Protocols)) %>% 
-  arrange(`Park`) %>% 
+  arrange(`Project Name`) %>% 
   ungroup() %>% 
   mutate_all(as.character)
+
+
 
 # Calculate totals
 target_park_summ_totals <- target_park_summ %>%
   summarise(`Number of Plots` = sum(as.numeric(`Number of Plots`))) %>% 
-  mutate(`Project Name` = "",
+  mutate(`Park` = "",
+         `Type` = "",
          `First Visit` = "",
          `Latest Visit` = "Total",
-         `Monitoring Statuses` = "",
-         `Protocols Used` = "") %>% 
+         `Monitoring Statuses` = "") %>% 
   mutate_all(as.character)
 
 # Bind the totals row to the original data frame
@@ -279,7 +316,7 @@ The table below summarizes the frequency of use of protocols occurring in the FF
 
 ```{r protocol summ}
 ## Summarise protocol use by status
-protocol_use_summ <- MetadataReport %>%
+protocol_use_summ <- MetadataReport_filter %>%
   filter(Protocols != "") %>% 
   group_by(`Protocol` = Protocols) %>%
   summarise(`First Use` = min(as.numeric(SampleEventDate_Year)),
@@ -299,19 +336,6 @@ protocol_use_summ %>%
 
 ### Filtered Summaries
 
-```{r set parameters, include=F}
-### Select Data to Summarize
-# use commas to build lists of acceptable values for filters
-
-# designate target park(s)
-unique(MetadataReport$AdministrationUnit_Name)
-target_park <- c("APCO")
-
-# designate target year or years
-unique(MetadataReport$SampleEventDate_Year)
-target_year <- c(2024)
-```
-
 The code underlying this report has been manipulated to display summaries of the following selected park(s) and year(s).\
 \
 Selected park(s): [`r target_park`]{style="color:red"}\
@@ -324,7 +348,7 @@ The table below summarizes sample events recorded within the `r target_park` pro
 ```{r project summ}
 ## Summarise project
 # uses 'target park' variable designated above
-target_project_summ <- MetadataReport %>%
+target_project_summ <- MetadataReport_all %>%
   filter(AdministrationUnit_Name == target_park) %>%
   group_by(`Monitoring Status` = MonStatus,
            `Order` = MonStatusOrd) %>%
@@ -350,7 +374,7 @@ The table below summarizes all projects with plots sampled within the following 
 ```{r year summ}
 ## Summarise yearly plot activity
 # uses 'target year' variable designated above
-target_year_summ <- MetadataReport %>%
+target_year_summ <- MetadataReport_all %>%
   filter(SampleEventDate_Year %in% target_year) %>% 
   group_by(`Park` = AdministrationUnit_Name) %>%
   summarise(`Project Name` = unique(ProjectUnit),
@@ -384,7 +408,7 @@ target_year_summ_w_totals %>%
 # Graphs
 
 ```{r}
-graph_MetadataReport <- MetadataReport %>% 
+graph_MetadataReport <- MetadataReport_all %>% 
   # remove unnecessary columns
   select(!c(Latitude, Longitude, UTM_X, UTM_Y, UTM_Zone, Datum, PDOP, Precision, )) %>% 
   select(!c(Elevation, ElevationUnits, Azimuth, Aspect, SlopeHill, SlopeTransect)) %>% 
