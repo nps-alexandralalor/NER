@@ -83,55 +83,7 @@ MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport
 remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
 ```
 
-# Add Columns
-
-### Region
-
--   Region (NER)
-
--   Zone (e.g. South)
-
--   Unit (e.g. MTTS)
-
-```{r}
-# zone_NewEngland <- c("ACAD", "CACO")
-# zone_MidAtlantic <- c("DEWA", "GATE", "GETT", "SARA", "VAFO")
-# zone_NCA <- c("ANTI", "CATO", "MONO", "PRWI")
-# zone_Allegheny <- c("CUVA", "NERI")
-# zone_MTTS <- c("APCO", "FRSP", "RICH", "SHEN")
-# 
-# MetadataReport <- MetadataReport %>% 
-#   mutate(Region = ifelse(AdministrationUnit_Name %in% c(zone_NCA), "NCR", "NER")) %>% 
-#   mutate(Zone = ifelse(AdministrationUnit_Name %in% c(zone_NewEngland, zone_MidAtlantic), "North",
-#                        ifelse(AdministrationUnit_Name %in% c(zone_Allegheny, zone_MTTS), "South", "NCA"))) %>% 
-#   mutate(Unit = ifelse(AdministrationUnit_Name %in% zone_NewEngland, "NewEngland",
-#                        ifelse(AdministrationUnit_Name %in% zone_MidAtlantic, "MidAtlantic", 
-#                               ifelse(AdministrationUnit_Name %in% zone_Allegheny, "Allegheny",
-#                                     ifelse(AdministrationUnit_Name %in% zone_MTTS, "MTTS", "NCA"))))) %>%
-#   relocate(Region, .before = AdministrationUnit_Name) %>% 
-#   relocate(Zone, .before = AdministrationUnit_Name) %>%
-#   relocate(Unit, .before = AdministrationUnit_Name)
-```
-
-### Macroplot
-
--   Macroplot_Num (01, 02...)
-
--   Purpose or PlotType (FMH, RAP...)
-
--   DateIn_Year
-
--   SampleEventDate_Year
-
-```{r}
-# MetadataReport <- MetadataReport %>% 
-#   extract(Macroplot, regex = "([0-9]+)", into = c("Macroplot_Num"), remove = F) %>% 
-#   separate(Macroplot, sep = "(?=[0-9])", into = c("Macroplot_Code"), remove = F) %>%
-#   mutate(Macroplot_Num = ifelse(is.na(Macroplot_Num), 0, Macroplot_Num)) %>% 
-#   mutate(Macroplot_Num = as.numeric(Macroplot_Num))
-```
-
-# Tables
+# Target Park / Target Year
 
 ```{r set parameters, include=F}
 ### Select Data to Summarize 
@@ -145,16 +97,6 @@ unique(MetadataReport$SampleEventDate_Year)
 target_year <- c(2025)
 ```
 
-```{r}
-# MetadataReport_filter <- MetadataReport %>% 
-#   filter(Type != "",
-#          Visited != "")
-```
-
-### Overall Program Summary
-
-### Filtered Summaries
-
 # Table 1. Fire Effects Plot Workload
 
 The table below summarizes all projects with plots sampled in the current year.
@@ -167,7 +109,6 @@ table1 <- MetadataReport %>%
   group_by(AdministrationUnit_Name, Purpose, Type) %>% 
   mutate(n_total_plots = n_distinct(Macroplot)) %>% 
   group_by(AdministrationUnit_Name, Purpose, Type, n_total_plots, UV1) %>% 
-  
   dplyr::summarise(
                    first_year = min(SampleEventDate_Year),
                    last_year = max(SampleEventDate_Year),
