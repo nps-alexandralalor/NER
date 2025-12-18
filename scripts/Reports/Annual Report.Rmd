@@ -47,13 +47,7 @@ library(fs)
 
 ```{r}
 ## Adjust File Paths
-
-# Identify working directory
-here()
-
-# Adjust File Paths
 path_data <- paste0("C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/")
-path_graphs <- paste0(here(), "/output/graphs/")
 ```
 
 ### Load Data
@@ -100,23 +94,23 @@ remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataRe
 -   Unit (e.g. MTTS)
 
 ```{r}
-zone_NewEngland <- c("ACAD", "CACO")
-zone_MidAtlantic <- c("DEWA", "GATE", "GETT", "SARA", "VAFO")
-zone_NCA <- c("ANTI", "CATO", "MONO", "PRWI")
-zone_Allegheny <- c("CUVA", "NERI")
-zone_MTTS <- c("APCO", "FRSP", "RICH", "SHEN")
-
-MetadataReport <- MetadataReport %>% 
-  mutate(Region = ifelse(AdministrationUnit_Name %in% c(zone_NCA), "NCR", "NER")) %>% 
-  mutate(Zone = ifelse(AdministrationUnit_Name %in% c(zone_NewEngland, zone_MidAtlantic), "North",
-                       ifelse(AdministrationUnit_Name %in% c(zone_Allegheny, zone_MTTS), "South", "NCA"))) %>% 
-  mutate(Unit = ifelse(AdministrationUnit_Name %in% zone_NewEngland, "NewEngland",
-                       ifelse(AdministrationUnit_Name %in% zone_MidAtlantic, "MidAtlantic", 
-                              ifelse(AdministrationUnit_Name %in% zone_Allegheny, "Allegheny",
-                                    ifelse(AdministrationUnit_Name %in% zone_MTTS, "MTTS", "NCA"))))) %>%
-  relocate(Region, .before = AdministrationUnit_Name) %>% 
-  relocate(Zone, .before = AdministrationUnit_Name) %>%
-  relocate(Unit, .before = AdministrationUnit_Name)
+# zone_NewEngland <- c("ACAD", "CACO")
+# zone_MidAtlantic <- c("DEWA", "GATE", "GETT", "SARA", "VAFO")
+# zone_NCA <- c("ANTI", "CATO", "MONO", "PRWI")
+# zone_Allegheny <- c("CUVA", "NERI")
+# zone_MTTS <- c("APCO", "FRSP", "RICH", "SHEN")
+# 
+# MetadataReport <- MetadataReport %>% 
+#   mutate(Region = ifelse(AdministrationUnit_Name %in% c(zone_NCA), "NCR", "NER")) %>% 
+#   mutate(Zone = ifelse(AdministrationUnit_Name %in% c(zone_NewEngland, zone_MidAtlantic), "North",
+#                        ifelse(AdministrationUnit_Name %in% c(zone_Allegheny, zone_MTTS), "South", "NCA"))) %>% 
+#   mutate(Unit = ifelse(AdministrationUnit_Name %in% zone_NewEngland, "NewEngland",
+#                        ifelse(AdministrationUnit_Name %in% zone_MidAtlantic, "MidAtlantic", 
+#                               ifelse(AdministrationUnit_Name %in% zone_Allegheny, "Allegheny",
+#                                     ifelse(AdministrationUnit_Name %in% zone_MTTS, "MTTS", "NCA"))))) %>%
+#   relocate(Region, .before = AdministrationUnit_Name) %>% 
+#   relocate(Zone, .before = AdministrationUnit_Name) %>%
+#   relocate(Unit, .before = AdministrationUnit_Name)
 ```
 
 ### Macroplot
@@ -130,15 +124,11 @@ MetadataReport <- MetadataReport %>%
 -   SampleEventDate_Year
 
 ```{r}
-MetadataReport <- MetadataReport %>% 
-  extract(Macroplot, regex = "([0-9]+)", into = c("Macroplot_Num"), remove = F) %>% 
-  separate(Macroplot, sep = "(?=[0-9])", into = c("Macroplot_Code"), remove = F) %>%
-  mutate(Macroplot_Num = ifelse(is.na(Macroplot_Num), 0, Macroplot_Num)) %>% 
-  mutate(Macroplot_Num = as.numeric(Macroplot_Num)) %>% 
-  separate(DateIn, sep = "-", into = c("DateIn_Year", "Month", "Day"), remove = F) %>%
-  separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "Month", "Day"), remove = F) %>%
-  #relocate(PlotType, .after = Purpose) %>% 
-  select(!c(Month, Day))
+# MetadataReport <- MetadataReport %>% 
+#   extract(Macroplot, regex = "([0-9]+)", into = c("Macroplot_Num"), remove = F) %>% 
+#   separate(Macroplot, sep = "(?=[0-9])", into = c("Macroplot_Code"), remove = F) %>%
+#   mutate(Macroplot_Num = ifelse(is.na(Macroplot_Num), 0, Macroplot_Num)) %>% 
+#   mutate(Macroplot_Num = as.numeric(Macroplot_Num))
 ```
 
 # Tables
@@ -176,17 +166,18 @@ The table below summarizes all projects with plots sampled in the current year.
 table1 <- MetadataReport %>% 
   group_by(AdministrationUnit_Name, Purpose, Type) %>% 
   mutate(n_total_plots = n_distinct(Macroplot)) %>% 
-  group_by(AdministrationUnit_Name, Purpose, Type, n_total_plots) %>% 
+  group_by(AdministrationUnit_Name, Purpose, Type, n_total_plots, UV1) %>% 
   
-  dplyr::summarise(first_year = min(SampleEventDate_Year),
-            last_year = max(SampleEventDate_Year),
-            n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == format(Sys.Date(), "%Y")])) %>%  # designate current year
+  dplyr::summarise(
+                   first_year = min(SampleEventDate_Year),
+                   last_year = max(SampleEventDate_Year),
+                   n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == target_year])) %>%  # designate current year
   mutate("Plot Type" = ifelse(Purpose == "Fire Monitoring Handbook", 
                               paste0("FMH - ", Type), 
                               ifelse(Purpose == "Rapid Assessment", 
                                      paste0("RA - ", Type), 
                                      ifelse(Purpose == "Inventory & Monitoring", 
-                                            "I&M - Oak Regen Research Plots", Type)))) %>% 
+                                            "I&M - Oak Regen", Type)))) %>% 
   dplyr::rename("Park" = AdministrationUnit_Name,
                 "Monitoring Unit" = UV1)
 
@@ -197,7 +188,7 @@ target_year_summ <- table1 %>%
   group_by(Park, `Monitoring Unit`, `Plot Type`) %>%
   dplyr::summarise(`Years Data Collected<br>(start-end)` = paste0(first_year, "-", last_year),
             `Annual Total<br>(2025)` = n_current_yr_plots,
-            `Total Plots` = n_total_plots,
+            `Total Plots<br>(at park)` = n_total_plots,
             .groups = "drop") %>%
   arrange(Park, `Monitoring Unit`) %>% 
   mutate_all(as.character)
@@ -209,7 +200,7 @@ year_summ_totals <- target_year_summ %>%
          `Plot Type` = "",
          `Years Data Collected<br>(start-end)` = "",
          `Annual Total<br>(2025)` = sum(as.numeric(`Annual Total<br>(2025)`)),
-         `Total Plots` = sum(as.numeric(`Total Plots`))) %>% 
+         `Total Plots<br>(at park)` = sum(as.numeric(`Total Plots<br>(at park)`))) %>% 
   mutate_all(as.character) %>% 
   slice_head()
 
