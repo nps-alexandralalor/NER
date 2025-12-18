@@ -156,9 +156,9 @@ target_year <- c(2025)
 ```
 
 ```{r}
-MetadataReport_filter <- MetadataReport %>% 
-  filter(Type != "",
-         Visited != "")
+# MetadataReport_filter <- MetadataReport %>% 
+#   filter(Type != "",
+#          Visited != "")
 ```
 
 ### Overall Program Summary
@@ -174,15 +174,19 @@ The table below summarizes all projects with plots sampled in the current year.
 
 # reduce to project summary with target year totals
 table1 <- MetadataReport %>% 
-  filter(AdministrationUnit_Name %in% target_park) %>% 
-  group_by(AdministrationUnit_Name, Purpose, Type, UV1) %>% 
+  group_by(AdministrationUnit_Name, Purpose, Type) %>% 
+  mutate(n_total_plots = n_distinct(Macroplot)) %>% 
+  group_by(AdministrationUnit_Name, Purpose, Type, n_total_plots) %>% 
+  
   dplyr::summarise(first_year = min(SampleEventDate_Year),
             last_year = max(SampleEventDate_Year),
-            n_total_plots = n_distinct(Macroplot),
             n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == format(Sys.Date(), "%Y")])) %>%  # designate current year
-  mutate("Plot Type" = ifelse(Purpose == "Fire Monitoring Handbook", paste0("FMH - ", Type), 
-                              ifelse(Purpose == "Rapid Assessment", paste0("RA - ", Type), 
-                                     ifelse(Purpose == "Inventory & Monitoring", "I&M - Oak Regeneration Research Plots", Type)))) %>% 
+  mutate("Plot Type" = ifelse(Purpose == "Fire Monitoring Handbook", 
+                              paste0("FMH - ", Type), 
+                              ifelse(Purpose == "Rapid Assessment", 
+                                     paste0("RA - ", Type), 
+                                     ifelse(Purpose == "Inventory & Monitoring", 
+                                            "I&M - Oak Regen Research Plots", Type)))) %>% 
   dplyr::rename("Park" = AdministrationUnit_Name,
                 "Monitoring Unit" = UV1)
 
