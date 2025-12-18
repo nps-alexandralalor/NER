@@ -121,28 +121,29 @@ qaqc_meta <- function(data, query, query_message, values_check) {
 
 ```{r}
 # designate target park(s)
-target_park <- "SHEN"
+target_park <- "GETT"
 ```
 
 ### Adjust File Paths {.hidden}
 
 ```{r import data, include=FALSE}
 # Load in data.
-#path_file <- "E:/Allie/R/NER/data/"
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
-path_data <- paste0(path_file, target_park, "/ProjectManagement/")
-#path_errors <- paste0(here(), "/output/errors/")
-path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
+
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_file <- paste0(path_main, "Exports/", target_park, "/")
+path_data <- paste0(path_file, "ProjectManagement/")
+path_errors <- paste0(path_main, "QAQC/", target_park, "/")
+#path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 ```
 
 ### Load Data {.hidden}
 
 ```{r load data, include=FALSE}
-## Load Data
-MacroplotReport <- read.csv(paste0(path_data, target_park, "_", "MacroplotReport.csv"))
-ProjectUnitReport <- read.csv(paste0(path_data, target_park, "_", "ProjectUnitAssignmentReport.csv"))
-SampleEventReport <- read.csv(paste0(path_data, target_park, "_", "SampleEventReport.csv"))
+## Load Data, replace blanks and text NA as actual NA
+MacroplotReport <- read.csv(paste0(path_data, target_park, "_", "MacroplotReport.csv"), na.strings = c("","NA","N/A"))
+ProjectUnitReport <- read.csv(paste0(path_data, target_park, "_", "ProjectUnitAssignmentReport.csv"), na.strings = c("","NA","N/A"))
+SampleEventReport <- read.csv(paste0(path_data, target_park, "_", "SampleEventReport.csv"), na.strings = c("","NA","N/A"))
 ```
 
 ### Clean Data {.hidden}
@@ -155,29 +156,29 @@ MacroplotReport_MetaData <- MacroplotReport %>%
   # remove trailing/leading whitespace
   mutate(across(where(is.character), str_trim)) %>%
   # separate tables
-  mutate(SampleEventDate = ifelse(SampleEventDate == "", NA, SampleEventDate)) %>% 
   filter(is.na(SampleEventDate)) %>%
   # separate Date columns into Date and Time columns
   separate(DateIn, sep = " ", into = c("DateIn", "DateInTime")) %>%
   # reformate Date columns
   mutate(DateIn = as.Date(DateIn, "%m/%d/%Y")) %>%
+  separate(DateIn, sep = "-", into = c("DateIn_Year", "Month", "Day"), remove = F) %>%
   # remove unnecessary columns
-  select(!c(DateInTime)) %>%
+  select(!c(DateInTime, Month, Day)) %>%
   select(!c(SampleEventDate, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
 
 MacroplotReport_SampleEvents <- MacroplotReport %>%
   # remove trailing/leading whitespace
   mutate(across(where(is.character), str_trim)) %>%
   # separate tables
-  mutate(SampleEventDate = ifelse(SampleEventDate == "", NA, SampleEventDate)) %>% 
   filter(!is.na(SampleEventDate)) %>%
   # separate Date columns into Date and Time columns
   separate(SampleEventDate, sep = " ", into = c("SampleEventDate", "SampleEventTime")) %>%
   # reformate Date columns
   mutate(SampleEventDate = as.Date(SampleEventDate, "%m/%d/%Y")) %>%
+  separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "Month", "Day"), remove = F) %>%
   # remove unnecessary columns
-  select(!c(SampleEventTime)) %>%
-  select(c(Macroplot, SampleEventDate, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
+  select(!c(SampleEventTime, Month, Day)) %>%
+  select(c(Macroplot, SampleEventDate, SampleEventDate_Year, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
 
 
 #### Sample Event Report
@@ -196,8 +197,9 @@ SampleEventReport <- SampleEventReport %>%
   separate(SampleEventDate, sep = " ", into = c("SampleEventDate", "SampleEventTime")) %>%
   # reformate Date columns
   mutate(SampleEventDate = as.Date(SampleEventDate, "%m/%d/%Y")) %>%
+  separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "Month", "Day"), remove = F) %>%
   # remove unnecessary columns
-  select(!c(SampleEventTime)) %>%
+  select(!c(SampleEventTime, Month, Day)) %>%
   select(!c(MacroPlot_Name, SampleEvent_LegacyMonitoringStatus, MonitoringStatus_Name, ProjectUnit_Name, SampleEvent_Date))
 ```
 
@@ -227,7 +229,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_MacroplotNum <- qaqc_meta(data, query, query_message, values_check)
 ```
 
--   Check that Purpose is not blank and is written correctly ("Fire Monitoring Handbook" or "Composite Burn Index").
+-   Check that Purpose is not blank and is written correctly ("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Fuels", "Inventory & Monitoring").
 
 ```{r}
 # Set parameters 
@@ -235,14 +237,14 @@ data <- MacroplotReport_MetaData
 query <- "Macroplot Report - Installation"
 query_message <- "Purpose" 
 values_data <- data$Purpose
-values_valid <- c("Fire Monitoring Handbook", "Composite Burn Index")
+values_valid <- c("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Fuels", "Inventory & Monitoring")
 values_check <- values_data %in% values_valid
 
 # Identify errors
 errors_MacroplotReport_Purpose <- qaqc_meta(data, query, query_message, values_check)
 ```
 
--   Check that Type is one of the available options ("Forest", "Grassland", "Brush", "CBI", "Control", "Inventory", "Measured", "Other", or "RA")
+-   Check that Type is one of the available options ("Forest", "Grassland", "Brush", "CBI", "Control", "Inventory", "Measured", "Other", "RA", "Shrubland")
 
 ```{r}
 # Set parameters 
@@ -250,7 +252,7 @@ data <- MacroplotReport_MetaData
 query <- "Macroplot Report - Installation"
 query_message <- "Type" 
 values_data <- data$Type
-values_valid <- c("Forest", "Grassland", "Brush", "CBI", "Control", "Inventory", "Measured", "Other", "RA")
+values_valid <- c("Forest", "Grassland", "Brush", "CBI", "Control", "Inventory", "Measured", "Other", "RA", "Shrubland")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -762,9 +764,10 @@ remove(data_temp1, data_temp2)
 # Set parameters 
 data <- merge(MacroplotReport_SampleEvents, data_temp, by = c("Macroplot", "SampleEventDate"), all = T)
 data$MonStatusError[is.na(data$MonStatusError)] <- ""
+
 data <- data %>% 
   filter(MonStatusError != "")
-query <- "MonStatus"
+query <- "Sample Event Report"
 query_message <- paste0("MacroplotReport MonStatus = ", data$MonStatus, ". ", "SampleEventReport MonStatus") 
 values_data <- data$MonStatusError
 values_valid <- data$MonStatus
@@ -829,12 +832,14 @@ SampleEventReport_merge <- SampleEventReport %>%
   select(!c(Multi_PU, LegacyMonitoringStatus))
 
 #### Merge Macroplot Report and Sample Event Report
-MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot", "SampleEventDate", "MonStatus")) %>%
+MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot", "SampleEventDate", "SampleEventDate_Year", "MonStatus")) %>%
+                     
   relocate(AdministrationUnit_Name, .before = Macroplot) %>%
   relocate(ProjectUnit, .after = Purpose) %>%
   relocate(Type, .after = Purpose) %>% 
   relocate(Macroplot, .after = Type) %>%
   relocate(SampleEventDate, .after = Visited) %>%
+  relocate(SampleEventDate_Year, .after = SampleEventDate) %>% 
   relocate(MonStatus, .after = LegacyMonStatus) %>%
   relocate(LocatedBy, .before = StartPoint)
 ```
@@ -843,5 +848,5 @@ MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("
 MetadataReport[] <- lapply(MetadataReport, function(x) gsub(",", ";", x))
 
 # save metadata file as csv
-write.csv(MetadataReport, paste0(path_file, target_park, "/", target_park, "_MetadataReport.csv"), quote=FALSE, row.names = FALSE, na = "") 
+write.csv(MetadataReport, paste0(path_file, target_park, "_MetadataReport.csv"), quote=FALSE, row.names = FALSE) 
 ```
