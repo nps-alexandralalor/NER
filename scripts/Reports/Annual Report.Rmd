@@ -100,54 +100,33 @@ target_year <- c(2025)
 # Grouping Tables
 
 ```{r}
-table <- MetadataReport %>% 
-  mutate(Plot_Type = ifelse(Purpose == "Fire Monitoring Handbook",
-                            paste0("FMH - ", Type),
-                            ifelse(Purpose == "Rapid Assessment",
-                                   paste0("RA - ", Type),
-                                   ifelse(Purpose == "Inventory & Monitoring",
-                                          paste0("I&M - ", Type),
-                                          ifelse(Purpose == "Composite Burn Index",
-                                                 "CBI",
-                                                 ifelse(Purpose == "Fuels",
-                                                        "Fuels", 
-                                                        paste0("FMH - ", Type))))))) %>% 
-  group_by(AdministrationUnit_Name) %>% 
-  mutate(n_total_plots_ByPark = n_distinct(Macroplot)) %>% 
+table <- MetadataReport %>%
+  mutate(Purpose_Code = ifelse(Purpose == "Fire Monitoring Handbook", "FMH",
+                            ifelse(Purpose == "Inventory & Monitoring", "I&M",
+                                   ifelse(Purpose == "Composite Burn Index", "CBI",
+                                          ifelse(Purpose=="Rapid Assessment","RA",
+                                                 ifelse(Purpose=="Fuels","Fuels",
+                                                        "FMH")))))) %>%
+  mutate(Purpose_Code = ifelse(is.na(Purpose_Code), "FMH", Purpose_Code)) %>% 
+  mutate(Plot_Type = paste0(Purpose_Code, " - ", Type)) %>% 
+  # group_by(AdministrationUnit_Name) %>% 
+  # mutate(n_total_plots_ByPark = n_distinct(Macroplot)) %>% 
   group_by(AdministrationUnit_Name, Plot_Type) %>%
   mutate(n_total_plots_ByParkPlotType = n_distinct(Macroplot)) %>% 
   group_by(AdministrationUnit_Name, Plot_Type, UV1) %>%
   mutate(n_total_plots_ByParkPlotTypeUV1 = n_distinct(Macroplot)) %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, UV2) %>%
-  mutate(n_total_plots_ByParkPlotTypeUV2 = n_distinct(Macroplot)) %>% 
+  # group_by(AdministrationUnit_Name, Plot_Type, UV2) %>%
+  # mutate(n_total_plots_ByParkPlotTypeUV2 = n_distinct(Macroplot)) %>% 
   group_by(AdministrationUnit_Name, Plot_Type, UV1, UV2) %>%
   mutate(n_total_plots_ByParkPlotTypeUV1UV2 = n_distinct(Macroplot)) %>% 
   ungroup()
 ```
 
-The table below summarizes all projects with plots sampled in the current year.
+### Group by Park and Plot Type
 
 ```{r}
 # reduce to project summary with target year totals
-table1a <- table %>% 
-  group_by(AdministrationUnit_Name, n_total_plots_ByPark) %>% 
-  dplyr::summarise(first_year = min(SampleEventDate_Year),
-                   last_year = max(SampleEventDate_Year),
-                   n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == target_year]))  # designate current year
-```
-
-```{r}
-# # reduce to project summary with target year totals
-# table1b <- table %>% 
-#   group_by(AdministrationUnit_Name, Purpose, n_total_plots_ByParkPurpose) %>% 
-#   dplyr::summarise(first_year = min(SampleEventDate_Year),
-#                    last_year = max(SampleEventDate_Year),
-#                    n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == target_year]))  # designate current year
-```
-
-```{r}
-# reduce to project summary with target year totals
-table1c <- table %>% 
+table_a <- table %>% 
   group_by(AdministrationUnit_Name, Plot_Type, n_total_plots_ByParkPlotType) %>% 
   dplyr::summarise(first_year = min(SampleEventDate_Year),
                    last_year = max(SampleEventDate_Year),
@@ -155,52 +134,59 @@ table1c <- table %>%
   select(AdministrationUnit_Name, Plot_Type, n_total_plots_ByParkPlotType, n_current_yr_plots)
 ```
 
+### Group by Park, Plot Type, and Project Unit
+
 ```{r}
 # reduce to project summary with target year totals
-table1d <- table %>% 
+table_b <- table %>% 
   group_by(AdministrationUnit_Name, Plot_Type, UV1, n_total_plots_ByParkPlotTypeUV1) %>% 
   dplyr::summarise(first_year = min(SampleEventDate_Year),
                    last_year = max(SampleEventDate_Year),
                    n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == target_year]))
 ```
 
-```{r}
-# # reduce to project summary with target year totals
-# table1e <- table %>% 
-#   group_by(AdministrationUnit_Name, Plot_Type, UV2, n_total_plots_ByParkPlotTypeUV2) %>% 
-#   dplyr::summarise(first_year = min(SampleEventDate_Year),
-#                    last_year = max(SampleEventDate_Year),
-#                    n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == target_year]))  # designate current year
-```
+### Group by Park, Plot Type, Project Unit, and Monitoring Type
 
 ```{r}
-# # reduce to project summary with target year totals
-# table1f <- table %>% 
-#   group_by(AdministrationUnit_Name, Plot_Type, UV1, UV2, n_total_plots_ByParkPlotTypeUV1UV2) %>% 
-#   dplyr::summarise(first_year = min(SampleEventDate_Year),
-#                    last_year = max(SampleEventDate_Year),
-#                    n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == target_year]))  # designate current year
-```
-
-```{r}
-table1c_summ <- table1c %>% 
-  select(AdministrationUnit_Name, Plot_Type, n_total_plots_ByParkPlotType)
-
-table1d_summ <- table1d %>% 
-  filter(n_current_yr_plots > 0)
-
-table1_summ <- merge(table1d_summ, table1c_summ) %>% 
-  mutate(n_total_plots = ifelse(Plot_Type == "I&M - Forest", 
-                                n_total_plots_ByParkPlotTypeUV1,
-                                n_total_plots_ByParkPlotType)) %>% 
-  select(!c(n_total_plots_ByParkPlotType, n_total_plots_ByParkPlotTypeUV1))
+# reduce to project summary with target year totals
+table_c <- table %>%
+  group_by(AdministrationUnit_Name, Plot_Type, UV1, UV2, n_total_plots_ByParkPlotTypeUV1UV2) %>%
+  dplyr::summarise(first_year = min(SampleEventDate_Year),
+                   last_year = max(SampleEventDate_Year),
+                   n_current_yr_plots = n_distinct(Macroplot[SampleEventDate_Year == target_year]))  # designate current year
 ```
 
 # Table 1. Fire Effects Plot Workload
 
+The table below summarizes all projects with plots sampled in the current year.
+
+### Table 1 Final Groupings
+
+```{r}
+table_c_ProjectUnit <- table_c %>% 
+  filter(n_current_yr_plots > 0) %>% 
+  group_by(AdministrationUnit_Name, Plot_Type, UV1) %>% 
+  dplyr::summarise(UV1_UV2 = paste(na.omit(UV2), collapse = ", "),
+                   .groups = "drop")
+
+table_a_filter <- table_a %>% 
+  select(AdministrationUnit_Name, Plot_Type, n_total_plots_ByParkPlotType)
+
+table_b_filter <- table_b %>% 
+  filter(n_current_yr_plots > 0)
+
+table1_add <- merge(table_b_filter, table_a_filter) %>% 
+  mutate(n_total_plots = ifelse(Plot_Type == "I&M - Forest", 
+                                n_total_plots_ByParkPlotTypeUV1,
+                                n_total_plots_ByParkPlotType)) %>% 
+  select(!c(n_total_plots_ByParkPlotType, n_total_plots_ByParkPlotTypeUV1))
+
+table1 <- merge(table1_add, table_c_ProjectUnit)
+```
+
 ```{r year summ}
 ## Summarise yearly plot activity
-target_year_summ <- table1_summ %>% 
+target_year_summ <- table1 %>% 
   group_by(AdministrationUnit_Name, UV1, Plot_Type) %>%
   dplyr::summarise(Years = paste0(first_year, "-", last_year),
                    Annual_Total = n_current_yr_plots,
@@ -238,29 +224,46 @@ target_year_summ_w_totals %>%
 
 This table, found in Appendix B, summarizes the number of plots by type in each monitoring unit
 
+### Table B-1 Final Groupings
+
+```{r}
+table_c_ProjectUnit <- table_c %>% 
+  group_by(AdministrationUnit_Name, Plot_Type, UV1) %>% 
+  dplyr::summarise(UV1_UV2 = paste(na.omit(UV2), collapse = ", "),
+                   .groups = "drop")
+
+table_b_filter <- table_b %>% 
+  select(!(n_current_yr_plots))
+
+tableB <- merge(table_b_filter, table_c_ProjectUnit) %>%
+  mutate(UV1 = ifelse(UV1_UV2 != "", paste0(UV1, "<br>(", UV1_UV2, ")"), UV1)) %>%
+  select(!c(UV1_UV2))
+```
+
 ```{r all plot summ, warning=FALSE}
 
 ## Summarise plot activity
-all_year_summ <- table1 %>% 
-  group_by(Park, `Monitoring Unit`, `Plot Type`) %>%
-  summarise(`Years Data Collected<br>(start-end)` = paste0(first_year, "-", last_year),
-            `Total Plots` = n_total_plots,
-            .groups = "drop") %>%
-  arrange(`Park`, `Monitoring Unit`) %>% 
+all_year_summ <- tableB %>% 
+  group_by(AdministrationUnit_Name, UV1, Plot_Type) %>%
+  dplyr::summarise(Years = paste0(first_year, "-", last_year),
+                   Total_Plots = n_total_plots_ByParkPlotTypeUV1,
+                   .groups = "drop") %>%
+  arrange(AdministrationUnit_Name, Plot_Type) %>% 
   mutate_all(as.character)
 
 # Calculate totals
 all_year_summ_totals <- all_year_summ %>%
-  mutate(`Park` = "Total",
-         `Monitoring Unit` = "",
-         `Plot Type` = "",
-         `Years Data Collected<br>(start-end)` = "",
-         `Total Plots` = sum(as.numeric(`Total Plots`))) %>% 
+  mutate(AdministrationUnit_Name = "Total",
+         UV1 = "",
+         Plot_Type = "",
+         Years = "",
+         Total_Plots = sum(as.numeric(Total_Plots))) %>% 
   mutate_all(as.character) %>% 
   slice_head()
 
 # Bind the totals row to the original data frame
 all_year_summ_w_totals <- bind_rows(all_year_summ, all_year_summ_totals)
+names(all_year_summ_w_totals) <- c("Park", "Monitoring Unit", "Plot Type", "Years Data Collected<br>(start-end)", "Total Plots<br>(at park)")
 
 all_year_summ_w_totals %>%
   kbl(escape = FALSE, # to render line break in column headers
