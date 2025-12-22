@@ -90,7 +90,7 @@ remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataRe
 # use commas to build lists of acceptable values for filters  
 # designate target park(s) 
 #unique(MetadataReport$AdministrationUnit_Name) 
-target_park <- c("CATO", "GETT", "MONO", "NERI", "RICH", "SHEN")  
+target_park <- c("CATO", "GETT", "MONO", "NERI", "RICH", "SHEN")
 
 # designate target year or years 
 #unique(MetadataReport$SampleEventDate_Year) 
@@ -108,7 +108,7 @@ table <- MetadataReport %>%
                                                  ifelse(Purpose=="Fuels","Fuels",
                                                         "FMH")))))) %>%
   mutate(Purpose_Code = ifelse(is.na(Purpose_Code), "FMH", Purpose_Code)) %>% 
-  mutate(Plot_Type = paste0(Purpose_Code, " - ", Type)) %>% 
+  mutate(Plot_Type = ifelse(Purpose_Code == "CBI", "CBI", paste0(Purpose_Code, " - ", Type))) %>% 
   # group_by(AdministrationUnit_Name) %>% 
   # mutate(n_total_plots_ByPark = n_distinct(Macroplot)) %>% 
   group_by(AdministrationUnit_Name, Plot_Type) %>%
@@ -165,8 +165,8 @@ The table below summarizes all projects with plots sampled in the current year.
 ```{r}
 table_c_ProjectUnit <- table_c %>% 
   filter(n_current_yr_plots > 0) %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, UV1) %>% 
-  dplyr::summarise(UV1_UV2 = paste(na.omit(UV2), collapse = ", "),
+  group_by(AdministrationUnit_Name, Plot_Type) %>% 
+  dplyr::summarise(UV1_UV2 = paste(na.omit(unique(UV1)), collapse = ", "),
                    .groups = "drop")
 
 table_a_filter <- table_a %>% 
@@ -181,7 +181,9 @@ table1_add <- merge(table_b_filter, table_a_filter) %>%
                                 n_total_plots_ByParkPlotType)) %>% 
   select(!c(n_total_plots_ByParkPlotType, n_total_plots_ByParkPlotTypeUV1))
 
-table1 <- merge(table1_add, table_c_ProjectUnit)
+table1 <- merge(table1_add, table_c_ProjectUnit) %>% 
+  mutate(UV1 = UV1_UV2) %>%
+  select(!c(UV1_UV2))
 ```
 
 ```{r year summ}
