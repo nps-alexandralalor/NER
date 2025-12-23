@@ -15,7 +15,7 @@ This report summarizes plot work by the NPS Fire Ecology Program. The included t
 
 The code summarizes records in the Macroplot Report and Sample Event Report that can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server. You can recreate this Metadata Report by running code found in the file "QAQC_MetadataReport.R", under the scripts folder for this R project.
 
-### Setup
+### Setup  {.hidden}
 
 ```{r}
 ## Markdown Options
@@ -49,7 +49,7 @@ path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
 #path_data <- paste0("C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/")
 ```
 
-### Load Data
+### Load Data  {.hidden}
 
 Load in the Metadata Report. This Metadata Report was created by combining Macroplot Reports and Sample Event Reports from each Admin Unit, which can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
 
@@ -72,7 +72,7 @@ MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"
 MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"), quote = "")
 ```
 
-### Merge Data
+### Merge Data  {.hidden}
 
 ```{r}
 #MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_GETT, MetadataReport_RICH)
@@ -82,7 +82,7 @@ MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport
 remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
 ```
 
-### Clean Data
+### Clean Data  {.hidden}
 
 ```{r}
 table <- MetadataReport %>%
@@ -98,7 +98,7 @@ table <- MetadataReport %>%
   mutate(n_total_plots_ByParkPlotType = n_distinct(Macroplot))
 ```
 
-### Target Park / Target Year
+### Target Park / Target Year  {.hidden}
 
 ```{r set parameters, include=F}
 ### Select Data to Summarize 
@@ -112,7 +112,7 @@ target_park <- c("CATO", "GETT", "MONO", "NERI", "RICH", "SHEN")
 target_year <- c(2025)
 ```
 
-### Group by Project Unit
+### Group By {.hidden}
 
 ```{r}
 table_ProjectUnit <- table %>% 
@@ -133,7 +133,8 @@ table_MonitoringType <- table %>%
                    Annual_Total = n_distinct(Macroplot[SampleEventDate_Year == target_year]),
                    Total_Plots_ByProject = n_distinct(Macroplot),
                    Total_Plots_ByPark = mean(n_total_plots_ByParkPlotType),
-                    .groups = "drop")
+                    .groups = "drop") %>% 
+  rename(UV1 = UV2, UV2 = UV1)
 ```
 
 # Table 1. Fire Effects Plot Workload
@@ -194,11 +195,11 @@ This table, found in Appendix B, summarizes the number of plots by type in each 
 # Summarise plot activity
 tableB1 <- table_ProjectUnit %>% 
   group_by(AdministrationUnit_Name, Plot_Type, UV1) %>%
-  dplyr::summarise(UV2 = paste(na.omit(unique(UV2), collapse = ", ")),
+  dplyr::summarise(UV2 = paste(na.omit(unique(UV2)), collapse = ", "),
                    Years = paste0(min(First_Year), "-", max(Last_Year)),
                    Total_Plots = mean(Total_Plots_ByProject),
                    .groups = "drop") %>% 
-  mutate(UV2 = ifelse(Plot_Type == "FMH - Grassland", "Mixed Grassland", UV2)) %>% 
+  #mutate(UV2 = ifelse(Plot_Type == "FMH - Grassland", "Mixed Grassland", UV2)) %>% 
   mutate(UV1 = ifelse(UV2 != "", paste0(UV1, "<br>(", UV2, ")"), UV1)) %>% 
   select(!c(UV2))
 
