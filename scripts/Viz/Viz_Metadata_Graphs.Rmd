@@ -3,19 +3,25 @@ title: "FFI Database Summary"
 subtitle: "Northeast Region"
 output: 
   html_document:
-    toc: true
-    toc-float: true
+    theme: readable
+    highlight: 
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      smooth_scroll: yes
     code_download: true
-date: "`r Sys.Date()`"
+  pdf_document:
+    toc: yes
+    toc_depth: 2
 ---
 
 # Purpose
 
-This report summarizes plot work by the NPS Fire Ecology Program. The included tables and graphs allow a user to quickly view the overall status of program, park, project, or protocol activities in an FFI admin unit.
+This report summarizes plot work by the NPS Fire Ecology Program. The included graphs allow a user to quickly view the overall status of program, park, project, or protocol activities in an FFI admin unit.
 
 The code summarizes records in the Macroplot Report and Sample Event Report that can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server. You can recreate this Metadata Report by running code found in the file "QAQC_MetadataReport.R", under the scripts folder for this R project.
 
-### Setup
+### Setup  {.hidden}
 
 ```{r}
 ## Markdown Options
@@ -49,11 +55,12 @@ library(ggplot2)
 here()
 
 # Adjust File Paths
-path_data <- paste0("C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/")
+path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
+#path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 path_graphs <- paste0(here(), "/output/graphs/")
 ```
 
-### Load Data
+### Load Data  {.hidden}
 
 Load in the Metadata Report. This Metadata Report was created by combining Macroplot Reports and Sample Event Reports from each Admin Unit, which can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
 
@@ -76,19 +83,17 @@ MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"
 MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"), quote = "")
 ```
 
-### Merge Data
+### Merge Data  {.hidden}
 
 ```{r}
-#MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_GETT, MetadataReport_RICH)
-
 MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
 
 remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
 ```
 
-# Add Columns
+# Add Columns  {.hidden}
 
-### Region
+### Region  {.hidden}
 
 -   Region (NER)
 
@@ -116,7 +121,7 @@ MetadataReport <- MetadataReport %>%
   relocate(Unit, .before = AdministrationUnit_Name)
 ```
 
-### Macroplot
+### Macroplot  {.hidden}
 
 -   Macroplot_Num (01, 02...)
 
@@ -131,15 +136,10 @@ MetadataReport <- MetadataReport %>%
   extract(Macroplot, regex = "([0-9]+)", into = c("Macroplot_Num"), remove = F) %>% 
   separate(Macroplot, sep = "(?=[0-9])", into = c("Macroplot_Code"), remove = F) %>%
   mutate(Macroplot_Num = ifelse(is.na(Macroplot_Num), 0, Macroplot_Num)) %>% 
-  mutate(Macroplot_Num = as.numeric(Macroplot_Num)) %>% 
-  #mutate(PlotType = ifelse(grepl("(RA)", Macroplot), "RA", "FMH")) %>%
-  separate(DateIn, sep = "-", into = c("DateIn_Year", "Month", "Day"), remove = F) %>%
-  separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "Month", "Day"), remove = F) %>%
-  #relocate(PlotType, .after = Purpose) %>% 
-  select(!c(Month, Day))
+  mutate(Macroplot_Num = as.numeric(Macroplot_Num))
 ```
 
-### Disturbance
+### Disturbance  {.hidden}
 
 -   Disturbance_Type (Burn, Herbicide, Mechanical, Mow)
 
@@ -156,7 +156,7 @@ Disturbances <- MetadataReport %>%
   select(!c(Month, Day))
 ```
 
-### MonStatus
+### MonStatus  {.hidden}
 
 -   Entry / Prefix (0, 1, 2, 3 , 4...)
 
@@ -192,7 +192,7 @@ MonStatus <- MonStatus %>%
          TimeSince = as.numeric(TimeSince))
 ```
 
-### Other
+### Other  {.hidden}
 
 -   Disturbance_Entry (to match with MonStatus)
 
@@ -204,205 +204,18 @@ MonStatus <- MonStatus %>%
 
 -   FuelType (PIPO, PIED, etc.)
 
-### Merge
+### Merge  {.hidden}
 
 ```{r}
 MetadataReport_all <- merge(MetadataReport, MonStatus, by = c("MonStatus"), all = T) %>% 
   relocate(MonStatus, .after = SampleEventDate_Year) %>%
   relocate(LegacyMonStatus, .before = MonStatus)
-MetadataReport <- merge(MetadataReport, Disturbances, by = c("AdministrationUnit_Name", "Macroplot", "MonStatus", "SampleEventDate"), all = T) %>% 
+MetadataReport_all <- merge(MetadataReport_all, Disturbances, by = c("AdministrationUnit_Name", "Macroplot", "MonStatus", "SampleEventDate"), all = T) %>% 
   relocate(AdministrationUnit_Name, .after = Unit) %>% 
   relocate(Macroplot, .after = Purpose) %>%
   relocate(Type, .after = Purpose) %>% 
   relocate(MonStatus, .after = LegacyMonStatus) %>% 
   relocate(SampleEventDate, .before = SampleEventDate_Year)
-```
-
-# Tables
-
-```{r set parameters, include=F}
-### Select Data to Summarize
-# use commas to build lists of acceptable values for filters
-
-# designate target park(s)
-unique(MetadataReport$AdministrationUnit_Name)
-target_park <- c("CATO", "GETT", "MONO", "NERI", "RICH")
-
-# designate target year or years
-unique(MetadataReport$SampleEventDate_Year)
-target_year <- c(2025)
-```
-
-```{r}
-MetadataReport_filter <- MetadataReport %>% 
-  filter(Type != "",
-         Visited != "")
-```
-
-### Overall Program Summary
-
-```{r program summary}
-## Summarise projects and events by park
-program_summ <- MetadataReport_filter %>%
-  summarise(`Parks` = n_distinct(AdministrationUnit_Name),
-            `Projects` = n_distinct(ProjectUnit),
-            `Number of Plots` = n_distinct(Macroplot),
-            `Monitoring Statuses` = n_distinct(MonStatus),
-            `Visit Dates` = n_distinct(SampleEventDate),
-            `Protocols Used` = n_distinct(Protocols))
-
-program_summ %>% 
-  kbl(align = "lcccccc") %>%
-  kable_styling(bootstrap_options = c("striped","condensed"), 
-                full_width = F, position = "left", fixed_thead = T,
-                row_label_position = "c") %>% 
-  row_spec(0, font_size = 14, bold = TRUE) %>% 
-  row_spec(nrow(program_summ), font_size = 14, bold = TRUE)
-```
-
-```{r}
-## Summarise projects by park
-target_park_summ <- MetadataReport_filter %>%
-  filter(AdministrationUnit_Name %in% target_park) %>% 
-  group_by(`Park` = AdministrationUnit_Name) %>%
-  summarise(`First Visit` = min(as.numeric(SampleEventDate_Year)),
-            `Latest Visit` = max(as.numeric(SampleEventDate_Year)),
-            `Number of Plots` = n_distinct(Macroplot),
-            `Monitoring Statuses` = n_distinct(MonStatus)) %>% 
-  arrange(`Park`) %>% 
-  ungroup() %>% 
-  mutate_all(as.character)
-
-
-
-target_park_summ <- MetadataReport_filter %>%
-  filter(Park == target_park) %>% 
-  group_by(`Project Name` = ProjectUnit) %>%
-  summarise(`Plot Type` = unique(PlotType_Name),
-            `First Visit` = min(as.numeric(SampleEventDate_Year)),
-            `Latest Visit` = max(as.numeric(SampleEventDate_Year)),
-            `Number of Plots` = n_distinct(Macroplot),
-            `Monitoring Statuses` = n_distinct(MonStatus),
-            `Protocols Used` = n_distinct(Protocols)) %>% 
-  arrange(`Project Name`) %>% 
-  ungroup() %>% 
-  mutate_all(as.character)
-
-
-
-# Calculate totals
-target_park_summ_totals <- target_park_summ %>%
-  summarise(`Number of Plots` = sum(as.numeric(`Number of Plots`))) %>% 
-  mutate(`Park` = "",
-         `Type` = "",
-         `First Visit` = "",
-         `Latest Visit` = "Total",
-         `Monitoring Statuses` = "") %>% 
-  mutate_all(as.character)
-
-# Bind the totals row to the original data frame
-target_park_summ_w_totals <- bind_rows(target_park_summ, target_park_summ_totals)
-  
-target_park_summ_w_totals %>% 
-  kbl(align = "lccccc") %>%
-  kable_styling(bootstrap_options = c("striped","condensed"), 
-                full_width = F, position = "left", fixed_thead = T) %>% 
-  row_spec(nrow(target_park_summ_w_totals), font_size = 14, bold = TRUE)
-```
-
-### Protocol Use Summary
-
-The table below summarizes the frequency of use of protocols occurring in the FFI database, as utilized by the NPS Fire Ecology program. Protocols are arranged in descending order by number of plots such that the most frequently used protocols are listed first.
-
-```{r protocol summ}
-## Summarise protocol use by status
-protocol_use_summ <- MetadataReport_filter %>%
-  filter(Protocols != "") %>% 
-  group_by(`Protocol` = Protocols) %>%
-  summarise(`First Use` = min(as.numeric(SampleEventDate_Year)),
-            `Latest Use` = max(as.numeric(SampleEventDate_Year)),
-            `Number of Plots` = n_distinct(Macroplot),
-            `Number of Projects` = n_distinct(ProjectUnit),
-            `Number of Monitoring Statuses` = n_distinct(MonStatus),
-            `Number of Parks` = n_distinct(AdministrationUnit_Name)) %>% 
-  arrange(desc(`Number of Plots`))
-
-protocol_use_summ %>% 
-  kbl(align = "lcccccc") %>%
-  kable_styling(bootstrap_options = c("striped","condensed"), 
-                full_width = F, position = "left", fixed_thead = T) %>% 
-  row_spec(0, font_size = 14, bold = TRUE)
-```
-
-### Filtered Summaries
-
-The code underlying this report has been manipulated to display summaries of the following selected park(s) and year(s).\
-\
-Selected park(s): [`r target_park`]{style="color:red"}\
-Selected year(s): [`r target_year`]{style="color:red"}
-
-#### Park Summary: [`r target_park`]{style="color:red"}
-
-The table below summarizes sample events recorded within the `r target_park` project.
-
-```{r project summ}
-## Summarise project
-# uses 'target park' variable designated above
-target_project_summ <- MetadataReport_all %>%
-  filter(AdministrationUnit_Name == target_park) %>%
-  group_by(`Monitoring Status` = MonStatus,
-           `Order` = MonStatusOrd) %>%
-  summarise(`Pre/Post` = unique(Status),
-            `First Visit` = min(SampleEventDate_Year),
-            `Latest Visit` = max(SampleEventDate_Year),
-            `Number of Plots Visited` = n_distinct(Macroplot),
-            `Protocols Used` = n_distinct(Protocols)) %>% 
-  arrange(`Order`) %>% 
-  select(!`Order`)
-
-target_project_summ %>% 
-  kbl(align = "lccccc") %>%
-  kable_styling(bootstrap_options = c("striped","condensed"), 
-                full_width = F, position = "left", fixed_thead = T) %>% 
-  row_spec(0, font_size = 14, bold = TRUE)
-```
-
-#### Plot Activity Summary: [`r target_year`]{style="color:red"}
-
-The table below summarizes all projects with plots sampled within the following year(s): `r target_year`.
-
-```{r year summ}
-## Summarise yearly plot activity
-# uses 'target year' variable designated above
-target_year_summ <- MetadataReport_all %>%
-  filter(SampleEventDate_Year %in% target_year) %>% 
-  group_by(`Park` = AdministrationUnit_Name) %>%
-  summarise(`Project Name` = unique(ProjectUnit),
-            `Start Date` = as.character(min(SampleEventDate)),
-            `End Date` = as.character(max(SampleEventDate)),
-            `Number of Plots` = n_distinct(Macroplot),
-            `Protocols Used` = n_distinct(Protocols)) %>% 
-  arrange(`Park`) %>% 
-  ungroup()
-
-# Calculate totals
-year_summ_totals <- target_year_summ %>%
-  summarise(across(where(is.numeric), \(x) sum(x, na.rm = TRUE))) %>%
-  mutate(`Park` = "",
-         `Project Name` = "",
-         `Plot Type` = "",
-         `Start Date` = "",
-         `End Date` = "Total")
-
-# Bind the totals row to the original data frame
-target_year_summ_w_totals <- bind_rows(target_year_summ, year_summ_totals)
-
-target_year_summ_w_totals %>% 
-  kbl(align = "lcccccc") %>%
-  kable_styling(bootstrap_options = c("striped","condensed"), 
-                full_width = F, position = "left", fixed_thead = T) %>% 
-  row_spec(0, font_size = 14, bold = TRUE) %>% 
-  row_spec(nrow(target_year_summ_w_totals), font_size = 14, bold = TRUE)
 ```
 
 # Graphs

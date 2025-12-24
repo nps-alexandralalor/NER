@@ -1,0 +1,194 @@
+---
+title: "FFI Database Summary"
+subtitle: "Northeast Region"
+output: 
+  html_document:
+    theme: readable
+    highlight: 
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      smooth_scroll: yes
+    code_download: true
+  pdf_document:
+    toc: yes
+    toc_depth: 2
+---
+
+# Purpose
+
+This report summarizes plot work by the NPS Fire Ecology Program. The included tables allow a user to quickly view the overall status of program, park, project, or protocol activities in an FFI admin unit.
+
+The code summarizes records in the Macroplot Report and Sample Event Report that can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server. You can recreate this Metadata Report by running code found in the file "QAQC_MetadataReport.R", under the scripts folder for this R project.
+
+### Setup {.hidden}
+
+```{r}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+## Install packages (if needed)
+
+# install.packages("tidyverse")
+# install.packages("kableExtra")
+# install.packages("ggplot2")
+```
+
+```{r}
+## Load Packages
+
+# "here" helps you easily find and reference your working directory
+library(here)
+# "tidyverse" has lots of useful functions for data cleaning
+library(tidyverse)
+# "kableExtra" is used to produce formatted tables
+library(kableExtra)
+library(ggplot2)
+```
+
+```{r}
+## Adjust File Paths
+
+# Identify working directory
+here()
+
+# Adjust File Paths
+path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
+#path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+path_graphs <- paste0(here(), "/output/graphs/")
+```
+
+### Load Data {.hidden}
+
+Load in the Metadata Report. This Metadata Report was created by combining Macroplot Reports and Sample Event Reports from each Admin Unit, which can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
+
+```{r}
+# Load in data
+MetadataReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_MetadataReport.csv"), quote = "")
+MetadataReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_MetadataReport.csv"), quote = "")
+MetadataReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_MetadataReport.csv"), quote = "")
+MetadataReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_MetadataReport.csv"), quote = "")
+MetadataReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_MetadataReport.csv"), quote = "")
+MetadataReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_MetadataReport.csv"), quote = "")
+MetadataReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_MetadataReport.csv"), quote = "")
+MetadataReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_MetadataReport.csv"), quote = "")
+MetadataReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_MetadataReport.csv"), quote = "")
+MetadataReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_MetadataReport.csv"), quote = "")
+MetadataReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_MetadataReport.csv"), quote = "")
+MetadataReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_MetadataReport.csv"), quote = "")
+MetadataReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_MetadataReport.csv"), quote = "")
+MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"), quote = "")
+MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"), quote = "")
+```
+
+### Merge Data {.hidden}
+
+```{r}
+MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+
+remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+```
+
+# Tables
+
+### Target Values
+
+The code underlying this report has been manipulated to display summaries of the following selected park(s) and year(s).
+
+```{r set parameters, include=F}
+# designate target park(s)
+unique(MetadataReport$AdministrationUnit_Name)
+target_park <- c("CATO", "GETT", "MONO", "NERI", "RICH")
+
+# designate target year or years
+unique(MetadataReport$SampleEventDate_Year)
+target_year <- c(2025)
+```
+
+Selected park(s): [`r target_park`]{style="color:red"}\
+Selected year(s): [`r target_year`]{style="color:red"}
+
+### Protocol Use Summary
+
+The table below summarizes the frequency of use of protocols occurring in the FFI database, as utilized by the NPS Fire Ecology program. Protocols are arranged in descending order by number of plots such that the most frequently used protocols are listed first.
+
+```{r protocol summ}
+## Summarise protocol use by status
+protocol_use_summ <- MetadataReport %>%
+  filter(Protocols != "") %>% 
+  group_by(`Protocol` = Protocols) %>%
+  summarise(`First Use` = min(as.numeric(SampleEventDate_Year)),
+            `Latest Use` = max(as.numeric(SampleEventDate_Year)),
+            `Number of Plots` = n_distinct(Macroplot),
+            `Number of Projects` = n_distinct(ProjectUnit),
+            `Number of Monitoring Statuses` = n_distinct(MonStatus),
+            `Number of Parks` = n_distinct(AdministrationUnit_Name)) %>% 
+  arrange(desc(`Number of Plots`))
+
+protocol_use_summ %>% 
+  kbl(align = "lcccccc") %>%
+  kable_styling(bootstrap_options = c("striped","condensed"), 
+                full_width = F, position = "left", fixed_thead = T) %>% 
+  row_spec(0, font_size = 14, bold = TRUE)
+```
+
+### Park Summary: [`r target_park`]{style="color:red"}
+
+The table below summarizes sample events recorded within the `r target_park` projects.
+
+```{r project summ}
+## Summarise project
+# uses 'target park' variable designated above
+target_project_summ <- MetadataReport %>%
+  filter(AdministrationUnit_Name %in% target_park) %>%
+  group_by(`Monitoring Status` = MonStatus) %>%
+  summarise(`First Visit` = min(SampleEventDate_Year),
+            `Latest Visit` = max(SampleEventDate_Year),
+            `Number of Plots Visited` = n_distinct(Macroplot),
+            `Protocols Used` = n_distinct(Protocols))
+
+target_project_summ %>% 
+  kbl(align = "lccccc") %>%
+  kable_styling(bootstrap_options = c("striped","condensed"), 
+                full_width = F, position = "left", fixed_thead = T) %>% 
+  row_spec(0, font_size = 14, bold = TRUE)
+```
+
+### Plot Activity Summary: [`r target_year`]{style="color:red"}
+
+The table below summarizes all projects with plots sampled within the following year(s): `r target_year`.
+
+```{r year summ}
+## Summarise yearly plot activity
+# uses 'target year' variable designated above
+target_year_summ <- MetadataReport %>%
+  filter(SampleEventDate_Year %in% target_year) %>% 
+  group_by(`Park` = AdministrationUnit_Name) %>%
+  summarise(`Project Name` = unique(ProjectUnit),
+            `Start Date` = as.character(min(SampleEventDate)),
+            `End Date` = as.character(max(SampleEventDate)),
+            `Number of Plots` = n_distinct(Macroplot),
+            `Protocols Used` = n_distinct(Protocols)) %>% 
+  arrange(`Park`) %>% 
+  ungroup()
+
+# Calculate totals
+year_summ_totals <- target_year_summ %>%
+  summarise(across(where(is.numeric), \(x) sum(x, na.rm = TRUE))) %>%
+  mutate(`Park` = "",
+         `Project Name` = "",
+         `Start Date` = "",
+         `End Date` = "Total")
+
+# Bind the totals row to the original data frame
+target_year_summ_w_totals <- bind_rows(target_year_summ, year_summ_totals)
+
+target_year_summ_w_totals %>% 
+  kbl(align = "lcccccc") %>%
+  kable_styling(bootstrap_options = c("striped","condensed"), 
+                full_width = F, position = "left", fixed_thead = T) %>% 
+  row_spec(0, font_size = 14, bold = TRUE) %>% 
+  row_spec(nrow(target_year_summ_w_totals), font_size = 14, bold = TRUE)
+```
