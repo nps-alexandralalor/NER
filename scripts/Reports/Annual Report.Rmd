@@ -3,19 +3,21 @@ title: "FFI Database Summary"
 subtitle: "Northeast Region"
 output: 
   html_document:
-    toc: true
-    toc-float: true
+    theme: readable
+    highlight: 
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      smooth_scroll: yes
     code_download: true
-date: "`r Sys.Date()`"
+  pdf_document:
+    toc: yes
+    toc_depth: 2
 ---
 
-# Purpose
+# Annual Report
 
-This report summarizes plot work by the NPS Fire Ecology Program. The included tables and graphs allow a user to quickly view the overall status of program, park, project, or protocol activities in an FFI admin unit.
-
-The code summarizes records in the Macroplot Report and Sample Event Report that can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server. You can recreate this Metadata Report by running code found in the file "QAQC_MetadataReport.R", under the scripts folder for this R project.
-
-### Setup  {.hidden}
+### Setup {.hidden}
 
 ```{r}
 ## Markdown Options
@@ -46,10 +48,10 @@ library(fs)
 ```{r}
 ## Adjust File Paths
 path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
-#path_data <- paste0("C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/")
+#path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 ```
 
-### Load Data  {.hidden}
+### Load Data {.hidden}
 
 Load in the Metadata Report. This Metadata Report was created by combining Macroplot Reports and Sample Event Reports from each Admin Unit, which can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
 
@@ -72,7 +74,7 @@ MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"
 MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"), quote = "")
 ```
 
-### Merge Data  {.hidden}
+### Merge Data {.hidden}
 
 ```{r}
 #MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_GETT, MetadataReport_RICH)
@@ -82,7 +84,7 @@ MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport
 remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
 ```
 
-### Clean Data  {.hidden}
+### Add Columns {.hidden}
 
 ```{r}
 table <- MetadataReport %>%
@@ -98,17 +100,11 @@ table <- MetadataReport %>%
   mutate(n_total_plots_ByParkPlotType = n_distinct(Macroplot))
 ```
 
-### Target Park / Target Year  {.hidden}
+### Target Year {.hidden}
 
 ```{r set parameters, include=F}
-### Select Data to Summarize 
-# use commas to build lists of acceptable values for filters  
-# designate target park(s) 
-#unique(MetadataReport$AdministrationUnit_Name) 
-target_park <- c("CATO", "GETT", "MONO", "NERI", "RICH", "SHEN")
-
 # designate target year or years 
-#unique(MetadataReport$SampleEventDate_Year)
+unique(MetadataReport$SampleEventDate_Year)
 target_year <- c(2025)
 ```
 
