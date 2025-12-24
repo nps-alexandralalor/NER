@@ -21,7 +21,7 @@ This report summarizes plot work by the NPS Fire Ecology Program. The included g
 
 The code summarizes records in the Macroplot Report and Sample Event Report that can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server. You can recreate this Metadata Report by running code found in the file "QAQC_MetadataReport.R", under the scripts folder for this R project.
 
-### Setup  {.hidden}
+### Setup {.hidden}
 
 ```{r}
 ## Markdown Options
@@ -60,7 +60,7 @@ path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
 path_graphs <- paste0(here(), "/output/graphs/")
 ```
 
-### Load Data  {.hidden}
+### Load Data {.hidden}
 
 Load in the Metadata Report. This Metadata Report was created by combining Macroplot Reports and Sample Event Reports from each Admin Unit, which can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
 
@@ -83,7 +83,7 @@ MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"
 MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"), quote = "")
 ```
 
-### Merge Data  {.hidden}
+### Merge Data {.hidden}
 
 ```{r}
 MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
@@ -91,9 +91,9 @@ MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport
 remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
 ```
 
-# Add Columns  {.hidden}
+# Add Columns {.hidden}
 
-### Region  {.hidden}
+### Region {.hidden}
 
 -   Region (NER)
 
@@ -121,7 +121,7 @@ MetadataReport <- MetadataReport %>%
   relocate(Unit, .before = AdministrationUnit_Name)
 ```
 
-### Macroplot  {.hidden}
+### Macroplot {.hidden}
 
 -   Macroplot_Num (01, 02...)
 
@@ -139,7 +139,7 @@ MetadataReport <- MetadataReport %>%
   mutate(Macroplot_Num = as.numeric(Macroplot_Num))
 ```
 
-### Disturbance  {.hidden}
+### Disturbance {.hidden}
 
 -   Disturbance_Type (Burn, Herbicide, Mechanical, Mow)
 
@@ -156,7 +156,7 @@ Disturbances <- MetadataReport %>%
   select(!c(Month, Day))
 ```
 
-### MonStatus  {.hidden}
+### MonStatus {.hidden}
 
 -   Entry / Prefix (0, 1, 2, 3 , 4...)
 
@@ -192,7 +192,7 @@ MonStatus <- MonStatus %>%
          TimeSince = as.numeric(TimeSince))
 ```
 
-### Other  {.hidden}
+### Other {.hidden}
 
 -   Disturbance_Entry (to match with MonStatus)
 
@@ -204,7 +204,7 @@ MonStatus <- MonStatus %>%
 
 -   FuelType (PIPO, PIED, etc.)
 
-### Merge  {.hidden}
+### Merge {.hidden}
 
 ```{r}
 MetadataReport_all <- merge(MetadataReport, MonStatus, by = c("MonStatus"), all = T) %>% 
