@@ -46,6 +46,8 @@ library(tidyverse)
 # "kableExtra" is used to produce formatted tables
 library(kableExtra)
 library(ggplot2)
+library(RColorBrewer)
+library(grDevices)
 ```
 
 ```{r}
@@ -242,11 +244,11 @@ MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %
 # Graphs
 
 ```{r}
-graph_MetadataReport <- MetadataReport_all %>% 
+MetadataReport_all <- MetadataReport_all %>% 
   # remove unnecessary columns
-  select(!c(Latitude, Longitude, UTM_X, UTM_Y, UTM_Zone, Datum, PDOP, Precision, )) %>% 
-  select(!c(Elevation, ElevationUnits, Azimuth, Aspect, SlopeHill, SlopeTransect)) %>% 
-  select(!c(LocatedBy, FutureVisit, DateOut, StartPoint, Directions, Comments, SampleEventTeam, SampleEventComment, LegacyMonStatus)) %>% 
+  # select(!c(Latitude, Longitude, UTM_X, UTM_Y, UTM_Zone, Datum, PDOP, Precision, )) %>% 
+  # select(!c(Elevation, ElevationUnits, Azimuth, Aspect, SlopeHill, SlopeTransect)) %>% 
+  # select(!c(LocatedBy, FutureVisit, DateOut, StartPoint, Directions, Comments, SampleEventTeam, SampleEventComment, LegacyMonStatus)) %>% 
   mutate(AdministrationUnit_Name = factor(AdministrationUnit_Name),
          Type = factor(Type),
          ProjectUnit = factor(ProjectUnit),
@@ -261,40 +263,51 @@ graph_MetadataReport <- MetadataReport_all %>%
          SampleEventDate_Year = as.numeric(SampleEventDate_Year),
          DisturbanceDate = as.Date(DisturbanceDate),
          DisturbanceDate_Year = as.numeric(DisturbanceDate_Year),
-         Entry = as.factor(Entry),
+         Entry = as.numeric(Entry),
          Macroplot_Num = as.factor(Macroplot_Num))
 ```
 
+## Disturbance History
+
 ```{r}
+#unique(MetadataReport_all$AdministrationUnit_Name)
+target_park <- "SHEN"
+target_type <- "Forest"
+```
+
+```{r}
+graph_MetadataReport <- MetadataReport_all %>% 
+  filter(AdministrationUnit_Name == target_park,
+         Type == target_type)
+
 graph_Disturbances <- graph_MetadataReport %>% 
   filter(MonStatus %in% c("Burn", "Herbicide", "Mechanical", "Mow"))
 
-graph_sum_Disturbances <- graph_Disturbances %>% 
-  group_by(Region, Zone, Unit, AdministrationUnit_Name, Type, DisturbanceDate, DisturbanceDate_Year, SampleEventDate_Year, MonStatus) %>% 
-  filter(DisturbanceDate_Year == SampleEventDate_Year) %>% 
-  summarize(n_Macroplot = n()) %>% 
+graph_sum_Disturbances <- graph_Disturbances %>%
+  group_by(Region, Zone, Unit, AdministrationUnit_Name, Type, DisturbanceDate, DisturbanceDate_Year, SampleEventDate_Year, MonStatus) %>%
+  filter(DisturbanceDate_Year == SampleEventDate_Year) %>%
+  summarize(n_Macroplot = n()) %>%
   mutate(DisturbanceDate = as.Date(DisturbanceDate),
-         Macroplot_Num = "Disturbances")
+         Macroplot_Num = "All") %>% 
+  arrange(desc(MonStatus))
 ```
 
-### All FMH
-
 ```{r}
-graph_sum_Disturbances %>% 
-  filter(AdministrationUnit_Name == "RICH",
-         Type == "Grassland") %>% 
+graph_Disturbances %>% 
   ggplot(aes(x = DisturbanceDate, y = MonStatus)) +
-  geom_line(aes(group = MonStatus)) +
-  geom_point(aes(fill = MonStatus), shape = 21, size = 2) +
+  #geom_line(aes(group = MonStatus)) +
+  #geom_point(aes(fill = MonStatus), shape = 21, size = 2) +
+  geom_line(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+            data = graph_sum_Disturbances) +
+  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+             data = graph_sum_Disturbances, shape = 21, size = 2.5) +
   facet_grid(Type ~ AdministrationUnit_Name) +
-  #geom_text(size = 4) +
-  #geom_label_repel(aes(size = 4)) +
   labs(title = "Disturbance History",
        y = "",
        x = "Year",
        fill = "Disturbance Type") +
-  #scale_fill_manual(values=c('yellowgreen', "yellow", 'orange', "red", "darkred","grey")) +
-  scale_x_date(date_labels = "%Y", date_breaks = "1 year") +
+  scale_x_date(limits = c(min(graph_Disturbances$DisturbanceDate), Sys.Date()), 
+               date_labels = "%Y", date_breaks = "1 year") +
   theme_light() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         plot.title = element_text(size = 20, face="bold", hjust = 0.5),
@@ -303,51 +316,23 @@ graph_sum_Disturbances %>%
         axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
         axis.text.y = element_text(size = 8),
         axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
-
 ```
 
-```{r}
-# graph_Disturbances %>% 
-#   filter(AdministrationUnit_Name == "RICH") %>% 
-#   ggplot(aes(x = DisturbanceDate_Year, y = Macroplot_Num)) +
-#   geom_line(aes(group = Macroplot_Num), color = "grey") +
-#   geom_point(aes(color = MonStatus)) +
-#   facet_grid(Type ~ AdministrationUnit_Name) +
-#   labs(title = paste0("Disturbance History"),
-#        subtitle = "Fire Monitoring Handbook (FMH) Plots",
-#        y = "Plot Number",
-#        x = "Year",
-#        color = "Disturbance Type") +
-#   #scale_color_manual(values=c("darkred", "blue", "black", "green")) +
-#   theme_light() +
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-#         plot.title = element_text(size = 20, face="bold", hjust = 0.5),
-#         plot.subtitle = element_text(size = 12, face="italic", hjust = 0.5),
-#         axis.title = element_text(size = 12, face="bold"),
-#         axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-#         axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-#         axis.text.y = element_text(size = 5),
-#         axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1))
-
-```
+## Sample Event History
 
 ```{r}
 graph_MetadataReport %>% 
-  filter(!is.na(Entry),
-         AdministrationUnit_Name == "RICH") %>% 
   ggplot(aes(x = SampleEventDate_Year, y = Macroplot_Num)) +
-  geom_point(aes(color = Entry), size = 2) +
-  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, 
-                 fill = MonStatus), 
-             data = graph_sum_Disturbances %>% 
-               filter(AdministrationUnit_Name == "RICH"),
-             shape = 21) +
   geom_line(aes(group = Macroplot_Num, color = Entry)) +
-  geom_line(aes(group = Macroplot_Num), 
-            data = graph_sum_Disturbances %>% 
-              filter(AdministrationUnit_Name == "RICH",
-                     MonStatus == "Burn"), 
-            color = "black") +
+  geom_point(aes(color = Entry), size = 2) +
+  geom_line(aes(group = Macroplot_Num),
+            data = graph_sum_Disturbances) +
+  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+             data = graph_sum_Disturbances, shape = 21) +
+  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+             data = graph_MetadataReport %>% 
+               filter(AdministrationUnit_Name == target_park,
+                      MonStatus == "Burn"), shape = 3, size = 3, color = "darkred") +
   facet_grid(Type ~ AdministrationUnit_Name) +
   labs(title = paste0("Sample Event History"),
        subtitle = "Fire Monitoring Handbook (FMH) Plots",
@@ -355,8 +340,8 @@ graph_MetadataReport %>%
        x = "Year",
        color = "Entry",
        fill = "Disturbance Type") +
-  #scale_fill_manual(values = c("red", "green", "black", "purple")) +
-  #scale_color_manual(values=c('forestgreen',"lightgreen","lightyellow", "yellow", "orange", 'darkorange', "red","red3", "darkred","darkgrey", "black")) +
+  # scale_color_manual(values=c('forestgreen',"lightgreen","lightyellow", "yellow", "orange", 'darkorange', "orange4", "red","red3", "darkred", "coral4", "black")) +
+  #scale_fill_gradient(low = "green", high = "red") +
   theme_light() +
   scale_x_continuous(breaks = seq(1995, 2030, by = 1)) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -366,8 +351,11 @@ graph_MetadataReport %>%
         axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
         axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
         axis.text.y = element_text(size = 5),
-        axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1))
+        axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1),
+        legend.position = "none")
 ```
+
+## Zone Summary
 
 ### South Zone
 
@@ -385,7 +373,7 @@ graph_MetadataReport %>%
        y = "Plot Number",
        x = "Year",
        color = "Entry") +
-  scale_color_manual(values=c('forestgreen',"yellowgreen","lightgreen","lightyellow", "yellow", "orange", 'darkorange', "red","red3", "darkred","darkgrey", "black")) +
+  # scale_color_manual(values=c('forestgreen',"yellowgreen","lightgreen","lightyellow", "yellow", "orange", 'darkorange', "red","red3", "darkred","darkgrey", "black")) +
   theme_light() +
   scale_x_continuous(breaks = seq(1995, 2030, by = 1)) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
