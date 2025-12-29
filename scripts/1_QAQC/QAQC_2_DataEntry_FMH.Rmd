@@ -136,7 +136,7 @@ qaqc <- function(data, query, query_message, values_check) {
 }
 ```
 
-### Set Target Values {.hidden}
+### Target Values {.hidden}
 
 ```{r}
 # designate target park(s)
@@ -151,15 +151,10 @@ years <- c(2025)
 Make sure to update file paths to be specific for your data.
 
 ```{r}
-# Identify working directory.
-#here()
-
-# Load in data.
-#path_file <- "E:/Allie/R/NER/data/"
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
-path_data <- paste0(path_file, target_park, "/DataEntry/", target_park, "_")
-#path_errors <- paste0(here(), "/output/errors/")
-path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
+# adjust file paths
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " Data QAQC Errors")
 ```
 

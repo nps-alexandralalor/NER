@@ -51,7 +51,7 @@ library(fs)
 ```{r}
 ## Adjust File Paths
 #path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
-path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 ```
 
 ### Load Data {.hidden}

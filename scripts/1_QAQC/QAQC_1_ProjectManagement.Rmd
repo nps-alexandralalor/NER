@@ -127,13 +127,11 @@ target_park <- "GETT"
 ### Adjust File Paths {.hidden}
 
 ```{r import data, include=FALSE}
-# Load in data.
-
+# adjust file paths
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_file <- paste0(path_main, "Exports/", target_park, "/")
-path_data <- paste0(path_file, "ProjectManagement/")
+path_data <- paste0(path_main, "Exports/", target_park, "/")
+path_save <- paste0(path_main, "R Outputs/", target_park, "/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
-#path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 ```
 
@@ -857,5 +855,5 @@ MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("
 MetadataReport[] <- lapply(MetadataReport, function(x) gsub(",", ";", x))
 
 # save metadata file as csv
-write.csv(MetadataReport, paste0(path_file, target_park, "_MetadataReport.csv"), quote=FALSE, row.names = FALSE) 
+write.csv(MetadataReport, paste0(path_save, target_park, "_MetadataReport.csv"), quote=FALSE, row.names = FALSE)
 ```

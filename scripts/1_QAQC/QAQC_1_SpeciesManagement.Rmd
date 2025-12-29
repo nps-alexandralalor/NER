@@ -19,7 +19,7 @@ output:
 
 This code is intended to quality check species metadata, including the Local Species Report. This report can be downloaded via the Species menu on the Species Management tab on the FFI Remote App Server.
 
-### Setup  {.hidden}
+### Setup {.hidden}
 
 ```{r setup, include=FALSE}
 ## Markdown Options
@@ -56,7 +56,7 @@ library(knitr)
 library(here)
 ```
 
-### Create Function  {.hidden}
+### Create Function {.hidden}
 
 ```{r}
 # Blank data frame
@@ -117,32 +117,31 @@ qaqc_species <- function(data, query, query_message, values_check) {
 }
 ```
 
-### Adjust File Paths  {.hidden}
+### Target Park
 
-```{r import data, include=FALSE}
-# Identify working directory.
-here()
-
+```{r}
 # designate target park(s)
 target_park <- "SHEN"
+```
 
-# Load in data.
-#path_file <- "E:/Allie/R/NER/data/"
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
-path_data <- paste0(path_file, target_park, "/")
-#path_errors <- paste0(here(), "/output/errors/")
-path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
+### Adjust File Paths {.hidden}
+
+```{r import data, include=FALSE}
+# adjust file paths
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_data <- paste0(path_main, "Exports/", target_park, "/")
+path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " Species QAQC Errors")
 ```
 
-### Load Data  {.hidden}
+### Load Data {.hidden}
 
 ```{r load data, include=FALSE}
 ## Load Data
 SpeciesReport <- read.csv(paste0(path_data, target_park, "_", "SpeciesReport.csv"))
 ```
 
-### Clean Data  {.hidden}
+### Clean Data {.hidden}
 
 ```{r}
 SpeciesReport <- SpeciesReport %>%
@@ -153,7 +152,7 @@ SpeciesReport <- SpeciesReport %>%
 SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
 ```
 
-### Define Codes  {.hidden}
+### Define Codes {.hidden}
 
 ```{r}
 substrate <- c("BARE", "BOLE", "DUFF", "HAY", "LICHEN", "LITT", "LITTER", "MOSS", "ROCK", "ROOT", "SOIL", "WATER", "WOOD")

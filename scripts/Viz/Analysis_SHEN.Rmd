@@ -74,7 +74,7 @@ here()
 
 # Load in data.
 #path_file <- "E:/Allie/R/NER/data/"
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 path_data <- paste0(path_file, target_park, "/", target_project, "_")
 ```
 
