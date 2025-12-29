@@ -152,12 +152,12 @@ Make sure to update file paths to be specific for your data.
 
 ```{r}
 # Identify working directory.
-here()
+#here()
 
 # Load in data.
 #path_file <- "E:/Allie/R/NER/data/"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
-path_data <- paste0(path_file, target_park, "/Data/", target_park, "_")
+path_data <- paste0(path_file, target_park, "/DataEntry/", target_park, "_")
 #path_errors <- paste0(here(), "/output/errors/")
 path_errors <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/errors/"
 path_errors_name <- paste0(target_park, " Data QAQC Errors")
