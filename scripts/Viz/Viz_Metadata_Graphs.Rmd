@@ -15,7 +15,7 @@ output:
     toc_depth: 3
 ---
 
-# Purpose 
+# Purpose
 
 This report summarizes plot work by the NPS Fire Ecology Program. The included graphs allow a user to quickly view the overall status of program, park, project, or protocol activities in an FFI admin unit.
 
@@ -435,7 +435,7 @@ Selected purpose: [`r target_purpose`]{style="color:red"}\
 Selected park: [`r target_park`]{style="color:red"}\
 Selected type: [`r target_type`]{style="color:red"}
 
-### Disturbance History 
+### Disturbance History
 
 ```{r}
 graph_MetadataReport %>% 
