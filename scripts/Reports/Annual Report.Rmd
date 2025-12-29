@@ -1,18 +1,21 @@
 ---
 title: "FFI Database Summary"
-subtitle: "Northeast Region"
-output: 
+subtitle: Northeast Region
+output:
+  word_document:
+    toc: true
+    toc_depth: 2
+  pdf_document:
+    toc: true
+    toc_depth: 2
   html_document:
     theme: readable
-    highlight: 
-    toc: yes
+    highlight: null
+    toc: true
     toc_depth: 2
     toc_float:
-      smooth_scroll: yes
+      smooth_scroll: true
     code_download: true
-  pdf_document:
-    toc: yes
-    toc_depth: 2
 ---
 
 # Annual Report
@@ -47,8 +50,8 @@ library(fs)
 
 ```{r}
 ## Adjust File Paths
-path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
-#path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+#path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
+path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 ```
 
 ### Load Data {.hidden}
@@ -95,7 +98,7 @@ table <- MetadataReport %>%
                                                  ifelse(Purpose=="Fuels","Fuels",
                                                         "FMH")))))) %>%
   mutate(Purpose_Code = ifelse(is.na(Purpose_Code), "FMH", Purpose_Code)) %>% 
-  mutate(Plot_Type = ifelse(Purpose_Code == "CBI", "CBI", paste0(Purpose_Code, " - ", Type))) %>% 
+  mutate(Plot_Type = paste0(Purpose_Code, " - ", Type)) %>% 
   group_by(AdministrationUnit_Name, Plot_Type) %>%
   mutate(n_total_plots_ByParkPlotType = n_distinct(Macroplot))
 ```
