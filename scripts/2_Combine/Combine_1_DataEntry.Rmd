@@ -1,0 +1,408 @@
+---
+title: "QAQC for FMH Data"
+author: "Alexandra Lalor"
+output:
+  html_document:
+    theme: readable
+    highlight: 
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      smooth_scroll: yes
+    code_download: true
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+# BEFORE STARTING
+
+This code is intended to combine plot data for protocols listed below. This data can be downloaded via Query tab on the FFI Remote App Server by selecting each protocol/method and exporting the file.
+
+-   Surface Fuels - 1000Hr
+
+-   Surface Fuels - Duff_Litter
+
+-   Surface Fuels - Fine
+
+-   Post Burn Severity
+
+-   Trees - Individuals (metric)
+
+-   Density - Quadrats (metric)
+
+-   Density - Belts (metric)
+
+-   Cover - Species Composition (metric)
+
+-   Cover - Points (metric)
+
+### Install Packages (if needed) {.hidden}
+
+```{r}
+# install.packages("tidyverse")
+# install.packages("Rtools")
+# install.packages("janitor")
+# install.packages("condformat")
+# install.packages("knitr")
+# install.packages("here")
+# install.packages("EnvStats")
+```
+
+### Load Packages {.hidden}
+
+```{r}
+# tidyverse and dplyr have lots of useful functions for data cleaning
+library(tidyverse)
+library(dplyr)
+library(plyr)
+# janitor has functions to find duplicates
+library(janitor)
+# EnvStats is needed for the rosnerTest() function
+library(EnvStats)
+# writexl is used to create excel output files
+library(writexl)
+# condformat is used to format excel output files
+library(condformat)
+# knitr is used to create output files from R Markdown
+library(knitr)
+```
+
+### Adjust File Paths {.hidden}
+
+Make sure to update file paths to be specific for your data.
+
+```{r}
+# adjust file paths
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_parks <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+parks <- list.files(path_parks)
+
+# Load in data
+target_park <- "SHEN"
+path_file <- paste0(path_main, "Exports/", target_park, "/")
+path_data <- paste0(path_file, "DataEntry/")
+```
+
+# MERGE AND SAVE
+
+### Load Data {.hidden}
+
+```{r}
+# Load in data
+Fuels1000_all <- read.csv(paste0(path_data, target_park, "_", "Surface Fuels - 1000Hr_XPT.csv"), na.strings = c("","NA","N/A"))
+FuelsDuffLitt_all <- read.csv(paste0(path_data, target_park, "_", "Surface Fuels - Duff_Litter_XPT.csv"), na.strings = c("","NA","N/A"))
+FuelsFine_all <- read.csv(paste0(path_data, target_park, "_", "Surface Fuels - Fine_XPT.csv"), na.strings = c("","NA","N/A"))
+PostBurn_all <- read.csv(paste0(path_data, target_park, "_", "Post Burn Severity (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+Trees_all <- read.csv(paste0(path_data, target_park, "_", "Trees - Individuals (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+Seedlings_all <- read.csv(paste0(path_data, target_park, "_", "Density - Quadrats (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+Shrubs_all <- read.csv(paste0(path_data, target_park, "_", "Density - Belts (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+HerbsObs_all <- read.csv(paste0(path_data, target_park, "_", "Cover - Species Composition (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+HerbsPoints_all <- read.csv(paste0(path_data, target_park, "_", "Cover - Points (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+
+# Drop last column if it's an empty placeholder (common in Excel exports)
+Fuels1000_all <- Fuels1000_all[, -ncol(Fuels1000_all)]
+FuelsDuffLitt_all <- FuelsDuffLitt_all[, -ncol(FuelsDuffLitt_all)]
+FuelsFine_all <- FuelsFine_all[, -ncol(FuelsFine_all)]
+PostBurn_all <- PostBurn_all[, -ncol(PostBurn_all)]
+Trees_all <- Trees_all[, -ncol(Trees_all)]
+Seedlings_all <- Seedlings_all[, -ncol(Seedlings_all)]
+Shrubs_all <- Shrubs_all[, -ncol(Shrubs_all)]
+HerbsObs_all <- HerbsObs_all[, -ncol(HerbsObs_all)]
+HerbsPoints_all <- HerbsPoints_all[, -ncol(HerbsPoints_all)]
+```
+
+### Clean Data {.hidden}
+
+```{r}
+#####
+# Fuels1000
+#####
+Fuels1000_all <- Fuels1000_all %>%
+  # remove trailing/leading whitespace
+  mutate(across(where(is.character), str_trim)) %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+#####
+# FuelsDuffLitt
+#####
+FuelsDuffLitt_all <- FuelsDuffLitt_all %>%  
+  # remove trailing/leading whitespace
+  mutate(across(where(is.character), str_trim)) %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+#####
+# FuelsFine
+#####
+FuelsFine_all <- FuelsFine_all %>%
+  # remove trailing/leading whitespace
+  mutate(across(where(is.character), str_trim)) %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+#####
+# PostBurn
+#####
+PostBurn_all <- PostBurn_all %>%
+  # remove trailing/leading whitespace
+  mutate(across(where(is.character), str_trim)) %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+#####
+# Trees
+#####
+Trees_all <- Trees_all %>%
+  # remove trailing/leading whitespace
+  mutate(across(where(is.character), str_trim)) %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+#####
+# Seedlings
+#####
+Seedlings_all <- Seedlings_all %>%
+  # remove trailing/leading whitespace
+  mutate(across(where(is.character), str_trim)) %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+#####
+# Shrubs
+#####
+Shrubs_all <- Shrubs_all %>%
+  # remove trailing/leading whitespace
+  mutate(across(where(is.character), str_trim)) %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+#####
+# HerbsObs
+#####
+HerbsObs_all <- HerbsObs_all %>%
+  # remove trailing/leading whitespace
+  mutate(across(where(is.character), str_trim)) %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+#####
+# HerbsPoints
+#####
+HerbsPoints_all <- HerbsPoints_all %>%
+  # remove trailing/leading whitespace
+  mutate(across(where(is.character), str_trim)) %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+```
+
+### Filter Data {.hidden}
+
+```{r}
+#####
+# Fuels1000
+#####
+# Fuels1000 headers
+Fuels1000_header <- Fuels1000_all %>%
+  filter(!is.na(Visited)) %>% 
+  select(c(1:19, 
+           NumTran, TranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+# Fuels1000 data
+Fuels1000_data <- Fuels1000_all %>%
+  filter(is.na(Visited)) %>% 
+  select(!c(NumTran, TranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+
+#####
+# FuelsDuffLitt
+#####
+# FuelsDuffLitt headers 
+FuelsDuffLitt_header <- FuelsDuffLitt_all %>%   
+  filter(!is.na(Visited)) %>% 
+  select(c(1:19,
+           NumTran, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+# FuelsDuffLitt data
+FuelsDuffLitt_data <- FuelsDuffLitt_all %>%   
+  filter(is.na(Visited)) %>% 
+  select(!c(NumTran, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+
+#####
+# FuelsFine
+#####
+# FuelsFine headers 
+FuelsFine_header <- FuelsFine_all %>%   
+  filter(!is.na(Visited)) %>% 
+  select(c(1:19,
+           NumTran, OneHrTranLen, TenHrTranLen, HunHrTranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+# FuelsFine data
+FuelsFine_data <- FuelsFine_all %>%   
+  filter(is.na(Visited)) %>% 
+  select(!c(NumTran, OneHrTranLen, TenHrTranLen, HunHrTranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+
+#####
+# PostBurn
+#####
+# PostBurn headers
+PostBurn_header <- PostBurn_all %>%
+  filter(!is.na(Visited)) %>% 
+  select(c(1:19,
+           NumTran, TranLen, NumPtsTran, PlotType, PtArea, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+# PostBurn data
+PostBurn_data <- PostBurn_all %>%
+  filter(is.na(Visited)) %>% 
+  select(!c(NumTran, TranLen, NumPtsTran, PlotType, PtArea, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+
+#####
+# Trees
+#####
+# Trees headers
+Trees_header <- Trees_all %>%   
+  filter(!is.na(Visited)) %>% 
+  select(c(1:19,
+           MacroPlotSize, SnagPlotSize, BrkPntDia, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+# Trees data
+Trees_data <- Trees_all %>%   
+  filter(is.na(Visited)) %>% 
+  select(!c(MacroPlotSize, SnagPlotSize, BrkPntDia, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+
+#####
+# Seedlings
+#####
+# Seedlings headers
+Seedlings_header <- Seedlings_all %>%
+  filter(!is.na(Visited)) %>% 
+  select(c(1:19,
+           NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+# Seedlings data
+Seedlings_data <- Seedlings_all %>%
+  filter(is.na(Visited)) %>% 
+  select(!c(NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+
+#####
+# Shrubs
+#####
+# Shrubs headers
+Shrubs_header <- Shrubs_all %>%
+  filter(!is.na(Visited)) %>% 
+  select(c(1:19,
+           NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+# Shrubs data
+Shrubs_data <- Shrubs_all %>%
+  filter(is.na(Visited)) %>% 
+  select(!c(NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+
+#####
+# HerbsObs
+#####
+# HerbsObs headers
+HerbsObs_header <- HerbsObs_all %>%
+  filter(!is.na(Visited)) %>% 
+  select(c(1:19,
+           MinCovLevel, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+# HerbsObs data
+HerbsObs_data <- HerbsObs_all %>%
+  filter(is.na(Visited)) %>% 
+  select(!c(MinCovLevel, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+
+#####
+# HerbsPoints
+#####
+# HerbsPoints headers
+HerbsPoints_header <- HerbsPoints_all %>%
+  filter(!is.na(Visited)) %>% 
+  select(c(1:19,
+           NumTran, TranLen, NumPtsTran, Offset, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+# HerbsPoints data
+HerbsPoints_data <- HerbsPoints_all %>%
+  filter(is.na(Visited)) %>% 
+  select(!c(NumTran, TranLen, NumPtsTran, Offset, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+```
+
+### Merge Data
+
+```{r}
+# merge data
+Fuels1000 <- merge(Fuels1000_header, Fuels1000_data, by = c(1:19))
+FuelsDuffLitt <- merge(FuelsDuffLitt_header, FuelsDuffLitt_data, by = c(1:19))
+FuelsFine <- merge(FuelsFine_header, FuelsFine_data, by = c(1:19))
+PostBurn <- merge(PostBurn_header, PostBurn_data, by = c(1:19))
+Trees <- merge(Trees_header, Trees_data, by = c(1:19))
+Seedlings <- merge(Seedlings_header, Seedlings_data, by = c(1:19))
+Shrubs <- merge(Shrubs_header, Shrubs_data, by = c(1:19))
+HerbsObs <- merge(HerbsObs_header, HerbsObs_data, by = c(1:19))
+HerbsPoints <- merge(HerbsPoints_header, HerbsPoints_data, by = c(1:19))
+  
+Fuels1000[] <- lapply(Fuels1000, function(x) gsub(",", ";", x))
+FuelsDuffLitt[] <- lapply(FuelsDuffLitt, function(x) gsub(",", ";", x))
+FuelsFine[] <- lapply(FuelsFine, function(x) gsub(",", ";", x))
+PostBurn[] <- lapply(PostBurn, function(x) gsub(",", ";", x))
+Trees[] <- lapply(Trees, function(x) gsub(",", ";", x))
+Seedlings[] <- lapply(Seedlings, function(x) gsub(",", ";", x))
+Shrubs[] <- lapply(Shrubs, function(x) gsub(",", ";", x))
+HerbsObs[] <- lapply(HerbsObs, function(x) gsub(",", ";", x))
+HerbsPoints[] <- lapply(HerbsPoints, function(x) gsub(",", ";", x))
+```
+
+### Save Data
+
+```{r}
+# save file
+write.csv(Fuels1000, paste0(path_file, target_park, "_Surface Fuels - 1000Hr.csv"), quote=FALSE, row.names = FALSE)
+write.csv(FuelsDuffLitt, paste0(path_file, target_park, "_Surface Fuels - Duff_Litter.csv"), quote=FALSE, row.names = FALSE) 
+write.csv(FuelsFine, paste0(path_file, target_park, "_Surface Fuels - Fine.csv"), quote=FALSE, row.names = FALSE) 
+write.csv(PostBurn, paste0(path_file, target_park, "_Post Burn Severity (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(Trees, paste0(path_file, target_park, "_Trees - Individuals (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(Seedlings, paste0(path_file, target_park, "_Density - Quadrats (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(Shrubs, paste0(path_file, target_park, "_Density - Belts (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(HerbsObs, paste0(path_file, target_park, "_Cover - Species Composition (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(HerbsPoints, paste0(path_file, target_park, "_Cover - Points (metric).csv"), quote=FALSE, row.names = FALSE) 
+```
