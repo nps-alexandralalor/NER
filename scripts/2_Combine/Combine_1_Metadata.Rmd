@@ -15,7 +15,7 @@ output:
     toc_depth: '3'
 ---
 
-# Before Starting
+# BEFORE STARTING
 
 This code is intended to combine FFI files into single flat files to be used with subsequent R scripts.
 
