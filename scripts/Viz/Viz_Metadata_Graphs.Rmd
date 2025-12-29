@@ -6,22 +6,22 @@ output:
     theme: readable
     highlight: 
     toc: yes
-    toc_depth: 2
+    toc_depth: 3
     toc_float:
       smooth_scroll: yes
     code_download: true
   pdf_document:
     toc: yes
-    toc_depth: 2
+    toc_depth: 3
 ---
 
-# Purpose
+# Purpose 
 
 This report summarizes plot work by the NPS Fire Ecology Program. The included graphs allow a user to quickly view the overall status of program, park, project, or protocol activities in an FFI admin unit.
 
 The code summarizes records in the Macroplot Report and Sample Event Report that can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server. You can recreate this Metadata Report by running code found in the file "QAQC_MetadataReport.R", under the scripts folder for this R project.
 
-### Setup {.hidden}
+#### Setup
 
 ```{r}
 ## Markdown Options
@@ -62,7 +62,7 @@ path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
 path_graphs <- paste0(here(), "/output/graphs/")
 ```
 
-### Load Data {.hidden}
+#### Load Data
 
 Load in the Metadata Report. This Metadata Report was created by combining Macroplot Reports and Sample Event Reports from each Admin Unit, which can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
 
@@ -85,7 +85,7 @@ MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"
 MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"), quote = "")
 ```
 
-### Merge Data {.hidden}
+#### Merge Data
 
 ```{r}
 MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
@@ -93,9 +93,9 @@ MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport
 remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
 ```
 
-# Add Columns {.hidden}
+#### Add Columns
 
-### Region {.hidden}
+#### Region
 
 -   Region (NER)
 
@@ -123,7 +123,7 @@ MetadataReport <- MetadataReport %>%
   relocate(Unit, .before = AdministrationUnit_Name)
 ```
 
-### Macroplot {.hidden}
+#### Macroplot
 
 -   Macroplot_Num (01, 02...)
 
@@ -141,7 +141,7 @@ MetadataReport <- MetadataReport %>%
   mutate(Macroplot_Num = as.numeric(Macroplot_Num))
 ```
 
-## Split MetadataReport
+#### Split MetadataReport
 
 ```{r}
 MetadataReport_Disturbances <- MetadataReport %>% 
@@ -155,7 +155,7 @@ MetadataReport_Reads <- MetadataReport %>%
   mutate(DisturbanceDate_Year = NA)
 ```
 
-### MonStatus {.hidden}
+#### MonStatus
 
 -   Entry / Prefix (0, 1, 2, 3 , 4...)
 
@@ -198,7 +198,7 @@ MonStatus <- MonStatus %>%
   select(!MonStatus_new)
 ```
 
-### Disturbance {.hidden}
+#### Disturbance
 
 -   Disturbance_Type (Burn, Herbicide, Mechanical, Mow)
 
@@ -215,7 +215,7 @@ Disturbances <- MetadataReport_Disturbances %>%
          MonStatusOrd = NA)
 ```
 
-### Merge {.hidden}
+#### Merge
 
 ```{r}
 # Disturbance
@@ -229,7 +229,7 @@ MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %
   arrange(AdministrationUnit_Name, Macroplot, SampleEventDate)
 ```
 
-### Other {.hidden}
+#### Other
 
 -   Disturbance_Entry (to match with MonStatus)
 
@@ -264,84 +264,32 @@ MetadataReport_all <- MetadataReport_all %>%
          DisturbanceDate = as.Date(DisturbanceDate),
          DisturbanceDate_Year = as.numeric(DisturbanceDate_Year),
          Entry = as.numeric(Entry),
-         Macroplot_Num = as.factor(Macroplot_Num))
+         Macroplot_Num = as.factor(Macroplot_Num)) %>% 
+    mutate(Purpose_Code = ifelse(Purpose == "Fire Monitoring Handbook", "FMH",
+                            ifelse(Purpose == "Inventory & Monitoring", "I&M",
+                                   ifelse(Purpose == "Composite Burn Index", "CBI",
+                                          ifelse(Purpose=="Rapid Assessment","RA",
+                                                 ifelse(Purpose=="Fuels","Fuels",
+                                                        "FMH")))))) %>% 
+  relocate(Purpose_Code, .after = Purpose)
 ```
 
-## Disturbance History
+## Zone Summary
 
 ```{r}
-#unique(MetadataReport_all$AdministrationUnit_Name)
-target_park <- "SHEN"
-target_type <- "Forest"
-```
-
-```{r}
-graph_MetadataReport <- MetadataReport_all %>% 
-  filter(AdministrationUnit_Name == target_park,
-         Type == target_type)
-
-graph_Disturbances <- graph_MetadataReport %>% 
-  filter(MonStatus %in% c("Burn", "Herbicide", "Mechanical", "Mow"))
-
-graph_sum_Disturbances <- graph_Disturbances %>%
-  group_by(Region, Zone, Unit, AdministrationUnit_Name, Type, DisturbanceDate, DisturbanceDate_Year, SampleEventDate_Year, MonStatus) %>%
-  filter(DisturbanceDate_Year == SampleEventDate_Year) %>%
-  summarize(n_Macroplot = n()) %>%
-  mutate(DisturbanceDate = as.Date(DisturbanceDate),
-         Macroplot_Num = "All") %>% 
-  arrange(desc(MonStatus))
-```
-
-```{r}
-graph_Disturbances %>% 
-  ggplot(aes(x = DisturbanceDate, y = MonStatus)) +
-  #geom_line(aes(group = MonStatus)) +
-  #geom_point(aes(fill = MonStatus), shape = 21, size = 2) +
-  geom_line(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
-            data = graph_sum_Disturbances) +
-  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
-             data = graph_sum_Disturbances, shape = 21, size = 2.5) +
-  facet_grid(Type ~ AdministrationUnit_Name) +
-  labs(title = "Disturbance History",
-       y = "",
-       x = "Year",
-       fill = "Disturbance Type") +
-  scale_x_date(limits = c(min(graph_Disturbances$DisturbanceDate), Sys.Date()), 
-               date_labels = "%Y", date_breaks = "1 year") +
-  theme_light() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
-        axis.title = element_text(size = 12, face="bold"),
-        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-        axis.text.y = element_text(size = 8),
-        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
-```
-
-## Sample Event History
-
-```{r}
-graph_MetadataReport %>% 
-  ggplot(aes(x = SampleEventDate_Year, y = Macroplot_Num)) +
-  geom_line(aes(group = Macroplot_Num, color = Entry)) +
-  geom_point(aes(color = Entry), size = 2) +
-  geom_line(aes(group = Macroplot_Num),
-            data = graph_sum_Disturbances) +
-  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
-             data = graph_sum_Disturbances, shape = 21) +
-  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
-             data = graph_MetadataReport %>% 
-               filter(AdministrationUnit_Name == target_park,
-                      MonStatus == "Burn"), shape = 3, size = 3, color = "darkred") +
-  facet_grid(Type ~ AdministrationUnit_Name) +
+MetadataReport_all %>% 
+  ggplot(aes(x = SampleEventDate_Year, y = Macroplot_Num, color = Entry)) +
+  geom_line(aes(group = Macroplot), color = "red") +
+  geom_point(size = 2) +
+  geom_line(aes(group = Macroplot)) +
+  geom_point(color = "red", shape = 1, size = 2) +
+  facet_grid(Purpose_Code ~ AdministrationUnit_Name) +
   labs(title = paste0("Sample Event History"),
-       subtitle = "Fire Monitoring Handbook (FMH) Plots",
+       subtitle = "All Plots",
        y = "Plot Number",
        x = "Year",
-       color = "Entry",
-       fill = "Disturbance Type") +
-  # scale_color_manual(values=c('forestgreen',"lightgreen","lightyellow", "yellow", "orange", 'darkorange', "orange4", "red","red3", "darkred", "coral4", "black")) +
-  #scale_fill_gradient(low = "green", high = "red") +
+       color = "Entry") +
+  # scale_color_manual(values=c('forestgreen',"yellowgreen","lightgreen","lightyellow", "yellow", "orange", 'darkorange', "red","red3", "darkred","darkgrey", "black")) +
   theme_light() +
   scale_x_continuous(breaks = seq(1995, 2030, by = 1)) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -353,20 +301,21 @@ graph_MetadataReport %>%
         axis.text.y = element_text(size = 5),
         axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1),
         legend.position = "none")
-```
 
-## Zone Summary
+#ggsave(path = path_graphs, filename = "Sample Event History_All WACA.jpg", width = 8, height = 6, unit = "in", dpi = 300)
+```
 
 ### South Zone
 
 ```{r}
-graph_MetadataReport %>% 
-  filter(Zone == "South", !is.na(Entry)) %>%
+MetadataReport_all %>% 
+  filter(Purpose == "Fire Monitoring Handbook",
+         Zone == "South") %>%
   ggplot(aes(x = SampleEventDate_Year, y = Macroplot_Num, color = Entry)) +
-  geom_line(aes(group = DisturbanceDate_Year), data = graph_Disturbances, color = "red") +
+  geom_line(aes(group = Macroplot), color = "red") +
   geom_point(size = 2) +
   geom_line(aes(group = Macroplot)) +
-  geom_point(data = graph_Disturbances, color = "red", shape = 1, size = 2) +
+  geom_point(color = "red", shape = 1, size = 2) +
   facet_grid(Type ~ AdministrationUnit_Name) +
   labs(title = paste0("Sample Event History"),
        subtitle = "Fire Monitoring Handbook (FMH) Plots",
@@ -383,36 +332,8 @@ graph_MetadataReport %>%
         axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
         axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
         axis.text.y = element_text(size = 5),
-        axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1))
-
-#ggsave(path = path_graphs, filename = "Sample Event History_All WACA.jpg", width = 8, height = 6, unit = "in", dpi = 300)
-```
-
-### National Capital Area
-
-```{r}
-graph_MetadataReport %>% 
-  filter(Zone == "NCA", !is.na(Entry)) %>% 
-  ggplot(aes(x = SampleEventDate_Year, y = Macroplot_Num, color = Entry)) +
-  geom_point() +
-  geom_line(aes(group = Macroplot)) +
-  facet_grid(Type ~ AdministrationUnit_Name) +
-  labs(title = paste0("Sample Event History"),
-       subtitle = "Fire Monitoring Handbook (FMH) Plots",
-       y = "Plot Number",
-       x = "Year",
-       color = "Entry") +
-  #scale_color_manual(values=c('forestgreen',"lightgreen","lightyellow", "yellow", "orange", 'darkorange', "red","red3", "darkred","darkgrey", "black")) +
-  theme_light() +
-  scale_x_continuous(breaks = seq(1995, 2030, by = 1)) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
-        plot.subtitle = element_text(size = 12, face="italic", hjust = 0.5),
-        axis.title = element_text(size = 12, face="bold"),
-        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-        axis.text.y = element_text(size = 5),
-        axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1))
+        axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1),
+        legend.position = "none")
 
 #ggsave(path = path_graphs, filename = "Sample Event History_All WACA.jpg", width = 8, height = 6, unit = "in", dpi = 300)
 ```
@@ -420,18 +341,54 @@ graph_MetadataReport %>%
 ### North Zone
 
 ```{r}
-graph_MetadataReport %>% 
-  filter(Zone == "North", !is.na(Entry)) %>% 
+MetadataReport_all %>% 
+  filter(Purpose == "Fire Monitoring Handbook",
+         Zone == "North") %>%
   ggplot(aes(x = SampleEventDate_Year, y = Macroplot_Num, color = Entry)) +
-  geom_point() +
+  geom_line(aes(group = Macroplot), color = "red") +
+  geom_point(size = 2) +
   geom_line(aes(group = Macroplot)) +
+  geom_point(color = "red", shape = 1, size = 2) +
   facet_grid(Type ~ AdministrationUnit_Name) +
   labs(title = paste0("Sample Event History"),
        subtitle = "Fire Monitoring Handbook (FMH) Plots",
        y = "Plot Number",
        x = "Year",
        color = "Entry") +
-  #scale_color_manual(values=c('forestgreen',"lightgreen","lightyellow", "yellow", "orange", 'darkorange', "red","red3", "darkred","darkgrey", "black")) +
+  # scale_color_manual(values=c('forestgreen',"yellowgreen","lightgreen","lightyellow", "yellow", "orange", 'darkorange', "red","red3", "darkred","darkgrey", "black")) +
+  theme_light() +
+  scale_x_continuous(breaks = seq(1985, 2030, by = 1)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 12, face="italic", hjust = 0.5),
+        axis.title = element_text(size = 12, face="bold"),
+        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+        axis.text.y = element_text(size = 5),
+        axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1),
+        legend.position = "none")
+
+#ggsave(path = path_graphs, filename = "Sample Event History_All WACA.jpg", width = 8, height = 6, unit = "in", dpi = 300)
+```
+
+### National Capital Area
+
+```{r}
+MetadataReport_all %>% 
+  filter(Purpose == "Fire Monitoring Handbook",
+         Zone == "NCA") %>%
+  ggplot(aes(x = SampleEventDate_Year, y = Macroplot_Num, color = Entry)) +
+  geom_line(aes(group = Macroplot), color = "red") +
+  geom_point(size = 2) +
+  geom_line(aes(group = Macroplot)) +
+  geom_point(color = "red", shape = 1, size = 2) +
+  facet_grid(Type ~ AdministrationUnit_Name) +
+  labs(title = paste0("Sample Event History"),
+       subtitle = "Fire Monitoring Handbook (FMH) Plots",
+       y = "Plot Number",
+       x = "Year",
+       color = "Entry") +
+  # scale_color_manual(values=c('forestgreen',"yellowgreen","lightgreen","lightyellow", "yellow", "orange", 'darkorange', "red","red3", "darkred","darkgrey", "black")) +
   theme_light() +
   scale_x_continuous(breaks = seq(1995, 2030, by = 1)) +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -441,7 +398,109 @@ graph_MetadataReport %>%
         axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
         axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
         axis.text.y = element_text(size = 5),
-        axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1))
+        axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1),
+        legend.position = "none")
 
 #ggsave(path = path_graphs, filename = "Sample Event History_All WACA.jpg", width = 8, height = 6, unit = "in", dpi = 300)
+```
+
+## Park Summary
+
+```{r}
+#unique(MetadataReport_all$AdministrationUnit_Name)
+target_purpose <- "Fire Monitoring Handbook"
+target_park <- "RICH"
+target_type <- "Grassland"
+```
+
+```{r}
+graph_MetadataReport <- MetadataReport_all %>% 
+  filter(Purpose %in% target_purpose,
+         AdministrationUnit_Name %in% target_park,
+         Type %in% target_type)
+
+graph_Disturbances <- graph_MetadataReport %>% 
+  filter(MonStatus %in% c("Burn", "Herbicide", "Mechanical", "Mow"))
+
+graph_sum_Disturbances <- graph_Disturbances %>%
+  group_by(Region, Zone, Unit, AdministrationUnit_Name, Type, DisturbanceDate, DisturbanceDate_Year, SampleEventDate_Year, MonStatus) %>%
+  filter(DisturbanceDate_Year == SampleEventDate_Year) %>%
+  summarize(n_Macroplot = n()) %>%
+  mutate(DisturbanceDate = as.Date(DisturbanceDate),
+         Macroplot_Num = "All") %>% 
+  arrange(desc(MonStatus))
+```
+
+Selected purpose: [`r target_purpose`]{style="color:red"}\
+Selected park: [`r target_park`]{style="color:red"}\
+Selected type: [`r target_type`]{style="color:red"}
+
+### Disturbance History 
+
+```{r}
+graph_MetadataReport %>% 
+  ggplot(aes(x = DisturbanceDate, y = Macroplot_Num)) +
+  # geom_line(aes(group = Macroplot_Num, color = Entry)) +
+  # geom_point(aes(color = Entry), size = 2) +
+  geom_line(aes(group = Macroplot_Num),
+            data = graph_sum_Disturbances) +
+  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+             data = graph_sum_Disturbances, shape = 21) +
+  geom_line(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+            data = graph_sum_Disturbances) +
+  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+             data = graph_sum_Disturbances, shape = 21, size = 2.5) +
+  facet_grid(Type ~ AdministrationUnit_Name) +
+  labs(title = "Disturbance History",
+       y = "",
+       x = "Year",
+       fill = "") +
+  scale_x_date(limits = c(min(graph_MetadataReport$SampleEventDate), Sys.Date()), 
+               date_labels = "%Y", date_breaks = "1 year") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+        axis.title = element_text(size = 12, face="bold"),
+        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+        axis.text.y = element_text(size = 8),
+        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1),
+        legend.position = "top")
+```
+
+### Sample Event History
+
+```{r}
+graph_MetadataReport %>% 
+  ggplot(aes(x = SampleEventDate_Year, y = Macroplot_Num)) +
+  geom_line(aes(group = Macroplot_Num, color = Entry)) +
+  geom_point(aes(color = Entry), size = 2) +
+  geom_line(aes(group = Macroplot_Num),
+            data = graph_sum_Disturbances) +
+  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+             data = graph_sum_Disturbances, shape = 21) +
+  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+             data = graph_MetadataReport %>% 
+                      filter(MonStatus == "Burn"), 
+             shape = 3, size = 5, color = "darkred") +
+  facet_grid(Type ~ AdministrationUnit_Name) +
+  labs(title = paste0("Sample Event History"),
+       subtitle = "Fire Monitoring Handbook (FMH) Plots",
+       y = "Plot Number",
+       x = "Year",
+       color = "Entry",
+       fill = "Disturbance Type") +
+  # scale_color_manual(values=c('forestgreen',"lightgreen","lightyellow", "yellow", "orange", 'darkorange', "orange4", "red","red3", "darkred", "coral4", "black")) +
+  # scale_fill_gradient(low = "green", high = "red") +
+  theme_light() +
+  scale_x_continuous(breaks = seq(1995, 2030, by = 1)) +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 12, face="italic", hjust = 0.5),
+        axis.title = element_text(size = 12, face="bold"),
+        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+        axis.text.y = element_text(size = 5),
+        axis.text.x = element_text(size = 5, angle = 90, vjust = 0.5, hjust=1),
+        legend.position = "none")
 ```
