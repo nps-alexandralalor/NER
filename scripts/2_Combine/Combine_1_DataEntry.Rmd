@@ -396,13 +396,13 @@ HerbsPoints[] <- lapply(HerbsPoints, function(x) gsub(",", ";", x))
 
 ```{r}
 # save file
-write.csv(Fuels1000, paste0(path_save, target_park, "_Surface Fuels - 1000Hr.csv"), quote=FALSE, row.names = FALSE)
-write.csv(FuelsDuffLitt, paste0(path_save, target_park, "_Surface Fuels - Duff_Litter.csv"), quote=FALSE, row.names = FALSE) 
-write.csv(FuelsFine, paste0(path_save, target_park, "_Surface Fuels - Fine.csv"), quote=FALSE, row.names = FALSE) 
-write.csv(PostBurn, paste0(path_save, target_park, "_Post Burn Severity (metric).csv"), quote=FALSE, row.names = FALSE) 
-write.csv(Trees, paste0(path_save, target_park, "_Trees - Individuals (metric).csv"), quote=FALSE, row.names = FALSE) 
-write.csv(Seedlings, paste0(path_save, target_park, "_Density - Quadrats (metric).csv"), quote=FALSE, row.names = FALSE) 
-write.csv(Shrubs, paste0(path_save, target_park, "_Density - Belts (metric).csv"), quote=FALSE, row.names = FALSE) 
-write.csv(HerbsObs, paste0(path_save, target_park, "_Cover - Species Composition (metric).csv"), quote=FALSE, row.names = FALSE) 
-write.csv(HerbsPoints, paste0(path_save, target_park, "_Cover - Points (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(Fuels1000, paste0(path_save, target_park, "_Data_Surface Fuels - 1000Hr.csv"), quote=FALSE, row.names = FALSE)
+write.csv(FuelsDuffLitt, paste0(path_save, target_park, "_Data_Surface Fuels - Duff_Litter.csv"), quote=FALSE, row.names = FALSE) 
+write.csv(FuelsFine, paste0(path_save, target_park, "_Data_Surface Fuels - Fine.csv"), quote=FALSE, row.names = FALSE) 
+write.csv(PostBurn, paste0(path_save, target_park, "_Data_Post Burn Severity (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(Trees, paste0(path_save, target_park, "_Data_Trees - Individuals (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(Seedlings, paste0(path_save, target_park, "_Data_Density - Quadrats (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(Shrubs, paste0(path_save, target_park, "_Data_Density - Belts (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(HerbsObs, paste0(path_save, target_park, "_Data_Cover - Species Composition (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(HerbsPoints, paste0(path_save, target_park, "_Data_Cover - Points (metric).csv"), quote=FALSE, row.names = FALSE) 
 ```
