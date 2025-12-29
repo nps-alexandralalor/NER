@@ -96,11 +96,18 @@ for(i in parks) {
     filter(is.na(SampleEventDate)) %>%
     # separate Date columns into Date and Time columns
     separate(DateIn, sep = " ", into = c("DateIn", "DateInTime")) %>%
+    separate(FutureVisit, sep = " ", into = c("FutureVisit", "FutureVisitTime")) %>%
+    separate(DateOut, sep = " ", into = c("DateOut", "DateOutTime")) %>%
     # reformate Date columns
     mutate(DateIn = as.Date(DateIn, "%m/%d/%Y")) %>%
+    mutate(FutureVisit = as.Date(FutureVisit, "%m/%d/%Y")) %>%
+    mutate(DateOut = as.Date(DateOut, "%m/%d/%Y")) %>% 
+    # separate Date columns into Year Month Day columns
     separate(DateIn, sep = "-", into = c("DateIn_Year", "Month", "Day"), remove = F) %>%
+    separate(FutureVisit, sep = "-", into = c("FutureVisit_Year", "Month", "Day"), remove = F) %>%
+    separate(DateOut, sep = "-", into = c("DateOut_Year", "Month", "Day"), remove = F) %>%
     # remove unnecessary columns
-    select(!c(DateInTime, Month, Day)) %>%
+    select(!c(DateInTime, FutureVisitTime, DateOutTime, Month, Day)) %>%
     select(!c(SampleEventDate, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
   
   MacroplotReport_SampleEvents <- MacroplotReport %>%
