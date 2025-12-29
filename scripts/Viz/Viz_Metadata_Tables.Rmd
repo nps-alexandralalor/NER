@@ -55,8 +55,8 @@ library(ggplot2)
 here()
 
 # Adjust File Paths
-path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
-#path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+#path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
+path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
 path_graphs <- paste0(here(), "/output/graphs/")
 ```
 
@@ -93,23 +93,6 @@ remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataRe
 
 # Tables
 
-### Target Values
-
-The code underlying this report has been manipulated to display summaries of the following selected park(s) and year(s).
-
-```{r set parameters, include=F}
-# designate target park(s)
-unique(MetadataReport$AdministrationUnit_Name)
-target_park <- c("CATO", "GETT", "MONO", "NERI", "RICH")
-
-# designate target year or years
-unique(MetadataReport$SampleEventDate_Year)
-target_year <- c(2025)
-```
-
-Selected park(s): [`r target_park`]{style="color:red"}\
-Selected year(s): [`r target_year`]{style="color:red"}
-
 ### Protocol Use Summary
 
 The table below summarizes the frequency of use of protocols occurring in the FFI database, as utilized by the NPS Fire Ecology program. Protocols are arranged in descending order by number of plots such that the most frequently used protocols are listed first.
@@ -132,63 +115,4 @@ protocol_use_summ %>%
   kable_styling(bootstrap_options = c("striped","condensed"), 
                 full_width = F, position = "left", fixed_thead = T) %>% 
   row_spec(0, font_size = 14, bold = TRUE)
-```
-
-### Park Summary: [`r target_park`]{style="color:red"}
-
-The table below summarizes sample events recorded within the `r target_park` projects.
-
-```{r project summ}
-## Summarise project
-# uses 'target park' variable designated above
-target_project_summ <- MetadataReport %>%
-  filter(AdministrationUnit_Name %in% target_park) %>%
-  group_by(`Monitoring Status` = MonStatus) %>%
-  summarise(`First Visit` = min(SampleEventDate_Year),
-            `Latest Visit` = max(SampleEventDate_Year),
-            `Number of Plots Visited` = n_distinct(Macroplot),
-            `Protocols Used` = n_distinct(Protocols))
-
-target_project_summ %>% 
-  kbl(align = "lccccc") %>%
-  kable_styling(bootstrap_options = c("striped","condensed"), 
-                full_width = F, position = "left", fixed_thead = T) %>% 
-  row_spec(0, font_size = 14, bold = TRUE)
-```
-
-### Plot Activity Summary: [`r target_year`]{style="color:red"}
-
-The table below summarizes all projects with plots sampled within the following year(s): `r target_year`.
-
-```{r year summ}
-## Summarise yearly plot activity
-# uses 'target year' variable designated above
-target_year_summ <- MetadataReport %>%
-  filter(SampleEventDate_Year %in% target_year) %>% 
-  group_by(`Park` = AdministrationUnit_Name) %>%
-  summarise(`Project Name` = unique(ProjectUnit),
-            `Start Date` = as.character(min(SampleEventDate)),
-            `End Date` = as.character(max(SampleEventDate)),
-            `Number of Plots` = n_distinct(Macroplot),
-            `Protocols Used` = n_distinct(Protocols)) %>% 
-  arrange(`Park`) %>% 
-  ungroup()
-
-# Calculate totals
-year_summ_totals <- target_year_summ %>%
-  summarise(across(where(is.numeric), \(x) sum(x, na.rm = TRUE))) %>%
-  mutate(`Park` = "",
-         `Project Name` = "",
-         `Start Date` = "",
-         `End Date` = "Total")
-
-# Bind the totals row to the original data frame
-target_year_summ_w_totals <- bind_rows(target_year_summ, year_summ_totals)
-
-target_year_summ_w_totals %>% 
-  kbl(align = "lcccccc") %>%
-  kable_styling(bootstrap_options = c("striped","condensed"), 
-                full_width = F, position = "left", fixed_thead = T) %>% 
-  row_spec(0, font_size = 14, bold = TRUE) %>% 
-  row_spec(nrow(target_year_summ_w_totals), font_size = 14, bold = TRUE)
 ```
