@@ -1,0 +1,250 @@
+---
+title: "FFI Database Summary"
+subtitle: Northeast Region
+output:
+  word_document:
+    toc: true
+    toc_depth: 2
+  pdf_document:
+    toc: true
+    toc_depth: 2
+  html_document:
+    theme: readable
+    highlight: null
+    toc: true
+    toc_depth: 2
+    toc_float:
+      smooth_scroll: true
+    code_download: true
+---
+
+# Metadata Clean
+
+### Setup {.hidden}
+
+```{r}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+## Install packages (if needed)
+
+# install.packages("tidyverse")
+# install.packages("kableExtra")
+# install.packages("ggplot2")
+```
+
+```{r}
+## Load Packages
+
+# "tidyverse" has lots of useful functions for data cleaning
+library(tidyverse)
+# "kableExtra" is used to produce formatted tables
+library(kableExtra)
+library(ggplot2)
+library(stringr)
+library(DT)
+library(fs)
+```
+
+```{r}
+## Adjust File Paths
+#path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
+path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+```
+
+### Load Data {.hidden}
+
+Load in the Metadata Report. This Metadata Report was created by combining Macroplot Reports and Sample Event Reports from each Admin Unit, which can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
+
+```{r}
+# Load in data
+MetadataReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_MetadataReport.csv"), quote = "")
+MetadataReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_MetadataReport.csv"), quote = "")
+MetadataReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_MetadataReport.csv"), quote = "")
+MetadataReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_MetadataReport.csv"), quote = "")
+MetadataReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_MetadataReport.csv"), quote = "")
+MetadataReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_MetadataReport.csv"), quote = "")
+MetadataReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_MetadataReport.csv"), quote = "")
+MetadataReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_MetadataReport.csv"), quote = "")
+MetadataReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_MetadataReport.csv"), quote = "")
+MetadataReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_MetadataReport.csv"), quote = "")
+MetadataReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_MetadataReport.csv"), quote = "")
+MetadataReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_MetadataReport.csv"), quote = "")
+MetadataReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_MetadataReport.csv"), quote = "")
+MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"), quote = "")
+MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"), quote = "")
+```
+
+### Merge Data {.hidden}
+
+```{r}
+#MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_GETT, MetadataReport_RICH)
+
+MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+
+remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+```
+
+# Add Columns
+
+#### Purpose_Code
+
+```{r}
+table <- MetadataReport %>%
+  mutate(Purpose_Code = ifelse(Purpose == "Fire Monitoring Handbook", "FMH",
+                            ifelse(Purpose == "Inventory & Monitoring", "I&M",
+                                   ifelse(Purpose == "Composite Burn Index", "CBI",
+                                          ifelse(Purpose=="Rapid Assessment","RA",
+                                                 ifelse(Purpose=="Fuels","Fuels",
+                                                        "FMH")))))) %>%
+  mutate(Purpose_Code = ifelse(is.na(Purpose_Code), "FMH", Purpose_Code)) %>% 
+  mutate(Plot_Type = paste0(Purpose_Code, " - ", Type))
+```
+
+#### Region
+
+-   Region (NER)
+
+-   Zone (e.g. South)
+
+-   Unit (e.g. MTTS)
+
+```{r}
+zone_NewEngland <- c("ACAD", "CACO")
+zone_MidAtlantic <- c("DEWA", "GATE", "GETT", "SARA", "VAFO")
+zone_NCA <- c("ANTI", "CATO", "MONO", "PRWI")
+zone_Allegheny <- c("CUVA", "NERI")
+zone_MTTS <- c("APCO", "FRSP", "RICH", "SHEN")
+
+MetadataReport <- MetadataReport %>% 
+  mutate(Region = ifelse(AdministrationUnit_Name %in% c(zone_NCA), "NCR", "NER")) %>% 
+  mutate(Zone = ifelse(AdministrationUnit_Name %in% c(zone_NewEngland, zone_MidAtlantic), "North",
+                       ifelse(AdministrationUnit_Name %in% c(zone_Allegheny, zone_MTTS), "South", "NCA"))) %>% 
+  mutate(Unit = ifelse(AdministrationUnit_Name %in% zone_NewEngland, "NewEngland",
+                       ifelse(AdministrationUnit_Name %in% zone_MidAtlantic, "MidAtlantic", 
+                              ifelse(AdministrationUnit_Name %in% zone_Allegheny, "Allegheny",
+                                    ifelse(AdministrationUnit_Name %in% zone_MTTS, "MTTS", "NCA"))))) %>%
+  relocate(Region, .before = AdministrationUnit_Name) %>% 
+  relocate(Zone, .before = AdministrationUnit_Name) %>%
+  relocate(Unit, .before = AdministrationUnit_Name)
+```
+
+#### Macroplot
+
+-   Macroplot_Num (01, 02...)
+
+-   Purpose or PlotType (FMH, RAP...)
+
+-   DateIn_Year
+
+-   SampleEventDate_Year
+
+```{r}
+MetadataReport <- MetadataReport %>% 
+  extract(Macroplot, regex = "([0-9]+)", into = c("Macroplot_Num"), remove = F) %>% 
+  separate(Macroplot, sep = "(?=[0-9])", into = c("Macroplot_Code"), remove = F) %>%
+  mutate(Macroplot_Num = ifelse(is.na(Macroplot_Num), 0, Macroplot_Num)) %>% 
+  mutate(Macroplot_Num = as.numeric(Macroplot_Num))
+```
+
+### Split MetadataReport
+
+```{r}
+MetadataReport_Disturbances <- MetadataReport %>% 
+  filter(MonStatus %in% c("", "Burn", "Herbicide", "Mechanical", "Mow")) %>%  
+  mutate(DisturbanceDate = SampleEventDate) %>% 
+  mutate(DisturbanceDate_Year = SampleEventDate_Year)
+
+MetadataReport_Reads <- MetadataReport %>% 
+  filter(!MonStatus %in% c("", "Burn", "Herbicide", "Mechanical", "Mow")) %>% 
+  mutate(DisturbanceDate = NA) %>% 
+  mutate(DisturbanceDate_Year = NA)
+```
+
+#### MonStatus
+
+-   Entry / Prefix (0, 1, 2, 3 , 4...)
+
+-   Status (pre, post)
+
+-   TimeSince / Suffix (0, 1, 2, 5, 10, 20)
+
+```{r}
+MonStatus <- MetadataReport_Reads %>% 
+  select(MonStatus) %>% 
+  filter(!is.na(MonStatus))
+MonStatus <- unique(MonStatus)
+
+# Create column with consistent naming
+MonStatus <- MonStatus %>%
+  mutate(MonStatus_new = ifelse(MonStatus %in%  c("Pre", "PRE", "Preyr00", "Measure", "2001Density", "2001Measure", "2002Density", "2002Measure", "2003Density", "2003Measure", "2004Measure"), "00 Pre", 
+                                ifelse(MonStatus %in% c("Pre 2", "Pre 02"), "00 PR1",
+                                       ifelse(MonStatus %in% c("Pre 3"), "00 PR2",
+                                              ifelse(MonStatus %in% c("Pre 4"), "00 PR3",
+                                                     ifelse(MonStatus %in% c("Pre 5"), "00 PR4",
+                                                            ifelse(MonStatus %in% c("01Post"), "01 Post 00",
+                                                                   ifelse(MonStatus %in% c("01yr01"), "01 Yr 01",
+                                                                          ifelse(MonStatus %in% c("01Yr02"), "01 Yr 02",
+                                                                                 ifelse(MonStatus %in% c("01Yr03"), "01 Yr 03",
+                                                                                        ifelse(MonStatus %in% c("00 Post (Initial CBI)", "01 Post (Extended CBI)", "01 Post (Initial CBI)", "Severity"), "01 Post 00", MonStatus)))))))))))
+
+#order <- seq(1, nrow(MonStatus))
+
+# Extract info
+MonStatus <- MonStatus %>%
+  arrange(MonStatus_new) %>%
+  mutate(MonStatusOrd = row_number()) %>%
+  separate(MonStatus_new, sep = " ", into = c("Entry","Status","TimeSince"), remove = F) %>%
+  # fix up classifications
+  mutate(Status = ifelse(Status %in% c("Yr", "yr"), "Post", Status)) %>%
+  mutate(Status = ifelse(Status %in%  c("PR1", "PR2", "PR3", "PR4"), "Pre", Status)) %>%
+  # make columns numeric
+  mutate(Entry = as.numeric(Entry),
+         TimeSince = as.numeric(TimeSince)) %>% 
+  select(!MonStatus_new)
+```
+
+#### Disturbance
+
+-   Disturbance_Type (Burn, Herbicide, Mechanical, Mow)
+
+-   Disturbance_Year (actual year)
+
+```{r}
+Disturbances <- MetadataReport_Disturbances %>% 
+  filter(MonStatus == "Burn") %>% 
+  arrange(AdministrationUnit_Name, Macroplot, SampleEventDate) %>% 
+  group_by(AdministrationUnit_Name, Macroplot) %>% 
+  mutate(Entry = row_number(),
+         Status = "Post",
+         TimeSince = 0,
+         MonStatusOrd = NA)
+```
+
+#### Merge
+
+```{r}
+# Disturbance
+MetadataReport_Disturbances <- merge(MetadataReport_Disturbances, Disturbances, all = T)
+
+# Mon Status
+MetadataReport_Reads <- merge(MetadataReport_Reads, MonStatus, by = c("MonStatus"), all = T)
+
+# Merge all
+MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %>% 
+  arrange(AdministrationUnit_Name, Macroplot, SampleEventDate)
+```
+
+#### Other
+
+-   Disturbance_Entry (to match with MonStatus)
+
+-   Disturbance_Desc (RX, WF-SUPP, WFU, WF)
+
+-   Disturbance_Name (e.g. Cape Final)
+
+-   Disturbance_Severity (Unaltered, Low, Low/Moderate, Moderate, Moderate/High, High)
+
+-   FuelType (PIPO, PIED, etc.)
