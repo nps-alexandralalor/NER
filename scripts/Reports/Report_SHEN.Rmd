@@ -1,0 +1,103 @@
+---
+title: "SHEN Report"
+subtitle: Northeast Region
+output:
+  word_document:
+    toc: true
+    toc_depth: 2
+  pdf_document:
+    toc: true
+    toc_depth: 2
+  html_document:
+    theme: readable
+    highlight: null
+    toc: true
+    toc_depth: 2
+    toc_float:
+      smooth_scroll: true
+    code_download: true
+---
+
+# Annual Report
+
+### Setup {.hidden}
+
+```{r}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+## Install packages (if needed)
+
+# install.packages("tidyverse")
+# install.packages("kableExtra")
+# install.packages("ggplot2")
+```
+
+```{r}
+## Load Packages
+
+# "tidyverse" has lots of useful functions for data cleaning
+library(tidyverse)
+# "kableExtra" is used to produce formatted tables
+library(kableExtra)
+library(ggplot2)
+library(stringr)
+library(DT)
+library(fs)
+library(ggplot2)
+```
+
+### Adjust File Paths
+
+```{r}
+## Adjust File Paths
+#path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
+path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+```
+
+### Target Park
+
+```{r}
+target_park <- "SHEN"
+```
+
+### Load Data {.hidden}
+
+```{r}
+# Load in data
+
+MetadataReport <- read.csv(paste0(path_data, target_park, "/", target_park, "_MetadataReport.csv"), quote = "")
+Fuels1000 <- read.csv(paste0(path_data, target_park, "/", target_park, "_Surface Fuels - 1000Hr.csv"))
+FuelsDuffLitt <- read.csv(paste0(path_data, target_park, "/", target_park, "_Surface Fuels - Duff_Litter.csv"))
+FuelsFine <- read.csv(paste0(path_data, target_park, "/", target_park, "_Surface Fuels - Fine.csv"))
+PostBurn <- read.csv(paste0(path_data, target_park, "/", target_park, "_Post Burn Severity (metric).csv"))
+Trees <- read.csv(paste0(path_data, target_park, "/", target_park, "_Trees - Individuals (metric).csv"))
+Seedlings <- read.csv(paste0(path_data, target_park, "/", target_park, "_Density - Quadrats (metric).csv"))
+Shrubs <- read.csv(paste0(path_data, target_park, "/", target_park, "_Density - Belts (metric).csv"))
+HerbsObs <- read.csv(paste0(path_data, target_park, "/", target_park, "_Cover - Species Composition (metric).csv"))
+HerbsPoints <- read.csv(paste0(path_data, target_park, "/", target_park, "_Cover - Points (metric).csv"))
+```
+
+# Background
+
+# Methods
+
+# Monitoring Objective Table
+
+# Results Summary
+
+# Graphs
+
+```{r}
+test <- HerbsObs %>% 
+  group_by(SampleEvent_TreatmentUnit, MacroPlot.Name) %>% 
+  mutate(n_plants = n_distinct(Species.Symbol))
+```
+
+```{r}
+
+```
+
+# Discussion
