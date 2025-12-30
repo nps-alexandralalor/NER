@@ -413,7 +413,7 @@ It checks for errors in: headers, decay class values, diameters, fuel constants,
 
 ### Fuel 1000 Complete
 
-[Problem:]{.underline} Extra or missing data points in FMH plots. Plots with no course woody debris should be verified.
+[Problem:]{.underline} Extra or missing data points in FMH plots. Plots with no course woody debris should be verified. Or data includes symbols which will cause issues later on.
 
 [Procedure:]{.underline}
 
@@ -442,7 +442,40 @@ values_valid <- 0
 values_check <- values_data > values_valid
 
 # Identify errors
-errors_Fuels1000_Complete <- qaqc(data, query, query_message, values_check)
+errors_Fuels1000_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- Fuels1000_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(Fuels1000_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Fuel 1000 Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Fuels1000_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Complete Errors {.hidden}
+
+```{r}
+# Combine
+errors_Fuels1000_Complete <- unique(rbind(errors_Fuels1000_NoData, errors_Fuels1000_Quotes))
+
+remove(errors_Fuels1000_NoData, errors_Fuels1000_Quotes)
+
+if(nrow(errors_Fuels1000_Complete) > 1) {
+  errors_Fuels1000_Complete <- errors_Fuels1000_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_Fuels1000_Complete <- errors_Fuels1000_Complete}
 ```
 
 ### Fuel 1000 Header
@@ -725,7 +758,7 @@ It checks for errors in: headers, fuel constants, offset values, sample location
 
 ### Fuel DL Complete
 
-[Problem:]{.underline} Extra or missing data points in FMH plots. There should be 4 transects with 10 sample points per transect. 
+[Problem:]{.underline} Extra or missing data points in FMH plots. There should be 4 transects with 10 sample points per transect. Or data includes symbols which will cause issues later on.
 
 [Procedure:]{.underline}
 
@@ -756,7 +789,40 @@ values_valid <- 40
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_FuelsDuffLitt_Complete <- qaqc(data, query, query_message, values_check)
+errors_FuelsDuffLitt_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- FuelsDuffLitt_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(FuelsDuffLitt_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Fuel DL Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_FuelsDuffLitt_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Complete Errors {.hidden}
+
+```{r}
+# Combine
+errors_FuelsDuffLitt_Complete <- unique(rbind(errors_FuelsDuffLitt_NoData, errors_FuelsDuffLitt_Quotes))
+
+remove(errors_FuelsDuffLitt_NoData, errors_FuelsDuffLitt_Quotes)
+
+if(nrow(errors_FuelsDuffLitt_Complete) > 1) {
+  errors_FuelsDuffLitt_Complete <- errors_FuelsDuffLitt_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_FuelsDuffLitt_Complete <- errors_FuelsDuffLitt_Complete}
 ```
 
 ### Fuel DL Header
@@ -1021,7 +1087,7 @@ It checks for errors in: headers, azimuth, fuel constants, slope, transects, and
 
 ### Fuel Fine Complete
 
-[Problem:]{.underline} Extra or missing data points in FMH plots. There should be 4 transects with 1 sample point per transect. 
+[Problem:]{.underline} Extra or missing data points in FMH plots. There should be 4 transects with 1 sample point per transect. Or data includes symbols which will cause issues later on.
 
 [Procedure:]{.underline}
 
@@ -1050,7 +1116,40 @@ values_valid <- 4
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_FuelsFine_Complete <- qaqc(data, query, query_message, values_check)
+errors_FuelsFine_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- FuelsFine_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(FuelsFine_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Fuel Fine Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_FuelsFine_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Complete Errors {.hidden}
+
+```{r}
+# Combine
+errors_FuelsFine_Complete <- unique(rbind(errors_FuelsFine_NoData, errors_FuelsFine_Quotes))
+
+remove(errors_FuelsFine_NoData, errors_FuelsFine_Quotes)
+
+if(nrow(errors_FuelsFine_Complete) > 1) {
+  errors_FuelsFine_Complete <- errors_FuelsFine_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_FuelsFine_Complete <- errors_FuelsFine_Complete}
 ```
 
 ### Fuel Fine Header
@@ -1411,7 +1510,7 @@ It checks for errors in: headers, points, tape distance, transect, substrate, an
 
 ### PBSev Complete
 
-[Problem:]{.underline} Extra or missing data points in FMH plots. There should be 4 transects with 10 sample points per transect.
+[Problem:]{.underline} Extra or missing data points in FMH plots. There should be 4 transects with 10 sample points per transect. Or data includes symbols which will cause issues later on.
 
 [Procedure:]{.underline}
 
@@ -1442,7 +1541,40 @@ values_valid <- 40
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_PostBurn_Complete <- qaqc(data, query, query_message, values_check)
+errors_PostBurn_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- PostBurn_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(PostBurn_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "PBSev Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_PostBurn_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Complete Errors {.hidden}
+
+```{r}
+# Combine
+errors_PostBurn_Complete <- unique(rbind(errors_PostBurn_NoData, errors_PostBurn_Quotes))
+
+remove(errors_PostBurn_NoData, errors_PostBurn_Quotes)
+
+if(nrow(errors_PostBurn_Complete) > 1) {
+  errors_PostBurn_Complete <- errors_PostBurn_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_PostBurn_Complete <- errors_PostBurn_Complete}
 ```
 
 ### PBSev Header
@@ -1711,7 +1843,7 @@ It checks for errors in: headers, crown base height, crown class, damage codes, 
 
 ### Trees Complete
 
-[Problem:]{.underline} Missing data points in FMH plots. Plots with no trees should be verified.
+[Problem:]{.underline} Missing data points in FMH plots. Plots with no trees should be verified. Or data includes symbols which will cause issues later on.
 
 [Procedure:]{.underline}
 
@@ -1740,7 +1872,40 @@ values_valid <- 0
 values_check <- values_data > values_valid
 
 # Identify errors
-errors_Trees_Complete <- qaqc(data, query, query_message, values_check)
+errors_Trees_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- Trees_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(Trees_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Trees Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Trees_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Complete Errors {.hidden}
+
+```{r}
+# Combine
+errors_Trees_Complete <- unique(rbind(errors_Trees_NoData, errors_Trees_Quotes))
+
+remove(errors_Trees_NoData, errors_Trees_Quotes)
+
+if(nrow(errors_Trees_Complete) > 1) {
+  errors_Trees_Complete <- errors_Trees_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_Trees_Complete <- errors_Trees_Complete}
 ```
 
 ### Trees Header
@@ -3400,7 +3565,7 @@ It checks for errors in: headers, seedling counts, subplot fractions, heights, s
 
 ### Seedlings Complete
 
-[Problem:]{.underline} Missing data points in FMH plots. Plots with no seedlings should be verified.
+[Problem:]{.underline} Missing data points in FMH plots. Plots with no seedlings should be verified. Or data includes symbols which will cause issues later on.
 
 [Procedure:]{.underline}
 
@@ -3429,7 +3594,40 @@ values_valid <- 0
 values_check <- values_data > values_valid
 
 # Identify errors
-errors_Seedlings_Complete <- qaqc(data, query, query_message, values_check)
+errors_Seedlings_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- Seedlings_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(Seedlings_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Dens Quad Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Seedlings_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Complete Errors {.hidden}
+
+```{r}
+# Combine
+errors_Seedlings_Complete <- unique(rbind(errors_Seedlings_NoData, errors_Seedlings_Quotes))
+
+remove(errors_Seedlings_NoData, errors_Seedlings_Quotes)
+
+if(nrow(errors_Seedlings_Complete) > 1) {
+  errors_Seedlings_Complete <- errors_Seedlings_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_Seedlings_Complete <- errors_Seedlings_Complete}
 ```
 
 ### Seedlings Header
@@ -3820,7 +4018,7 @@ It checks for errors in: heades, age class, shrub counts, life form, status, sub
 
 ### Shrubs Complete
 
-[Problem:]{.underline} Missing data points in FMH plots. Plots with no shrubs should be verified.
+[Problem:]{.underline} Missing data points in FMH plots. Plots with no shrubs should be verified. Or data includes symbols which will cause issues later on.
 
 [Procedure:]{.underline}
 
@@ -3849,7 +4047,40 @@ values_valid <- 0
 values_check <- values_data > values_valid
 
 # Identify errors
-errors_Shrubs_Complete <- qaqc(data, query, query_message, values_check)
+errors_Shrubs_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- Shrubs_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(Shrubs_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Dens Belts Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Shrubs_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Complete Errors {.hidden}
+
+```{r}
+# Combine
+errors_Shrubs_Complete <- unique(rbind(errors_Shrubs_NoData, errors_Shrubs_Quotes))
+
+remove(errors_Shrubs_NoData, errors_Shrubs_Quotes)
+
+if(nrow(errors_Shrubs_Complete) > 1) {
+  errors_Shrubs_Complete <- errors_Shrubs_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_Shrubs_Complete <- errors_Shrubs_Complete}
 ```
 
 ### Shrubs Header
@@ -4241,7 +4472,7 @@ It checks for errors in: cover, species, and status.
 
 ### HerbsSpComp Complete
 
-[Problem:]{.underline} Missing data points in FMH plots. Plots with no observed herbs should be verified.
+[Problem:]{.underline} Missing data points in FMH plots. Plots with no observed herbs should be verified. Or data includes symbols which will cause issues later on.
 
 [Procedure:]{.underline}
 
@@ -4270,7 +4501,40 @@ values_valid <- 0
 values_check <- values_data > values_valid
 
 # Identify errors
-errors_HerbsSpComp_Complete <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- HerbsSpComp_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(HerbsSpComp_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Cvr SpComp Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsSpComp_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Complete Errors {.hidden}
+
+```{r}
+# Combine
+errors_HerbsSpComp_Complete <- unique(rbind(errors_HerbsSpComp_NoData, errors_HerbsSpComp_Quotes))
+
+remove(errors_HerbsSpComp_NoData, errors_HerbsSpComp_Quotes)
+
+if(nrow(errors_HerbsSpComp_Complete) > 1) {
+  errors_HerbsSpComp_Complete <- errors_HerbsSpComp_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_HerbsSpComp_Complete <- errors_HerbsSpComp_Complete}
 ```
 
 ### HerbsSpComp Header
@@ -4494,7 +4758,7 @@ It checks for errors in: height, order, points, status, tape, and transect.
 
 ### HerbsPoints Complete
 
-[Problem:]{.underline} Extra of missing data points in FMH plots. There should be 166 rows with Order = 1 for each transect.
+[Problem:]{.underline} Extra of missing data points in FMH plots. There should be 166 rows with Order = 1 for each transect. Or data includes symbols which will cause issues later on.
 
 [Procedure:]{.underline}
 
@@ -4529,7 +4793,40 @@ values_valid <- 166
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_HerbsPoints_Complete <- qaqc(data, query, query_message, values_check)
+errors_HerbsPoints_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- HerbsPoints_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(HerbsPoints_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Cvr Pts Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsPoints_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Complete Errors {.hidden}
+
+```{r}
+# Combine
+errors_HerbsPoints_Complete <- unique(rbind(errors_HerbsPoints_NoData, errors_HerbsPoints_Quotes))
+
+remove(errors_HerbsPoints_NoData, errors_HerbsPoints_Quotes)
+
+if(nrow(errors_HerbsPoints_Complete) > 1) {
+  errors_HerbsPoints_Complete <- errors_HerbsPoints_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_HerbsPoints_Complete <- errors_HerbsPoints_Complete}
 ```
 
 ### HerbsPoints Header
@@ -5094,5 +5391,5 @@ kable(errors_all, "pipe")
 # Save as CSV or XLSX 
 errors_all <- errors_all %>% 
   mutate(Date = as.character(Date))
-condformat2excel(errors_all, paste0(path_errors, paste0(target_park, "_errors_data_FMH.xlsx")), sheet_name = path_errors_name, overwrite_wb = TRUE)
+condformat2excel(errors_all, paste0(path_errors, target_park, "_errors_data_FMH.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
