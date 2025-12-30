@@ -21,7 +21,15 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 # BEFORE STARTING
 
-This code is intended to combine plot data for protocols listed below. This data can be downloaded via Query tab on the FFI Remote App Server by selecting each protocol/method and exporting the file.
+This code is intended to combine FFI files into single flat files to be used with subsequent R scripts.
+
+The Metadata file can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
+
+-   Sample Event Report
+
+-   Macroplot Report
+
+The Protocol data files can be downloaded via Query tab on the FFI Remote App Server by selecting each protocol/method and exporting the file.
 
 -   Surface Fuels - 1000Hr
 
@@ -79,329 +87,642 @@ Make sure to update file paths to be specific for your data.
 ```{r}
 # adjust file paths
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+```
+
+# METADATA
+
+## Sample Event & Macroplot Report
+
+```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  MacroplotReport <- read.csv(paste0(path_data, "MacroplotReport.csv"), na.strings = c("","NA","N/A"))
+  SampleEventReport <- read.csv(paste0(path_data, "SampleEventReport.csv"), na.strings = c("","NA","N/A"))
+  
+  
+  # clean & filter data
+  #### Macroplot Report
+  # The Macroplot Report contains information on both plot metadata and sample event history. Separate these into 2 tables.
+  MacroplotReport_MetaData <- MacroplotReport %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # separate tables
+    filter(is.na(SampleEventDate)) %>%
+    # separate Date columns into Date and Time columns
+    separate(DateIn, sep = " ", into = c("DateIn", "DateInTime")) %>%
+    separate(FutureVisit, sep = " ", into = c("FutureVisit", "FutureVisitTime")) %>%
+    separate(DateOut, sep = " ", into = c("DateOut", "DateOutTime")) %>%
+    # reformate Date columns
+    mutate(DateIn = as.Date(DateIn, "%m/%d/%Y")) %>%
+    mutate(FutureVisit = as.Date(FutureVisit, "%m/%d/%Y")) %>%
+    mutate(DateOut = as.Date(DateOut, "%m/%d/%Y")) %>% 
+    # separate Date columns into Year Month Day columns
+    separate(DateIn, sep = "-", into = c("DateIn_Year", "Month", "Day"), remove = F) %>%
+    separate(FutureVisit, sep = "-", into = c("FutureVisit_Year", "Month", "Day"), remove = F) %>%
+    separate(DateOut, sep = "-", into = c("DateOut_Year", "Month", "Day"), remove = F) %>%
+    # remove unnecessary columns
+    select(!c(DateInTime, FutureVisitTime, DateOutTime, Month, Day)) %>%
+    select(!c(SampleEventDate, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
+  
+  MacroplotReport_SampleEvents <- MacroplotReport %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # separate tables
+    filter(!is.na(SampleEventDate)) %>%
+    # separate Date columns into Date and Time columns
+    separate(SampleEventDate, sep = " ", into = c("SampleEventDate", "SampleEventTime")) %>%
+    # reformate Date columns
+    mutate(SampleEventDate = as.Date(SampleEventDate, "%m/%d/%Y")) %>%
+    separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "Month", "Day"), remove = F) %>%
+    # remove unnecessary columns
+    select(!c(SampleEventTime, Month, Day)) %>%
+    select(c(Macroplot, SampleEventDate, SampleEventDate_Year, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
+  
+  #### Sample Event Report
+  # The Sample Event Report has different column names as the Macroplot Report, but contains the same information. Make column names consistent.
+  SampleEventReport <- SampleEventReport %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # make column names consistent
+    mutate(Macroplot = MacroPlot_Name,
+           LegacyMonitoringStatus = SampleEvent_LegacyMonitoringStatus,
+           MonStatus = MonitoringStatus_Name,
+           ProjectUnit = ProjectUnit_Name,
+           SampleEventDate = SampleEvent_Date) %>%
+    # separate Date columns into Date and Time columns
+    separate(SampleEventDate, sep = " ", into = c("SampleEventDate", "SampleEventTime")) %>%
+    # reformate Date columns
+    mutate(SampleEventDate = as.Date(SampleEventDate, "%m/%d/%Y")) %>%
+    separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "Month", "Day"), remove = F) %>%
+    # remove unnecessary columns
+    select(!c(SampleEventTime, Month, Day)) %>%
+    select(!c(MacroPlot_Name, SampleEvent_LegacyMonitoringStatus, MonitoringStatus_Name, ProjectUnit_Name, SampleEvent_Date))
+  
+  
+  # merge data
+  #### Merge MacroplotReport_Metadata and MacroplotReport_SampleEvents
+  MacroplotReport_merge <- merge(MacroplotReport_MetaData, MacroplotReport_SampleEvents, by = c("Macroplot")) %>%
+    select(!MonStatusOrd)
+  
+  #### Filter Sample Event Report for merging
+  SampleEventReport_merge <- SampleEventReport %>%
+    filter(ProjectUnit != "ALL") %>% 
+    select(!c(Multi_PU, LegacyMonitoringStatus))
+  
+  #### Merge Macroplot Report and Sample Event Report
+  MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot", "SampleEventDate", "SampleEventDate_Year", "MonStatus")) %>%
+    relocate(AdministrationUnit_Name, .before = Macroplot) %>%
+    relocate(ProjectUnit, .after = Purpose) %>%
+    relocate(Type, .after = Purpose) %>% 
+    relocate(Macroplot, .after = Type) %>%
+    relocate(SampleEventDate, .after = Visited) %>%
+    relocate(SampleEventDate_Year, .after = SampleEventDate) %>% 
+    relocate(MonStatus, .after = LegacyMonStatus) %>%
+    relocate(LocatedBy, .before = StartPoint)
+  
+  
+  # replace commas with semicolons
+  MetadataReport[] <- lapply(MetadataReport, function(x) gsub(",", ";", x))
+  
+  
+  # save file
+  write.csv(MetadataReport, paste0(path_save, target_park, "_MetadataReport.csv"), quote = FALSE, row.names = FALSE) 
+}
+```
+
+# PROTOCOLS
+
+## Fuels 1000
+
+```{r}
+# excluding parks CUVA and PRWI because of database exporting issues
 parks <- c("ANTI", "APCO", "CATO", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
 
-# Load in data
-target_park <- "VAFO"
-path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-path_save <- paste0(path_main, "R Outputs/", target_park, "/")
-```
-
-# MERGE AND SAVE
-
-### Load Data {.hidden}
-
-```{r}
-# Load in data
-Fuels1000_all <- read.csv(paste0(path_data, "Surface Fuels - 1000Hr_XPT.csv"), na.strings = c("","NA","N/A"))
-FuelsDuffLitt_all <- read.csv(paste0(path_data, "Surface Fuels - Duff_Litter_XPT.csv"), na.strings = c("","NA","N/A"))
-FuelsFine_all <- read.csv(paste0(path_data, "Surface Fuels - Fine_XPT.csv"), na.strings = c("","NA","N/A"))
-PostBurn_all <- read.csv(paste0(path_data, "Post Burn Severity (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-Trees_all <- read.csv(paste0(path_data, "Trees - Individuals (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-HerbsObs_all <- read.csv(paste0(path_data, "Cover - Species Composition (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-HerbsPoints_all <- read.csv(paste0(path_data, "Cover - Points (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-
-# Drop last column if it's an empty placeholder (common in Excel exports)
-Fuels1000_all <- Fuels1000_all[, -ncol(Fuels1000_all)]
-FuelsDuffLitt_all <- FuelsDuffLitt_all[, -ncol(FuelsDuffLitt_all)]
-FuelsFine_all <- FuelsFine_all[, -ncol(FuelsFine_all)]
-PostBurn_all <- PostBurn_all[, -ncol(PostBurn_all)]
-Trees_all <- Trees_all[, -ncol(Trees_all)]
-Seedlings_all <- Seedlings_all[, -ncol(Seedlings_all)]
-Shrubs_all <- Shrubs_all[, -ncol(Shrubs_all)]
-HerbsObs_all <- HerbsObs_all[, -ncol(HerbsObs_all)]
-HerbsPoints_all <- HerbsPoints_all[, -ncol(HerbsPoints_all)]
-```
-
-### Clean Data {.hidden}
-
-```{r}
-#####
-# Fuels1000
-#####
-Fuels1000_all <- Fuels1000_all %>%
-  # remove trailing/leading whitespace
-  mutate(across(where(is.character), str_trim)) %>%
-  # Separate Date column
-  separate(Date, sep = " ", into = c("Date", "Time")) %>%
-  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
-  # Reformat Date column
-  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
-  # Remove Month, Day, and Time columns
-  select(!c("Month", "Day", "Time"))
-
-#####
-# FuelsDuffLitt
-#####
-FuelsDuffLitt_all <- FuelsDuffLitt_all %>%  
-  # remove trailing/leading whitespace
-  mutate(across(where(is.character), str_trim)) %>%
-  # Separate Date column
-  separate(Date, sep = " ", into = c("Date", "Time")) %>%
-  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
-  # Reformat Date column
-  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
-  # Remove Month, Day, and Time columns
-  select(!c("Month", "Day", "Time"))
-
-#####
-# FuelsFine
-#####
-FuelsFine_all <- FuelsFine_all %>%
-  # remove trailing/leading whitespace
-  mutate(across(where(is.character), str_trim)) %>%
-  # Separate Date column
-  separate(Date, sep = " ", into = c("Date", "Time")) %>%
-  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
-  # Reformat Date column
-  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
-  # Remove Month, Day, and Time columns
-  select(!c("Month", "Day", "Time"))
-
-#####
-# PostBurn
-#####
-PostBurn_all <- PostBurn_all %>%
-  # remove trailing/leading whitespace
-  mutate(across(where(is.character), str_trim)) %>%
-  # Separate Date column
-  separate(Date, sep = " ", into = c("Date", "Time")) %>%
-  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
-  # Reformat Date column
-  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
-  # Remove Month, Day, and Time columns
-  select(!c("Month", "Day", "Time"))
-
-#####
-# Trees
-#####
-Trees_all <- Trees_all %>%
-  # remove trailing/leading whitespace
-  mutate(across(where(is.character), str_trim)) %>%
-  # Separate Date column
-  separate(Date, sep = " ", into = c("Date", "Time")) %>%
-  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
-  # Reformat Date column
-  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
-  # Remove Month, Day, and Time columns
-  select(!c("Month", "Day", "Time"))
-
-#####
-# Seedlings
-#####
-Seedlings_all <- Seedlings_all %>%
-  # remove trailing/leading whitespace
-  mutate(across(where(is.character), str_trim)) %>%
-  # Separate Date column
-  separate(Date, sep = " ", into = c("Date", "Time")) %>%
-  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
-  # Reformat Date column
-  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
-  # Remove Month, Day, and Time columns
-  select(!c("Month", "Day", "Time"))
-
-#####
-# Shrubs
-#####
-Shrubs_all <- Shrubs_all %>%
-  # remove trailing/leading whitespace
-  mutate(across(where(is.character), str_trim)) %>%
-  # Separate Date column
-  separate(Date, sep = " ", into = c("Date", "Time")) %>%
-  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
-  # Reformat Date column
-  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
-  # Remove Month, Day, and Time columns
-  select(!c("Month", "Day", "Time"))
-
-#####
-# HerbsObs
-#####
-HerbsObs_all <- HerbsObs_all %>%
-  # remove trailing/leading whitespace
-  mutate(across(where(is.character), str_trim)) %>%
-  # Separate Date column
-  separate(Date, sep = " ", into = c("Date", "Time")) %>%
-  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
-  # Reformat Date column
-  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
-  # Remove Month, Day, and Time columns
-  select(!c("Month", "Day", "Time"))
-
-#####
-# HerbsPoints
-#####
-HerbsPoints_all <- HerbsPoints_all %>%
-  # remove trailing/leading whitespace
-  mutate(across(where(is.character), str_trim)) %>%
-  # Separate Date column
-  separate(Date, sep = " ", into = c("Date", "Time")) %>%
-  separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
-  # Reformat Date column
-  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
-  # Remove Month, Day, and Time columns
-  select(!c("Month", "Day", "Time"))
-```
-
-### Filter Data {.hidden}
-
-```{r}
-#####
-# Fuels1000
-#####
-# Fuels1000 headers
-Fuels1000_header <- Fuels1000_all %>%
-  filter(!is.na(Visited)) %>% 
-  select(c(1:19, 
-           NumTran, TranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-# Fuels1000 data
-Fuels1000_data <- Fuels1000_all %>%
-  filter(is.na(Visited)) %>% 
-  select(!c(NumTran, TranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-
-#####
-# FuelsDuffLitt
-#####
-# FuelsDuffLitt headers 
-FuelsDuffLitt_header <- FuelsDuffLitt_all %>%   
-  filter(!is.na(Visited)) %>% 
-  select(c(1:19,
-           NumTran, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-# FuelsDuffLitt data
-FuelsDuffLitt_data <- FuelsDuffLitt_all %>%   
-  filter(is.na(Visited)) %>% 
-  select(!c(NumTran, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-
-#####
-# FuelsFine
-#####
-# FuelsFine headers 
-FuelsFine_header <- FuelsFine_all %>%   
-  filter(!is.na(Visited)) %>% 
-  select(c(1:19,
-           NumTran, OneHrTranLen, TenHrTranLen, HunHrTranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-# FuelsFine data
-FuelsFine_data <- FuelsFine_all %>%   
-  filter(is.na(Visited)) %>% 
-  select(!c(NumTran, OneHrTranLen, TenHrTranLen, HunHrTranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-
-#####
-# PostBurn
-#####
-# PostBurn headers
-PostBurn_header <- PostBurn_all %>%
-  filter(!is.na(Visited)) %>% 
-  select(c(1:19,
-           NumTran, TranLen, NumPtsTran, PlotType, PtArea, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-# PostBurn data
-PostBurn_data <- PostBurn_all %>%
-  filter(is.na(Visited)) %>% 
-  select(!c(NumTran, TranLen, NumPtsTran, PlotType, PtArea, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-
-#####
-# Trees
-#####
-# Trees headers
-Trees_header <- Trees_all %>%   
-  filter(!is.na(Visited)) %>% 
-  select(c(1:19,
-           MacroPlotSize, SnagPlotSize, BrkPntDia, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-# Trees data
-Trees_data <- Trees_all %>%   
-  filter(is.na(Visited)) %>% 
-  select(!c(MacroPlotSize, SnagPlotSize, BrkPntDia, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-
-#####
-# Seedlings
-#####
-# Seedlings headers
-Seedlings_header <- Seedlings_all %>%
-  filter(!is.na(Visited)) %>% 
-  select(c(1:19,
-           NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-# Seedlings data
-Seedlings_data <- Seedlings_all %>%
-  filter(is.na(Visited)) %>% 
-  select(!c(NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-
-#####
-# Shrubs
-#####
-# Shrubs headers
-Shrubs_header <- Shrubs_all %>%
-  filter(!is.na(Visited)) %>% 
-  select(c(1:19,
-           NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-# Shrubs data
-Shrubs_data <- Shrubs_all %>%
-  filter(is.na(Visited)) %>% 
-  select(!c(NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-
-#####
-# HerbsObs
-#####
-# HerbsObs headers
-HerbsObs_header <- HerbsObs_all %>%
-  filter(!is.na(Visited)) %>% 
-  select(c(1:19,
-           MinCovLevel, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-# HerbsObs data
-HerbsObs_data <- HerbsObs_all %>%
-  filter(is.na(Visited)) %>% 
-  select(!c(MinCovLevel, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-
-#####
-# HerbsPoints
-#####
-# HerbsPoints headers
-HerbsPoints_header <- HerbsPoints_all %>%
-  filter(!is.na(Visited)) %>% 
-  select(c(1:19,
-           NumTran, TranLen, NumPtsTran, Offset, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-# HerbsPoints data
-HerbsPoints_data <- HerbsPoints_all %>%
-  filter(is.na(Visited)) %>% 
-  select(!c(NumTran, TranLen, NumPtsTran, Offset, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-```
-
-### Merge Data
-
-```{r}
-# merge data
-Fuels1000 <- merge(Fuels1000_header, Fuels1000_data, by = c(1:19))
-FuelsDuffLitt <- merge(FuelsDuffLitt_header, FuelsDuffLitt_data, by = c(1:19))
-FuelsFine <- merge(FuelsFine_header, FuelsFine_data, by = c(1:19))
-PostBurn <- merge(PostBurn_header, PostBurn_data, by = c(1:19))
-Trees <- merge(Trees_header, Trees_data, by = c(1:19))
-Seedlings <- merge(Seedlings_header, Seedlings_data, by = c(1:19))
-Shrubs <- merge(Shrubs_header, Shrubs_data, by = c(1:19))
-HerbsObs <- merge(HerbsObs_header, HerbsObs_data, by = c(1:19))
-HerbsPoints <- merge(HerbsPoints_header, HerbsPoints_data, by = c(1:19))
+for(i in parks) {
+  # select target park
+  target_park <- i
   
-Fuels1000[] <- lapply(Fuels1000, function(x) gsub(",", ";", x))
-FuelsDuffLitt[] <- lapply(FuelsDuffLitt, function(x) gsub(",", ";", x))
-FuelsFine[] <- lapply(FuelsFine, function(x) gsub(",", ";", x))
-PostBurn[] <- lapply(PostBurn, function(x) gsub(",", ";", x))
-Trees[] <- lapply(Trees, function(x) gsub(",", ";", x))
-Seedlings[] <- lapply(Seedlings, function(x) gsub(",", ";", x))
-Shrubs[] <- lapply(Shrubs, function(x) gsub(",", ";", x))
-HerbsObs[] <- lapply(HerbsObs, function(x) gsub(",", ";", x))
-HerbsPoints[] <- lapply(HerbsPoints, function(x) gsub(",", ";", x))
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  Fuels1000_all <- read.csv(paste0(path_data, "Surface Fuels - 1000Hr_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  Fuels1000_all <- Fuels1000_all[, -ncol(Fuels1000_all)]
+  ## replace commas with semicolons
+  Fuels1000_all[] <- lapply(Fuels1000_all, function(x) gsub(",", ";", x))
+  
+  
+  # clean data
+  Fuels1000_all <- Fuels1000_all %>%
+  # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # Separate Date column
+    separate(Date, sep = " ", into = c("Date", "Time")) %>%
+    separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+    # Reformat Date column
+    mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+    # Remove Month, Day, and Time columns
+    select(!c("Month", "Day", "Time"))
+  
+  
+  # filter data
+  ## Fuels1000 headers
+  Fuels1000_header <- Fuels1000_all %>%
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19, 
+             NumTran, TranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  ## Fuels1000 data
+  Fuels1000_data <- Fuels1000_all %>%
+    filter(is.na(Visited)) %>% 
+    select(!c(NumTran, TranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+
+
+  # merge data
+  Fuels1000 <- merge(Fuels1000_header, Fuels1000_data, by = c(1:19))
+  
+  
+  # save file
+  write.csv(Fuels1000, paste0(path_save, target_park, "_Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
+}
 ```
 
-### Save Data
+## Fuels Duff Litt
 
 ```{r}
-# save file
-write.csv(Fuels1000, paste0(path_save, target_park, "_Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
-write.csv(FuelsDuffLitt, paste0(path_save, target_park, "_Data_Surface Fuels - Duff_Litter.csv"), quote = FALSE, row.names = FALSE) 
-write.csv(FuelsFine, paste0(path_save, target_park, "_Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE) 
-write.csv(PostBurn, paste0(path_save, target_park, "_Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE) 
-write.csv(Trees, paste0(path_save, target_park, "_Data_Trees - Individuals (metric).csv"), quote = FALSE, row.names = FALSE) 
-write.csv(Seedlings, paste0(path_save, target_park, "_Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE) 
-write.csv(Shrubs, paste0(path_save, target_park, "_Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE) 
-write.csv(HerbsObs, paste0(path_save, target_park, "_Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE) 
-write.csv(HerbsPoints, paste0(path_save, target_park, "_Data_Cover - Points (metric).csv"), quote = FALSE, row.names = FALSE) 
+# excluding parks CUVA and PRWI because of database exporting issues
+parks <- c("ANTI", "APCO", "CATO", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  FuelsDuffLitt_all <- read.csv(paste0(path_data, "Surface Fuels - Duff_Litter_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  FuelsDuffLitt_all <- FuelsDuffLitt_all[, -ncol(FuelsDuffLitt_all)]
+  ## replace commas with semicolons
+  FuelsDuffLitt_all[] <- lapply(FuelsDuffLitt_all, function(x) gsub(",", ";", x))
+  
+  
+  # clean data
+  FuelsDuffLitt_all <- FuelsDuffLitt_all %>%  
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # Separate Date column
+    separate(Date, sep = " ", into = c("Date", "Time")) %>%
+    separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+    # Reformat Date column
+    mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+    # Remove Month, Day, and Time columns
+    select(!c("Month", "Day", "Time"))
+  
+  
+  # filter data
+  ## FuelsDuffLitt headers
+  FuelsDuffLitt_header <- FuelsDuffLitt_all %>%   
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19,
+             NumTran, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  ## FuelsDuffLitt data
+  FuelsDuffLitt_data <- FuelsDuffLitt_all %>%   
+    filter(is.na(Visited)) %>% 
+    select(!c(NumTran, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  
+  
+  # merge data
+  FuelsDuffLitt <- merge(FuelsDuffLitt_header, FuelsDuffLitt_data, by = c(1:19))
+  
+  
+  # save file
+  write.csv(FuelsDuffLitt, paste0(path_save, target_park, "_Data_Surface Fuels - Duff_Litter.csv"), quote = FALSE, row.names = FALSE) 
+}
+```
+
+## Fuels Fine
+
+```{r}
+# excluding parks CUVA and PRWI because of database exporting issues
+parks <- c("ANTI", "APCO", "CATO", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  FuelsFine_all <- read.csv(paste0(path_data, "Surface Fuels - Fine_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  FuelsFine_all <- FuelsFine_all[, -ncol(FuelsFine_all)]
+  ## replace commas with semicolons
+  FuelsFine_all[] <- lapply(FuelsFine_all, function(x) gsub(",", ";", x))
+  
+  
+  # clean data
+  FuelsFine_all <- FuelsFine_all %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # Separate Date column
+    separate(Date, sep = " ", into = c("Date", "Time")) %>%
+    separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+    # Reformat Date column
+    mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+    # Remove Month, Day, and Time columns
+    select(!c("Month", "Day", "Time"))
+  
+  
+  # filter data
+  ## FuelsFine headers 
+  FuelsFine_header <- FuelsFine_all %>%   
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19,
+             NumTran, OneHrTranLen, TenHrTranLen, HunHrTranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+## FuelsFine data
+  FuelsFine_data <- FuelsFine_all %>%   
+    filter(is.na(Visited)) %>% 
+    select(!c(NumTran, OneHrTranLen, TenHrTranLen, HunHrTranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  
+  
+  # merge data
+  FuelsFine <- merge(FuelsFine_header, FuelsFine_data, by = c(1:19))
+  
+  
+  # save file
+  write.csv(FuelsFine, paste0(path_save, target_park, "_Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE) 
+}
+```
+
+## Post Burn
+
+```{r}
+# excluding park PRWI because of database exporting issues
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  PostBurn_all <- read.csv(paste0(path_data, "Post Burn Severity (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  PostBurn_all <- PostBurn_all[, -ncol(PostBurn_all)]
+  ## replace commas with semicolons
+  PostBurn_all[] <- lapply(PostBurn_all, function(x) gsub(",", ";", x))
+  
+  
+  # clean data
+  PostBurn_all <- PostBurn_all %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # Separate Date column
+    separate(Date, sep = " ", into = c("Date", "Time")) %>%
+    separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+    # Reformat Date column
+    mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+    # Remove Month, Day, and Time columns
+    select(!c("Month", "Day", "Time"))
+  
+  
+  # filter data
+  ## PostBurn headers
+  PostBurn_header <- PostBurn_all %>%
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19,
+             NumTran, TranLen, NumPtsTran, PlotType, PtArea, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  ## PostBurn data
+  PostBurn_data <- PostBurn_all %>%
+    filter(is.na(Visited)) %>% 
+    select(!c(NumTran, TranLen, NumPtsTran, PlotType, PtArea, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  
+  
+  # merge data
+  PostBurn <- merge(PostBurn_header, PostBurn_data, by = c(1:19))
+  
+  
+  # save file
+  write.csv(PostBurn, paste0(path_save, target_park, "_Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE) 
+}
+```
+
+## Trees
+
+```{r}
+# excluding park PRWI because of database exporting issues
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  Trees_all <- read.csv(paste0(path_data, "Trees - Individuals (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  Trees_all <- Trees_all[, -ncol(Trees_all)]
+  ## replace commas with semicolons
+  Trees_all[] <- lapply(Trees_all, function(x) gsub(",", ";", x))
+  
+  
+  # clean data
+  Trees_all <- Trees_all %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # Separate Date column
+    separate(Date, sep = " ", into = c("Date", "Time")) %>%
+    separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+    # Reformat Date column
+    mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+    # Remove Month, Day, and Time columns
+    select(!c("Month", "Day", "Time"))
+  
+  
+  # filter data
+  ## Trees headers
+  Trees_header <- Trees_all %>%   
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19,
+             MacroPlotSize, SnagPlotSize, BrkPntDia, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  ## Trees data
+  Trees_data <- Trees_all %>%   
+    filter(is.na(Visited)) %>% 
+    select(!c(MacroPlotSize, SnagPlotSize, BrkPntDia, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  
+  
+  # merge data
+  Trees <- merge(Trees_header, Trees_data, by = c(1:19))
+  
+  
+  # save file
+  write.csv(Trees, paste0(path_save, target_park, "_Data_Trees - Individuals (metric).csv"), quote = FALSE, row.names = FALSE) 
+}
+```
+
+## Seedlings
+
+```{r}
+# excluding park PRWI because of database exporting issues
+# excluding park APCO because Density - Quadrats (metric) aka Seedlings protocol does not include Area header...
+parks <- c("ANTI", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  Seedlings_all <- Seedlings_all[, -ncol(Seedlings_all)]
+  ## replace commas with semicolons
+  Seedlings_all[] <- lapply(Seedlings_all, function(x) gsub(",", ";", x))
+  
+  
+  # clean data
+  Seedlings_all <- Seedlings_all %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # Separate Date column
+    separate(Date, sep = " ", into = c("Date", "Time")) %>%
+    separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+    # Reformat Date column
+    mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+    # Remove Month, Day, and Time columns
+    select(!c("Month", "Day", "Time"))
+  
+  
+  # filter data
+  ## Seedlings headers
+  Seedlings_header <- Seedlings_all %>%
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19,
+             NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  ## Seedlings data
+  Seedlings_data <- Seedlings_all %>%
+    filter(is.na(Visited)) %>% 
+    select(!c(NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  
+  
+  # merge data
+  Seedlings <- merge(Seedlings_header, Seedlings_data, by = c(1:19))
+  
+  
+  # save file
+  write.csv(Seedlings, paste0(path_save, target_park, "_Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE) 
+}
+```
+
+## Shrubs
+
+```{r}
+# excluding park PRWI because of database exporting issues
+# excluding park APCO because Density - Belts (metric) aka Shrubs protocol does not include NumSubbelt header...
+parks <- c("ANTI", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  Shrubs_all <- Shrubs_all[, -ncol(Shrubs_all)]
+  ## replace commas with semicolons
+  Shrubs_all[] <- lapply(Shrubs_all, function(x) gsub(",", ";", x))
+  
+  
+  # clean data
+  Shrubs_all <- Shrubs_all %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # Separate Date column
+    separate(Date, sep = " ", into = c("Date", "Time")) %>%
+    separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+    # Reformat Date column
+    mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+    # Remove Month, Day, and Time columns
+    select(!c("Month", "Day", "Time"))
+  
+  
+  # filter data
+  ## Shrubs headers
+  Shrubs_header <- Shrubs_all %>%
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19,
+             NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  ## Shrubs data
+  Shrubs_data <- Shrubs_all %>%
+    filter(is.na(Visited)) %>% 
+    select(!c(NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  
+  
+  # merge data
+  Shrubs <- merge(Shrubs_header, Shrubs_data, by = c(1:19))
+  
+  
+  # save file
+  write.csv(Shrubs, paste0(path_save, target_park, "_Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE) 
+}
+```
+
+## Herbs Species Comp
+
+```{r}
+# excluding park PRWI because of database exporting issues
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  HerbsSpComp_all <- read.csv(paste0(path_data, "Cover - Species Composition (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  HerbsSpComp_all <- HerbsSpComp_all[, -ncol(HerbsSpComp_all)]
+  ## replace commas with semicolons
+  HerbsSpComp_all[] <- lapply(HerbsSpComp_all, function(x) gsub(",", ";", x))
+  
+  
+  # clean data
+  HerbsSpComp_all <- HerbsSpComp_all %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # Separate Date column
+    separate(Date, sep = " ", into = c("Date", "Time")) %>%
+    separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+    # Reformat Date column
+    mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+    # Remove Month, Day, and Time columns
+    select(!c("Month", "Day", "Time"))
+  
+  
+  # filter data
+  ## HerbsSpComp headers
+  HerbsSpComp_header <- HerbsSpComp_all %>%
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19,
+             MinCovLevel, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  ## HerbsSpComp data
+  HerbsSpComp_data <- HerbsSpComp_all %>%
+    filter(is.na(Visited)) %>% 
+    select(!c(MinCovLevel, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  
+  
+  # merge data
+  HerbsSpComp <- merge(HerbsSpComp_header, HerbsSpComp_data, by = c(1:19))
+  
+  
+  # save file
+  write.csv(HerbsSpComp, paste0(path_save, target_park, "_Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE) 
+}
+```
+
+## Herbs Points
+
+```{r}
+# excluding park PRWI because of database exporting issues
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  HerbsPoints_all <- read.csv(paste0(path_data, "Cover - Points (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  HerbsPoints_all <- HerbsPoints_all[, -ncol(HerbsPoints_all)]
+  ## replace commas with semicolons
+  HerbsPoints_all[] <- lapply(HerbsPoints_all, function(x) gsub(",", ";", x))
+  
+  
+  # clean data
+  HerbsPoints_all <- HerbsPoints_all %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # Separate Date column
+    separate(Date, sep = " ", into = c("Date", "Time")) %>%
+    separate(Date, sep = "/", into = c("Month", "Day", "Date_Year"), remove = FALSE) %>%
+    # Reformat Date column
+    mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+    # Remove Month, Day, and Time columns
+    select(!c("Month", "Day", "Time"))
+  
+  
+  # filter data
+  ## HerbsPoints headers
+  HerbsPoints_header <- HerbsPoints_all %>%
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19,
+             NumTran, TranLen, NumPtsTran, Offset, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  ## HerbsPoints data
+  HerbsPoints_data <- HerbsPoints_all %>%
+    filter(is.na(Visited)) %>% 
+    select(!c(NumTran, TranLen, NumPtsTran, Offset, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  
+  
+  # merge data
+  HerbsPoints <- merge(HerbsPoints_header, HerbsPoints_data, by = c(1:19))
+  
+  
+  # save file
+  write.csv(HerbsPoints, paste0(path_save, target_park, "_Data_Cover - Points (metric).csv"), quote = FALSE, row.names = FALSE) 
+}
 ```
