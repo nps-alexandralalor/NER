@@ -129,7 +129,7 @@ target_park <- "GETT"
 ```{r import data, include=FALSE}
 # adjust file paths
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_data <- paste0(path_main, "Exports/", target_park, "/")
+path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
 path_save <- paste0(path_main, "R Outputs/", target_park, "/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
@@ -139,9 +139,9 @@ path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 
 ```{r load data, include=FALSE}
 ## Load Data, replace blanks and text NA as actual NA
-MacroplotReport <- read.csv(paste0(path_data, target_park, "_", "MacroplotReport.csv"), na.strings = c("","NA","N/A"))
-ProjectUnitReport <- read.csv(paste0(path_data, target_park, "_", "ProjectUnitAssignmentReport.csv"), na.strings = c("","NA","N/A"))
-SampleEventReport <- read.csv(paste0(path_data, target_park, "_", "SampleEventReport.csv"), na.strings = c("","NA","N/A"))
+MacroplotReport <- read.csv(paste0(path_data, "MacroplotReport.csv"), na.strings = c("","NA","N/A"))
+ProjectUnitReport <- read.csv(paste0(path_data, "ProjectUnitAssignmentReport.csv"), na.strings = c("","NA","N/A"))
+SampleEventReport <- read.csv(paste0(path_data, "SampleEventReport.csv"), na.strings = c("","NA","N/A"))
 ```
 
 ### Clean Data {.hidden}
@@ -603,18 +603,51 @@ if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
 
 ### Comments
 
-[Problem:]{.underline} Macroplot Report is missing information related to plot comments
+[Problem:]{.underline} Macroplot Report is missing information related to plot comments, or comments include symbols which will cause issues later on.
 
 [Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- MacroplotReport %>% 
+  mutate(Quotes = pmap_lgl(as.list(MacroplotReport), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Macroplot Report - Comments"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_MacroplotReport_Quotes <- qaqc_meta(data, query, query_message, values_check)
+```
 
 -   Check that UV1 = Project Unit / Burn Unit
 -   Filter for Type = Forest. Check that UV2 = Monitoring Type
 -   Filter for Type = Forest. Check that UV3 = Vegetation Association
 
+#### Combine Comments Errors {.hidden}
+
+```{r}
+# Combine
+errors_MacroplotReport_Comments <- unique(rbind(errors_MacroplotReport_Quotes))
+
+remove(errors_MacroplotReport_Quotes)
+
+if(nrow(errors_MacroplotReport_Comments) > 1) {
+  errors_MacroplotReport_Comments <- errors_MacroplotReport_Comments %>%
+    filter(Error != "No Error")
+} else {
+  errors_MacroplotReport_Comments <- errors_MacroplotReport_Comments}
+```
+
 ### Combine Macroplot Report Errors {.hidden}
 
 ```{r}
-errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent)
+errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent, errors_MacroplotReport_Comments)
 ```
 
 ## Project Unit Assignment Report
@@ -622,6 +655,24 @@ errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_Macr
 [Problem:]{.underline} Project Unit Assignment Report is missing information
 
 [Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- ProjectUnitReport %>% 
+  mutate(Quotes = pmap_lgl(as.list(ProjectUnitReport), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Project Unit Report"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_ProjectUnitReport_Quotes <- qaqc_meta(data, query, query_message, values_check)
+```
 
 -   Check that Macroplot is not blank
 
@@ -671,9 +722,9 @@ errors_ProjectUnitReport_MultiPU <- qaqc_meta(data, query, query_message, values
 #### Combine Project Unit Report Errors {.hidden}
 
 ```{r}
-errors_ProjectUnitReport <- unique(rbind(errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU))
+errors_ProjectUnitReport <- unique(rbind(errors_ProjectUnitReport_Quotes, errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU))
 
-remove(errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU)
+remove(errors_ProjectUnitReport_Quotes, errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU)
 
 if(nrow(errors_ProjectUnitReport) > 1) {
   errors_ProjectUnitReport <- errors_ProjectUnitReport %>%
@@ -687,6 +738,24 @@ if(nrow(errors_ProjectUnitReport) > 1) {
 [Problem:]{.underline} Sample Event Report is missing information or is inconsistent with the Macroplot Report
 
 [Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- SampleEventReport %>% 
+  mutate(Quotes = pmap_lgl(as.list(SampleEventReport), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Sample Event Report"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SampleEventReport_Quotes <- qaqc_meta(data, query, query_message, values_check)
+```
 
 -   Check that AdministrationUnit_Name is correct
 
@@ -787,9 +856,9 @@ errors_SampleEventReport_MonStatus <- qaqc_meta(data, query, query_message, valu
 #### Combine Sample Event Report Errors {.hidden}
 
 ```{r}
-errors_SampleEventReport <- unique(rbind(errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2, errors_SampleEventReport_MonStatus))
+errors_SampleEventReport <- unique(rbind(errors_SampleEventReport_Quotes, errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2, errors_SampleEventReport_MonStatus))
 
-remove(errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2, errors_SampleEventReport_MonStatus)
+remove(errors_SampleEventReport_Quotes, errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2, errors_SampleEventReport_MonStatus)
 
 if(nrow(errors_SampleEventReport) > 1) {
   errors_SampleEventReport <- errors_SampleEventReport %>%
