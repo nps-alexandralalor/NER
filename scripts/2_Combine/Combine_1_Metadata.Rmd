@@ -63,12 +63,13 @@ library(here)
 ```{r}
 # load in data.
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 ```
 
 # METADATA REPORT: MERGE AND SAVE
 
 ```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+
 for(i in parks) {
   # select target park
   target_park <- i
