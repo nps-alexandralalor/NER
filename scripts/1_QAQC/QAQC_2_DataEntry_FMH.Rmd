@@ -169,7 +169,7 @@ PostBurn_all <- read.csv(paste0(path_data, "Post Burn Severity (metric)_XPT.csv"
 Trees_all <- read.csv(paste0(path_data, "Trees - Individuals (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
 Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
 Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-HerbsObs_all <- read.csv(paste0(path_data, "Cover - Species Composition (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+HerbsSpComp_all <- read.csv(paste0(path_data, "Cover - Species Composition (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
 HerbsPoints_all <- read.csv(paste0(path_data, "Cover - Points (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
 
 # Drop last column if it's an empty placeholder (common in Excel exports)
@@ -180,7 +180,7 @@ PostBurn_all <- PostBurn_all[, -ncol(PostBurn_all)]
 Trees_all <- Trees_all[, -ncol(Trees_all)]
 Seedlings_all <- Seedlings_all[, -ncol(Seedlings_all)]
 Shrubs_all <- Shrubs_all[, -ncol(Shrubs_all)]
-HerbsObs_all <- HerbsObs_all[, -ncol(HerbsObs_all)]
+HerbsSpComp_all <- HerbsSpComp_all[, -ncol(HerbsSpComp_all)]
 HerbsPoints_all <- HerbsPoints_all[, -ncol(HerbsPoints_all)]
 ```
 
@@ -279,10 +279,10 @@ Shrubs_all <- Shrubs_all %>%
   select(!c("Month", "Day", "Time"))
 
 #####
-# HerbsObs
+# HerbsSpComp
 #####
 # Reformat date column
-HerbsObs_all <- HerbsObs_all %>%
+HerbsSpComp_all <- HerbsSpComp_all %>%
   # Separate Date column
   separate(Date, sep = " ", into = c("Date", "Time")) %>%
   separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
@@ -379,13 +379,13 @@ Shrubs_header <- Shrubs_all %>%
   filter(!is.na(Visited), Year %in% years)
 
 #####
-# HerbsObs
+# HerbsSpComp
 #####
-# HerbsObs data
-HerbsObs_data <- HerbsObs_all %>%
+# HerbsSpComp data
+HerbsSpComp_data <- HerbsSpComp_all %>%
   filter(is.na(Visited), Year %in% years)
-# HerbsObs headers
-HerbsObs_header <- HerbsObs_all %>%
+# HerbsSpComp headers
+HerbsSpComp_header <- HerbsSpComp_all %>%
   filter(!is.na(Visited), Year %in% years)
 
 #####
@@ -4233,13 +4233,13 @@ path_errors
 #write_xlsx(errors_Shrubs, paste0(path_errors, "errors_GRCA_FMH_Shrubs.xlsx"))
 ```
 
-# PROTOCOL - HERBS OBS
+# PROTOCOL - HERBS SPECIES COMP
 
 This code conducts quality control checks on observed herbaceous data within the "Cover - Species Composition (metric)" data set.
 
 It checks for errors in: cover, species, and status.
 
-### HerbsObs Complete
+### HerbsSpComp Complete
 
 [Problem:]{.underline} Missing data points in FMH plots. Plots with no observed herbs should be verified.
 
@@ -4249,11 +4249,11 @@ It checks for errors in: cover, species, and status.
 
 ```{r}
 # Filter NA values. Add number of hits and store in new column
-data_temp1 <- HerbsObs_data %>%
+data_temp1 <- HerbsSpComp_data %>%
   group_by(MacroPlot.Name, Date) %>% 
   dplyr::summarize("sum_hits" = n())
 
-data_temp2 <- HerbsObs_header %>% 
+data_temp2 <- HerbsSpComp_header %>% 
   group_by(MacroPlot.Name, Date) %>% 
   dplyr::summarise()
 
@@ -4262,7 +4262,7 @@ data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
 remove(data_temp1, data_temp2)
 
 # Set parameters 
-data <- merge(HerbsObs_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+data <- merge(HerbsSpComp_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
 query <- "Cvr SpComp Complete" 
 query_message <- "Species" 
 values_data <- data$sum_hits
@@ -4270,10 +4270,10 @@ values_valid <- 0
 values_check <- values_data > values_valid
 
 # Identify errors
-errors_HerbsObs_Complete <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_Complete <- qaqc(data, query, query_message, values_check)
 ```
 
-### HerbsObs Header
+### HerbsSpComp Header
 
 [Problem:]{.underline} Incorrect header information entered.
 
@@ -4283,7 +4283,7 @@ errors_HerbsObs_Complete <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Set parameters  
-data <- HerbsObs_header
+data <- HerbsSpComp_header
 data$MinCovLevel[is.na(data$MinCovLevel)] <- ""
 query <- "Cvr SpComp Header" 
 query_message <- "Min Cover Level"  
@@ -4292,14 +4292,14 @@ values_valid <- ""
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_HerbsObs_MinCovLevel <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_MinCovLevel <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Area is blank
 
 ```{r}
 # Set parameters  
-data <- HerbsObs_header
+data <- HerbsSpComp_header
 data$Area[is.na(data$Area)] <- ""
 query <- "Cvr SpComp Header" 
 query_message <- "Area"  
@@ -4308,14 +4308,14 @@ values_valid <- ""
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_HerbsObs_Area <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_Area <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that FieldTeam is [not]{.underline} blank
 
 ```{r}
 # Set parameters  
-data <- HerbsObs_header
+data <- HerbsSpComp_header
 data$FieldTeam[is.na(data$FieldTeam)] <- ""
 query <- "Cvr SpComp Header" 
 query_message <- "Collected By"  
@@ -4324,14 +4324,14 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_HerbsObs_FieldTeam <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_FieldTeam <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that EntryTeam is [not]{.underline} blank
 
 ```{r}
 # Set parameters  
-data <- HerbsObs_header
+data <- HerbsSpComp_header
 data$EntryTeam[is.na(data$EntryTeam)] <- ""
 query <- "Cvr SpComp Header" 
 query_message <- "Entered/Verified By"  
@@ -4340,24 +4340,24 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_HerbsObs_EntryTeam <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_EntryTeam <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Header Errors {.hidden}
 
 ```{r}
-errors_HerbsObs_Header <- unique(rbind(errors_HerbsObs_MinCovLevel, errors_HerbsObs_Area, errors_HerbsObs_FieldTeam, errors_HerbsObs_EntryTeam))
+errors_HerbsSpComp_Header <- unique(rbind(errors_HerbsSpComp_MinCovLevel, errors_HerbsSpComp_Area, errors_HerbsSpComp_FieldTeam, errors_HerbsSpComp_EntryTeam))
 
-remove(errors_HerbsObs_MinCovLevel, errors_HerbsObs_Area, errors_HerbsObs_FieldTeam, errors_HerbsObs_EntryTeam)
+remove(errors_HerbsSpComp_MinCovLevel, errors_HerbsSpComp_Area, errors_HerbsSpComp_FieldTeam, errors_HerbsSpComp_EntryTeam)
 
-if(nrow(errors_HerbsObs_Header) > 1) {
-  errors_HerbsObs_Header <- errors_HerbsObs_Header %>%
+if(nrow(errors_HerbsSpComp_Header) > 1) {
+  errors_HerbsSpComp_Header <- errors_HerbsSpComp_Header %>%
     filter(Error != "No Error")
 } else {
-  errors_HerbsObs_Header <- errors_HerbsObs_Header}
+  errors_HerbsSpComp_Header <- errors_HerbsSpComp_Header}
 ```
 
-### HerbsObs Cover
+### HerbsSpComp Cover
 
 [Problem:]{.underline} Cover values are entered for herbaceous species in FMH plots.
 
@@ -4367,7 +4367,7 @@ if(nrow(errors_HerbsObs_Header) > 1) {
 
 ```{r}
 # Set parameters
-data <- HerbsObs_data
+data <- HerbsSpComp_data
 data$Cover[is.na(data$Cover)] <- ""
 query <- "Cvr SpComp Cvr"
 query_message <- paste0("Cover")
@@ -4376,10 +4376,10 @@ values_valid <- ""
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_HerbsObs_Cover <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_Cover <- qaqc(data, query, query_message, values_check)
 ```
 
-### HerbsObs Status
+### HerbsSpComp Status
 
 [Problem:]{.underline} Species do not have an entry for status or have an entry that we don’t use.
 
@@ -4389,7 +4389,7 @@ errors_HerbsObs_Cover <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Set parameters 
-data <- HerbsObs_data
+data <- HerbsSpComp_data
 query <- "Cvr SpComp Status" 
 query_message <- paste0("Species ", data$Species.Symbol, ". ", "Status")
 values_data <- data$Status
@@ -4397,10 +4397,10 @@ values_valid <- c("L")
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_HerbsObs_Status <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_Status <- qaqc(data, query, query_message, values_check)
 ```
 
-### HerbsObs Zero
+### HerbsSpComp Zero
 
 [Problem:]{.underline}  Values entered for columns which should be blank.
 
@@ -4410,7 +4410,7 @@ errors_HerbsObs_Status <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Set parameters
-data <- HerbsObs_data
+data <- HerbsSpComp_data
 data$AgeCl[is.na(data$AgeCl)] <- ""
 query <- "Cvr SpComp Zero/NA"
 query_message <- "Age Class"
@@ -4419,14 +4419,14 @@ values_valid <- ""
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_HerbsObs_AgeCl <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_AgeCl <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Height = blank
 
 ```{r}
 # Set parameters
-data <- HerbsObs_data
+data <- HerbsSpComp_data
 data$Height[is.na(data$Height)] <- ""
 query <- "Cvr SpComp Zero/NA"
 query_message <- "Height"
@@ -4435,14 +4435,14 @@ values_valid <- ""
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_HerbsObs_Height <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_Height <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that SizeCl = blank
 
 ```{r}
 # Set parameters
-data <- HerbsObs_data
+data <- HerbsSpComp_data
 data$SizeCl[is.na(data$SizeCl)] <- ""
 query <- "Cvr SpComp Zero/NA"
 query_message <- "Size Class"
@@ -4451,39 +4451,39 @@ values_valid <- ""
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_HerbsObs_SizeCl <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_SizeCl <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Zero Errors {.hidden}
 
 ```{r}
-errors_HerbsObs_Zero <- unique(rbind(errors_HerbsObs_AgeCl, errors_HerbsObs_Height, errors_HerbsObs_SizeCl))
+errors_HerbsSpComp_Zero <- unique(rbind(errors_HerbsSpComp_AgeCl, errors_HerbsSpComp_Height, errors_HerbsSpComp_SizeCl))
 
-remove(errors_HerbsObs_AgeCl, errors_HerbsObs_Height, errors_HerbsObs_SizeCl)
+remove(errors_HerbsSpComp_AgeCl, errors_HerbsSpComp_Height, errors_HerbsSpComp_SizeCl)
 
-if(nrow(errors_HerbsObs_Zero) > 1) {
-  errors_HerbsObs_Zero <- errors_HerbsObs_Zero %>%
+if(nrow(errors_HerbsSpComp_Zero) > 1) {
+  errors_HerbsSpComp_Zero <- errors_HerbsSpComp_Zero %>%
     filter(Error != "No Error")
 } else {
-  errors_HerbsObs_Zero <- errors_HerbsObs_Zero}
+  errors_HerbsSpComp_Zero <- errors_HerbsSpComp_Zero}
 ```
 
-### HerbsObs Errors
+### HerbsSpComp Errors
 
 ```{r}
-errors_HerbsObs <- rbind(errors_HerbsObs_Complete, errors_blank, errors_HerbsObs_Header, errors_blank, errors_HerbsObs_Cover, errors_blank,  errors_HerbsObs_Status, errors_blank, errors_HerbsObs_Zero)
+errors_HerbsSpComp <- rbind(errors_HerbsSpComp_Complete, errors_blank, errors_HerbsSpComp_Header, errors_blank, errors_HerbsSpComp_Cover, errors_blank,  errors_HerbsSpComp_Status, errors_blank, errors_HerbsSpComp_Zero)
 
-remove(errors_HerbsObs_Complete, errors_HerbsObs_Header, errors_HerbsObs_Cover,  errors_HerbsObs_Status, errors_HerbsObs_Zero)
+remove(errors_HerbsSpComp_Complete, errors_HerbsSpComp_Header, errors_HerbsSpComp_Cover,  errors_HerbsSpComp_Status, errors_HerbsSpComp_Zero)
 ```
 
 ```{r}
 # Table of results for quick check
-#kable(errors_HerbsObs, "pipe")
+#kable(errors_HerbsSpComp, "pipe")
 
 # Save as CSV or XLSX
 path_errors
-#write.csv(errors_HerbsObs, paste0(path_errors, "errors_GRCA_FMH_HerbsObs.csv"), quote=FALSE, row.names = FALSE, na = "")
-#write_xlsx(errors_HerbsObs, paste0(path_errors, "errors_GRCA_FMH_HerbsObs.xlsx"))
+#write.csv(errors_HerbsSpComp, paste0(path_errors, "errors_GRCA_FMH_HerbsSpComp.csv"), quote=FALSE, row.names = FALSE, na = "")
+#write_xlsx(errors_HerbsSpComp, paste0(path_errors, "errors_GRCA_FMH_HerbsSpComp.xlsx"))
 ```
 
 # PROTOCOL - HERBS POINTS
@@ -5048,7 +5048,7 @@ errors_blank_Seedlings <- errors_blank %>%
 errors_blank_Shrubs <- errors_blank %>%
   mutate(SavedQuery = "PROTOCOL - SHRUBS")
 
-errors_blank_HerbsObs <- errors_blank %>%
+errors_blank_HerbsSpComp <- errors_blank %>%
   mutate(SavedQuery = "PROTOCOL - HERBS OBSERVED")
 
 errors_blank_HerbsPoints <- errors_blank %>%
@@ -5057,11 +5057,11 @@ errors_blank_HerbsPoints <- errors_blank %>%
 
 ```{r}
 # Save to master error list 
-# errors_all <- unique(rbind(errors_Fuels1000, errors_FuelsDuffLitt, errors_FuelsFine, errors_PostBurn, errors_Trees, errors_Seedlings, errors_Shrubs, errors_HerbsObs, errors_HerbsPts))
+# errors_all <- unique(rbind(errors_Fuels1000, errors_FuelsDuffLitt, errors_FuelsFine, errors_PostBurn, errors_Trees, errors_Seedlings, errors_Shrubs, errors_HerbsSpComp, errors_HerbsPts))
 
-# errors_all <- rbind(errors_Fuels1000, errors_blank, errors_FuelsDuffLitt, errors_blank, errors_FuelsFine, errors_blank, errors_PostBurn, errors_blank, errors_Trees, errors_blank, errors_Seedlings, errors_blank, errors_Shrubs, errors_blank, errors_HerbsObs, errors_blank, errors_HerbsPts)
+# errors_all <- rbind(errors_Fuels1000, errors_blank, errors_FuelsDuffLitt, errors_blank, errors_FuelsFine, errors_blank, errors_PostBurn, errors_blank, errors_Trees, errors_blank, errors_Seedlings, errors_blank, errors_Shrubs, errors_blank, errors_HerbsSpComp, errors_blank, errors_HerbsPts)
 
-errors_all <- rbind(errors_blank_Fuels1000, errors_blank, errors_Fuels1000, errors_blank, errors_blank_FuelsDuffLitt, errors_blank, errors_FuelsDuffLitt, errors_blank, errors_blank_FuelsFine, errors_blank, errors_FuelsFine, errors_blank, errors_blank_PostBurn, errors_blank, errors_PostBurn, errors_blank, errors_blank_Trees, errors_blank, errors_Trees, errors_blank, errors_blank_Seedlings, errors_blank, errors_Seedlings, errors_blank, errors_blank_Shrubs, errors_blank, errors_Shrubs, errors_blank, errors_blank_HerbsObs, errors_blank, errors_HerbsObs, errors_blank, errors_blank_HerbsPoints, errors_blank, errors_HerbsPoints)
+errors_all <- rbind(errors_blank_Fuels1000, errors_blank, errors_Fuels1000, errors_blank, errors_blank_FuelsDuffLitt, errors_blank, errors_FuelsDuffLitt, errors_blank, errors_blank_FuelsFine, errors_blank, errors_FuelsFine, errors_blank, errors_blank_PostBurn, errors_blank, errors_PostBurn, errors_blank, errors_blank_Trees, errors_blank, errors_Trees, errors_blank, errors_blank_Seedlings, errors_blank, errors_Seedlings, errors_blank, errors_blank_Shrubs, errors_blank, errors_Shrubs, errors_blank, errors_blank_HerbsSpComp, errors_blank, errors_HerbsSpComp, errors_blank, errors_blank_HerbsPoints, errors_blank, errors_HerbsPoints)
 ```
 
 ```{r}
