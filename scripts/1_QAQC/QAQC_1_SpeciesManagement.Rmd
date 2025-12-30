@@ -129,7 +129,7 @@ target_park <- "SHEN"
 ```{r import data, include=FALSE}
 # adjust file paths
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_data <- paste0(path_main, "Exports/", target_park, "/")
+path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " Species QAQC Errors")
 ```
@@ -138,7 +138,7 @@ path_errors_name <- paste0(target_park, " Species QAQC Errors")
 
 ```{r load data, include=FALSE}
 ## Load Data
-SpeciesReport <- read.csv(paste0(path_data, target_park, "_", "SpeciesReport.csv"), na.strings = c("","NA","N/A"))
+SpeciesReport <- read.csv(paste0(path_data, "LocalSpeciesReport.csv"), na.strings = c("","NA","N/A"))
 ```
 
 ### Clean Data {.hidden}
