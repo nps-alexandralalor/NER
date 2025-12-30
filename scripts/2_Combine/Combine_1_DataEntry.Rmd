@@ -79,12 +79,11 @@ Make sure to update file paths to be specific for your data.
 ```{r}
 # adjust file paths
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_parks <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
-parks <- list.files(path_parks)
+parks <- c("ANTI", "APCO", "CATO", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
 
 # Load in data
-target_park <- "SHEN"
-path_data <- paste0(path_main, "Exports/", target_park, "/")
+target_park <- "VAFO"
+path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
 path_save <- paste0(path_main, "R Outputs/", target_park, "/")
 ```
 
@@ -94,15 +93,15 @@ path_save <- paste0(path_main, "R Outputs/", target_park, "/")
 
 ```{r}
 # Load in data
-Fuels1000_all <- read.csv(paste0(path_data, target_park, "_", "Surface Fuels - 1000Hr_XPT.csv"), na.strings = c("","NA","N/A"))
-FuelsDuffLitt_all <- read.csv(paste0(path_data, target_park, "_", "Surface Fuels - Duff_Litter_XPT.csv"), na.strings = c("","NA","N/A"))
-FuelsFine_all <- read.csv(paste0(path_data, target_park, "_", "Surface Fuels - Fine_XPT.csv"), na.strings = c("","NA","N/A"))
-PostBurn_all <- read.csv(paste0(path_data, target_park, "_", "Post Burn Severity (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-Trees_all <- read.csv(paste0(path_data, target_park, "_", "Trees - Individuals (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-Seedlings_all <- read.csv(paste0(path_data, target_park, "_", "Density - Quadrats (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-Shrubs_all <- read.csv(paste0(path_data, target_park, "_", "Density - Belts (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-HerbsObs_all <- read.csv(paste0(path_data, target_park, "_", "Cover - Species Composition (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-HerbsPoints_all <- read.csv(paste0(path_data, target_park, "_", "Cover - Points (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+Fuels1000_all <- read.csv(paste0(path_data, "Surface Fuels - 1000Hr_XPT.csv"), na.strings = c("","NA","N/A"))
+FuelsDuffLitt_all <- read.csv(paste0(path_data, "Surface Fuels - Duff_Litter_XPT.csv"), na.strings = c("","NA","N/A"))
+FuelsFine_all <- read.csv(paste0(path_data, "Surface Fuels - Fine_XPT.csv"), na.strings = c("","NA","N/A"))
+PostBurn_all <- read.csv(paste0(path_data, "Post Burn Severity (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+Trees_all <- read.csv(paste0(path_data, "Trees - Individuals (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+HerbsObs_all <- read.csv(paste0(path_data, "Cover - Species Composition (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+HerbsPoints_all <- read.csv(paste0(path_data, "Cover - Points (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
 
 # Drop last column if it's an empty placeholder (common in Excel exports)
 Fuels1000_all <- Fuels1000_all[, -ncol(Fuels1000_all)]
@@ -396,13 +395,13 @@ HerbsPoints[] <- lapply(HerbsPoints, function(x) gsub(",", ";", x))
 
 ```{r}
 # save file
-write.csv(Fuels1000, paste0(path_save, target_park, "_Data_Surface Fuels - 1000Hr.csv"), quote=FALSE, row.names = FALSE)
-write.csv(FuelsDuffLitt, paste0(path_save, target_park, "_Data_Surface Fuels - Duff_Litter.csv"), quote=FALSE, row.names = FALSE) 
-write.csv(FuelsFine, paste0(path_save, target_park, "_Data_Surface Fuels - Fine.csv"), quote=FALSE, row.names = FALSE) 
-write.csv(PostBurn, paste0(path_save, target_park, "_Data_Post Burn Severity (metric).csv"), quote=FALSE, row.names = FALSE) 
-write.csv(Trees, paste0(path_save, target_park, "_Data_Trees - Individuals (metric).csv"), quote=FALSE, row.names = FALSE) 
-write.csv(Seedlings, paste0(path_save, target_park, "_Data_Density - Quadrats (metric).csv"), quote=FALSE, row.names = FALSE) 
-write.csv(Shrubs, paste0(path_save, target_park, "_Data_Density - Belts (metric).csv"), quote=FALSE, row.names = FALSE) 
-write.csv(HerbsObs, paste0(path_save, target_park, "_Data_Cover - Species Composition (metric).csv"), quote=FALSE, row.names = FALSE) 
-write.csv(HerbsPoints, paste0(path_save, target_park, "_Data_Cover - Points (metric).csv"), quote=FALSE, row.names = FALSE) 
+write.csv(Fuels1000, paste0(path_save, target_park, "_Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
+write.csv(FuelsDuffLitt, paste0(path_save, target_park, "_Data_Surface Fuels - Duff_Litter.csv"), quote = FALSE, row.names = FALSE) 
+write.csv(FuelsFine, paste0(path_save, target_park, "_Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE) 
+write.csv(PostBurn, paste0(path_save, target_park, "_Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE) 
+write.csv(Trees, paste0(path_save, target_park, "_Data_Trees - Individuals (metric).csv"), quote = FALSE, row.names = FALSE) 
+write.csv(Seedlings, paste0(path_save, target_park, "_Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE) 
+write.csv(Shrubs, paste0(path_save, target_park, "_Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE) 
+write.csv(HerbsObs, paste0(path_save, target_park, "_Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE) 
+write.csv(HerbsPoints, paste0(path_save, target_park, "_Data_Cover - Points (metric).csv"), quote = FALSE, row.names = FALSE) 
 ```

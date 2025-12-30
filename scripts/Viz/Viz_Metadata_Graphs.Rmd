@@ -68,21 +68,21 @@ Load in the Metadata Report. This Metadata Report was created by combining Macro
 
 ```{r}
 # Load in data
-MetadataReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_MetadataReport.csv"), quote = "")
-MetadataReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_MetadataReport.csv"), quote = "")
-MetadataReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_MetadataReport.csv"), quote = "")
-MetadataReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_MetadataReport.csv"), quote = "")
-MetadataReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_MetadataReport.csv"), quote = "")
-MetadataReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_MetadataReport.csv"), quote = "")
-MetadataReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_MetadataReport.csv"), quote = "")
-MetadataReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_MetadataReport.csv"), quote = "")
-MetadataReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_MetadataReport.csv"), quote = "")
-MetadataReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_MetadataReport.csv"), quote = "")
-MetadataReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_MetadataReport.csv"), quote = "")
-MetadataReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_MetadataReport.csv"), quote = "")
-MetadataReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_MetadataReport.csv"), quote = "")
-MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"), quote = "")
-MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"), quote = "")
+MetadataReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_MetadataReport.csv"))
+MetadataReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_MetadataReport.csv"))
+MetadataReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_MetadataReport.csv"))
+MetadataReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_MetadataReport.csv"))
+MetadataReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_MetadataReport.csv"))
+MetadataReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_MetadataReport.csv"))
+MetadataReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_MetadataReport.csv"))
+MetadataReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_MetadataReport.csv"))
+MetadataReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_MetadataReport.csv"))
+MetadataReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_MetadataReport.csv"))
+MetadataReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_MetadataReport.csv"))
+MetadataReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_MetadataReport.csv"))
+MetadataReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_MetadataReport.csv"))
+MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"))
+MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"))
 ```
 
 #### Merge Data

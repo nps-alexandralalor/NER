@@ -855,5 +855,5 @@ MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("
 MetadataReport[] <- lapply(MetadataReport, function(x) gsub(",", ";", x))
 
 # save metadata file as csv
-write.csv(MetadataReport, paste0(path_save, target_park, "_MetadataReport.csv"), quote=FALSE, row.names = FALSE)
+write.csv(MetadataReport, paste0(path_save, target_park, "_MetadataReport.csv"), quote = FALSE, row.names = FALSE)
 ```

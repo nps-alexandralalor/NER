@@ -162,15 +162,26 @@ path_errors_name <- paste0(target_park, " Data QAQC Errors")
 
 ```{r}
 # Load in data
-Fuels1000_all <- read.csv(paste0(path_data, "Surface Fuels - 1000Hr_XPT.csv"), quote = "")
-FuelsDuffLitt_all <- read.csv(paste0(path_data, "Surface Fuels - Duff_Litter_XPT.csv"), quote = "")
-FuelsFine_all <- read.csv(paste0(path_data, "Surface Fuels - Fine_XPT.csv"), quote = "")
-PostBurn_all <- read.csv(paste0(path_data, "Post Burn Severity (metric)_XPT.csv"), quote = "")
-Trees_all <- read.csv(paste0(path_data, "Trees - Individuals (metric)_XPT.csv"), quote = "")
-Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), quote = "")
-Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), quote = "")
-HerbsObs_all <- read.csv(paste0(path_data, "Cover - Species Composition (metric)_XPT.csv"), quote = "")
-HerbsPoints_all <- read.csv(paste0(path_data, "Cover - Points (metric)_XPT.csv"), quote = "")
+Fuels1000_all <- read.csv(paste0(path_data, "Surface Fuels - 1000Hr_XPT.csv"), na.strings = c("","NA","N/A"))
+FuelsDuffLitt_all <- read.csv(paste0(path_data, "Surface Fuels - Duff_Litter_XPT.csv"), na.strings = c("","NA","N/A"))
+FuelsFine_all <- read.csv(paste0(path_data, "Surface Fuels - Fine_XPT.csv"), na.strings = c("","NA","N/A"))
+PostBurn_all <- read.csv(paste0(path_data, "Post Burn Severity (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+Trees_all <- read.csv(paste0(path_data, "Trees - Individuals (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+HerbsObs_all <- read.csv(paste0(path_data, "Cover - Species Composition (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+HerbsPoints_all <- read.csv(paste0(path_data, "Cover - Points (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+
+# Drop last column if it's an empty placeholder (common in Excel exports)
+Fuels1000_all <- Fuels1000_all[, -ncol(Fuels1000_all)]
+FuelsDuffLitt_all <- FuelsDuffLitt_all[, -ncol(FuelsDuffLitt_all)]
+FuelsFine_all <- FuelsFine_all[, -ncol(FuelsFine_all)]
+PostBurn_all <- PostBurn_all[, -ncol(PostBurn_all)]
+Trees_all <- Trees_all[, -ncol(Trees_all)]
+Seedlings_all <- Seedlings_all[, -ncol(Seedlings_all)]
+Shrubs_all <- Shrubs_all[, -ncol(Shrubs_all)]
+HerbsObs_all <- HerbsObs_all[, -ncol(HerbsObs_all)]
+HerbsPoints_all <- HerbsPoints_all[, -ncol(HerbsPoints_all)]
 ```
 
 ### Clean Data {.hidden}
@@ -300,8 +311,6 @@ HerbsPoints_all <- HerbsPoints_all %>%
 #####
 # Fuels1000
 #####
-# Ensure blanks in Visited column are NA
-Fuels1000_all$Visited[Fuels1000_all$Visited==""] <- NA
 # Fuels1000 data
 Fuels1000_data <- Fuels1000_all %>%
   filter(is.na(Visited), Year %in% years)
@@ -312,8 +321,6 @@ Fuels1000_header <- Fuels1000_all %>%
 #####
 # FuelsDuffLitt
 #####
-# Ensure blanks in Visited column are NA 
-FuelsDuffLitt_all$Visited[FuelsDuffLitt_all$Visited==""] <- NA 
 # FuelsDuffLitt data
 FuelsDuffLitt_data <- FuelsDuffLitt_all %>%   
   filter(is.na(Visited), Year %in% years)  
@@ -324,8 +331,6 @@ FuelsDuffLitt_header <- FuelsDuffLitt_all %>%
 #####
 # FuelsFine
 #####
-# Ensure blanks in Visited column are NA 
-FuelsFine_all$Visited[FuelsFine_all$Visited==""] <- NA  
 # FuelsFine data
 FuelsFine_data <- FuelsFine_all %>%   
   filter(is.na(Visited), Year %in% years)  
@@ -336,8 +341,6 @@ FuelsFine_header <- FuelsFine_all %>%
 #####
 # PostBurn
 #####
-# Ensure blanks in Visited column are NA
-PostBurn_all$Visited[PostBurn_all$Visited==""] <- NA
 # PostBurn data
 PostBurn_data <- PostBurn_all %>%
   filter(is.na(Visited), Year %in% years)
@@ -348,8 +351,6 @@ PostBurn_header <- PostBurn_all %>%
 #####
 # Trees
 #####
-# Ensure blanks in Visited column are NA 
-Trees_all$Visited[Trees_all$Visited==""] <- NA  
 # Trees data
 Trees_data <- Trees_all %>%   
   filter(is.na(Visited), Year %in% years)  
@@ -360,8 +361,6 @@ Trees_header <- Trees_all %>%
 #####
 # Seedlings
 #####
-# Ensure blanks in Visited column are NA
-Seedlings_all$Visited[Seedlings_all$Visited==""] <- NA
 # Seedlings data
 Seedlings_data <- Seedlings_all %>%
   filter(is.na(Visited), Year %in% years)
@@ -372,8 +371,6 @@ Seedlings_header <- Seedlings_all %>%
 #####
 # Shrubs
 #####
-# Ensure blanks in Visited column are NA
-Shrubs_all$Visited[Shrubs_all$Visited==""] <- NA
 # Shrubs data
 Shrubs_data <- Shrubs_all %>%
   filter(is.na(Visited), Year %in% years)
@@ -384,8 +381,6 @@ Shrubs_header <- Shrubs_all %>%
 #####
 # HerbsObs
 #####
-# Ensure blanks in Visited column are NA
-HerbsObs_all$Visited[HerbsObs_all$Visited==""] <- NA
 # HerbsObs data
 HerbsObs_data <- HerbsObs_all %>%
   filter(is.na(Visited), Year %in% years)
@@ -396,8 +391,6 @@ HerbsObs_header <- HerbsObs_all %>%
 #####
 # HerbsPoints
 #####
-# Ensure blanks in Visited column are NA
-HerbsPoints_all$Visited[HerbsPoints_all$Visited==""] <- NA
 # HerbsPoints data
 HerbsPoints_data <- HerbsPoints_all %>%
   filter(is.na(Visited), Year %in% years)

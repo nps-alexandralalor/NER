@@ -16,7 +16,7 @@ library(here)
 
 
 # load in data.
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 path_output <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/data_clean/"
 parks <- list.files(path_file)
 
@@ -25,20 +25,21 @@ parks <- list.files(path_file)
   # target_park <- "SHEN"
   # 
   # # load CSV
-  # data_raw <- read.csv(paste0(path_file, target_park, "/", target_park, "_MetadataReport.csv"), quote = "")
+  # path_data <- paste0(path_file, target_park, "/", target_park, "_")
+  # data_raw <- read.csv(paste0(path_data, "MetadataReport.csv"), quote = "")
   # 
   # # group
-  # data_locations <- data_raw %>% 
-  #   select(c(AdministrationUnit_Name, Purpose, Type, Macroplot, ProjectUnit, Latitude, Longitude, UTM_X, UTM_Y, UTM_Zone, Datum)) %>% 
+  # data_locations <- data_raw %>%
+  #   select(c(AdministrationUnit_Name, Purpose, Type, Macroplot, ProjectUnit, Latitude, Longitude, UTM_X, UTM_Y, UTM_Zone, Datum)) %>%
   #   distinct()
   # 
   # # filter
-  # data_final <- data_locations %>% 
+  # data_final <- data_locations %>%
   #   filter(!is.na(Latitude),
   #          !is.na(Longitude))
   # 
   # # save file
-  # write.csv(data_final, paste0(path_output, target_park, "_PlotLocations.csv"), quote=FALSE, row.names = FALSE, na = "") 
+  # write.csv(data_final, paste0(path_output, target_park, "_PlotLocations.csv"), quote=FALSE, row.names = FALSE, na = "")
 
 
 
@@ -47,7 +48,8 @@ for(i in parks) {
   target_park <- i
   
   # load CSV
-  data_raw <- read.csv(paste0(path_file, target_park, "/", target_park, "_MetadataReport.csv"), quote = "")
+  path_data <- paste0(path_file, target_park, "/", target_park, "_")
+  data_raw <- read.csv(paste0(path_data, "MetadataReport.csv"))
   
   # group
   data_locations <- data_raw %>% 

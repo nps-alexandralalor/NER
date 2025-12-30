@@ -63,8 +63,7 @@ library(here)
 ```{r}
 # load in data.
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_parks <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
-parks <- list.files(path_parks)
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 ```
 
 # METADATA REPORT: MERGE AND SAVE
@@ -76,14 +75,14 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/")
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
   path_save <- paste0(path_main, "R Outputs/", target_park, "/")
   
   
   # load data
-  MacroplotReport <- read.csv(paste0(path_data, target_park, "_", "MacroplotReport.csv"), na.strings = c("","NA","N/A"))
-  ProjectUnitReport <- read.csv(paste0(path_data, target_park, "_", "ProjectUnitAssignmentReport.csv"), na.strings = c("","NA","N/A"))
-  SampleEventReport <- read.csv(paste0(path_data, target_park, "_", "SampleEventReport.csv"), na.strings = c("","NA","N/A"))
+  MacroplotReport <- read.csv(paste0(path_data, "MacroplotReport.csv"), na.strings = c("","NA","N/A"))
+  ProjectUnitReport <- read.csv(paste0(path_data, "ProjectUnitAssignmentReport.csv"), na.strings = c("","NA","N/A"))
+  SampleEventReport <- read.csv(paste0(path_data, "SampleEventReport.csv"), na.strings = c("","NA","N/A"))
   
   
   # clean data
@@ -170,6 +169,6 @@ for(i in parks) {
   
   
   # save file
-  write.csv(MetadataReport, paste0(path_save, target_park, "_MetadataReport.csv"), quote=FALSE, row.names = FALSE) 
+  write.csv(MetadataReport, paste0(path_save, target_park, "_MetadataReport.csv"), quote = FALSE, row.names = FALSE) 
 }
 ```

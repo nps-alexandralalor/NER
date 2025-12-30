@@ -17,13 +17,13 @@ library(here)
 target_park <- "SHEN"
 
 # Load in data.
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports/"
-path_data <- paste0(path_file, target_park, "/")
-path_output <- paste0(here(), "/output/data_clean/")
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+path_data <- paste0(path_file, target_park, "/", target_park, "_")
+#path_output <- paste0(here(), "/output/data_clean/")
 path_output <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/data_clean/"
 
 # Load CSV
-df_raw <- read.csv(paste0(path_data, target_park, "_MetadataReport.csv"), quote = "")
+df_raw <- read.csv(paste0(path_data, "MetadataReport.csv"))
 
 # Group
 df_locations <- df_raw %>% 

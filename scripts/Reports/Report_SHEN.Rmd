@@ -49,35 +49,46 @@ library(fs)
 library(ggplot2)
 ```
 
-### Adjust File Paths
-
-```{r}
-## Adjust File Paths
-#path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
-path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
-```
-
 ### Target Park
 
 ```{r}
 target_park <- "SHEN"
 ```
 
+### Adjust File Paths
+
+```{r}
+## Adjust File Paths
+#path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+path_data <- paste0(path_file, target_park, "/", target_park, "_")
+```
+
 ### Load Data {.hidden}
 
 ```{r}
 # Load in data
+MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
+Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
+FuelsDuffLitt <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
+FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
+PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
+Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
+Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
+Shrubs <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
+HerbsObs <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
+HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 
-MetadataReport <- read.csv(paste0(path_data, target_park, "/", target_park, "_MetadataReport.csv"), quote = "")
-Fuels1000 <- read.csv(paste0(path_data, target_park, "/", target_park, "_Surface Fuels - 1000Hr.csv"))
-FuelsDuffLitt <- read.csv(paste0(path_data, target_park, "/", target_park, "_Surface Fuels - Duff_Litter.csv"))
-FuelsFine <- read.csv(paste0(path_data, target_park, "/", target_park, "_Surface Fuels - Fine.csv"))
-PostBurn <- read.csv(paste0(path_data, target_park, "/", target_park, "_Post Burn Severity (metric).csv"))
-Trees <- read.csv(paste0(path_data, target_park, "/", target_park, "_Trees - Individuals (metric).csv"))
-Seedlings <- read.csv(paste0(path_data, target_park, "/", target_park, "_Density - Quadrats (metric).csv"))
-Shrubs <- read.csv(paste0(path_data, target_park, "/", target_park, "_Density - Belts (metric).csv"))
-HerbsObs <- read.csv(paste0(path_data, target_park, "/", target_park, "_Cover - Species Composition (metric).csv"))
-HerbsPoints <- read.csv(paste0(path_data, target_park, "/", target_park, "_Cover - Points (metric).csv"))
+MetadataReport2 <- read.csv(paste0(path_data, "MetadataReport.csv"), quote = "")
+Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"), quote = "")
+FuelsDuffLitt2 <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"), quote = "")
+FuelsFine2 <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"), quote = "")
+PostBurn2 <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"), quote = "")
+Trees2 <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"), quote = "")
+Seedlings2 <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"), quote = "")
+Shrubs2 <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"), quote = "")
+HerbsObs2 <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"), quote = "")
+HerbsPoints2 <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"), quote = "")
 ```
 
 # Background
