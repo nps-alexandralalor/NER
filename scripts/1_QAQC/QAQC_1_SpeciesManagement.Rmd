@@ -164,6 +164,30 @@ unknown <- c("ASTER", "FERN", "FUNGI", "GRASS", "UNKSPP", "UNKSNAG", "UNK_002")
 
 ## Species Report
 
+### Complete
+
+[Problem:]{.underline} Species Report includes symbols which will cause issues later on.
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  mutate(Quotes = pmap_lgl(as.list(SpeciesReport), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "SpeciesReport_Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Quotes <- qaqc_species(data, query, query_message, values_check)
+```
+
 ### Local Species
 
 [Problem:]{.underline} Species Report is missing information related to Local Species columns (excluding substrates and unknowns)
@@ -424,10 +448,10 @@ errors_SpeciesReport_NotBiological_T <- qaqc_species(data, query, query_message,
 # ALL ERRORS
 
 ```{r}
-errors_SpeciesReport <- rbind(errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Nativity, errors_SpeciesReport_Invasive, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired) %>% 
+errors_SpeciesReport <- rbind(errors_SpeciesReport_Quotes, errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Nativity, errors_SpeciesReport_Invasive, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired) %>% 
   arrange(LocalSpecies_Symbol)
 
-remove(errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Nativity, errors_SpeciesReport_Invasive, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired)
+remove(errors_SpeciesReport_Quotes, errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Nativity, errors_SpeciesReport_Invasive, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired)
 
 if(nrow(errors_SpeciesReport) > 1) {
   errors_SpeciesReport <- errors_SpeciesReport %>%
