@@ -21,33 +21,37 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 # BEFORE STARTING
 
-This code is intended to combine FFI files into single flat files to be used with subsequent R scripts.
+This code is intended to combine FFI files into flat files to be used with subsequent R scripts.
 
-The Metadata file can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
+The Sample Event Report and Macroplot Report can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
 
--   Sample Event Report
+-   SampleEventReport.csv
 
--   Macroplot Report
+-   MacroplotReport.csv
 
-The Protocol data files can be downloaded via Query tab on the FFI Remote App Server by selecting each protocol/method and exporting the file.
+The Local Species Report can be downloaded via the Species menu on the Species Management tab on the FFI Remote App Server.
 
--   Surface Fuels - 1000Hr
+-   LocalSpeciesReport.csv
 
--   Surface Fuels - Duff_Litter
+The Protocol data can be downloaded via Query tab on the FFI Remote App Server by using the saved queries from the drop down options.
 
--   Surface Fuels - Fine
+-   Surface Fuels - 1000Hr_XPT.csv
 
--   Post Burn Severity
+-   Surface Fuels - Duff_Litter_XPT.csv
 
--   Trees - Individuals (metric)
+-   Surface Fuels - Fine_XPT.csv
 
--   Density - Quadrats (metric)
+-   Post Burn Severity (metric)\_XPT.csv
 
--   Density - Belts (metric)
+-   Trees - Individuals (metric)\_XPT.csv
 
--   Cover - Species Composition (metric)
+-   Density - Quadrats (metric)\_XPT.csv
 
--   Cover - Points (metric)
+-   Density - Belts (metric)\_XPT.csv
+
+-   Cover - Species Composition (metric)\_XPT.csv
+
+-   Cover - Points (metric)\_XPT.csv
 
 ### Install Packages (if needed) {.hidden}
 
@@ -198,6 +202,40 @@ for(i in parks) {
   
   # save file
   write.csv(MetadataReport, paste0(path_save, target_park, "_MetadataReport.csv"), quote = FALSE, row.names = FALSE) 
+}
+```
+
+# SPECIES
+
+## Species Report
+
+```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  
+  
+  # load data
+  SpeciesReport <- read.csv(paste0(path_data, "LocalSpeciesReport.csv"), na.strings = c("","NA","N/A"))
+  ## replace commas with semicolons
+  SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
+  
+  
+  # clean data
+  SpeciesReport <- SpeciesReport %>%
+  # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim))
+  
+
+  # save file
+  write.csv(SpeciesReport, paste0(path_save, target_park, "_SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
 }
 ```
 
