@@ -53,14 +53,16 @@ library(ggplot2)
 
 ```{r}
 target_park <- "SHEN"
+target_years <- c(2025)
+target_project <- "Big Meadows West"
 ```
 
 ### Adjust File Paths
 
 ```{r}
 ## Adjust File Paths
-#path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
+#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 path_data <- paste0(path_file, target_park, "/", target_park, "_")
 ```
 
@@ -81,6 +83,73 @@ HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (met
 HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 ```
 
+### Filter Data
+
+```{r}
+#####
+# Fuels1000
+#####
+# Fuels1000 data
+Fuels1000_data <- Fuels1000 %>%
+  filter(Date_Year %in% target_years)
+
+#####
+# FuelsDuffLitt
+#####
+# FuelsDuffLitt data
+FuelsDuffLitt_data <- FuelsDuffLitt %>%   
+  filter(Date_Year %in% target_years)  
+
+#####
+# FuelsFine
+#####
+# FuelsFine data
+FuelsFine_data <- FuelsFine %>%   
+  filter(Date_Year %in% target_years)  
+
+#####
+# PostBurn
+#####
+# PostBurn data
+PostBurn_data <- PostBurn %>%
+  filter(Date_Year %in% target_years)
+
+#####
+# Trees
+#####
+# Trees data
+Trees_data <- Trees %>%   
+  filter(Date_Year %in% target_years)  
+
+#####
+# Seedlings
+#####
+# Seedlings data
+Seedlings_data <- Seedlings %>%
+  filter(Date_Year %in% target_years)
+
+#####
+# Shrubs
+#####
+# Shrubs data
+Shrubs_data <- Shrubs %>%
+  filter(Date_Year %in% target_years)
+
+#####
+# HerbsSpComp
+#####
+# HerbsSpComp data
+HerbsSpComp_data <- HerbsSpComp %>%
+  filter(Date_Year %in% target_years)
+
+#####
+# HerbsPoints
+#####
+# HerbsPoints data
+HerbsPoints_data <- HerbsPoints %>%
+  filter(Date_Year %in% target_years)
+```
+
 # Background
 
 # Methods
@@ -95,10 +164,6 @@ HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 test <- HerbsSpComp %>% 
   group_by(SampleEvent_TreatmentUnit, MacroPlot.Name) %>% 
   mutate(n_plants = n_distinct(Species.Symbol))
-```
-
-```{r}
-
 ```
 
 # Discussion
