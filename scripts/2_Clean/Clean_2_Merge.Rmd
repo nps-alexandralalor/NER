@@ -1,0 +1,107 @@
+---
+title: "FFI Database Summary"
+subtitle: Northeast Region
+output:
+  word_document:
+    toc: true
+    toc_depth: 2
+  pdf_document:
+    toc: true
+    toc_depth: 2
+  html_document:
+    theme: readable
+    highlight: null
+    toc: true
+    toc_depth: 2
+    toc_float:
+      smooth_scroll: true
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Before Starting
+
+### Setup {.hidden}
+
+```{r}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+## Install packages (if needed)
+
+# install.packages("tidyverse")
+# install.packages("kableExtra")
+# install.packages("ggplot2")
+```
+
+```{r}
+## Load Packages
+
+# "tidyverse" has lots of useful functions for data cleaning
+library(tidyverse)
+# "kableExtra" is used to produce formatted tables
+library(kableExtra)
+library(ggplot2)
+library(stringr)
+library(DT)
+library(fs)
+```
+
+```{r}
+## Adjust File Paths
+path_data <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
+#path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+```
+
+# METADATA
+
+### Load Data {.hidden}
+
+Load in the Metadata Report. This Metadata Report was created by combining Macroplot Reports and Sample Event Reports from each Admin Unit, which can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
+
+```{r}
+# Load in data
+MetadataReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_MetadataReport.csv"))
+MetadataReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_MetadataReport.csv"))
+MetadataReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_MetadataReport.csv"))
+MetadataReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_MetadataReport.csv"))
+MetadataReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_MetadataReport.csv"))
+MetadataReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_MetadataReport.csv"))
+MetadataReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_MetadataReport.csv"))
+MetadataReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_MetadataReport.csv"))
+MetadataReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_MetadataReport.csv"))
+MetadataReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_MetadataReport.csv"))
+MetadataReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_MetadataReport.csv"))
+MetadataReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_MetadataReport.csv"))
+MetadataReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_MetadataReport.csv"))
+MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"))
+MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"))
+```
+
+### Merge Data {.hidden}
+
+```{r}
+MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+```
+
+### Remove Data
+
+```{r}
+remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+```
+
+### Save Data
+
+```{r}
+# save file
+#write.csv(SpeciesReport, paste0(path_save, target_park, "_SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
+```
+
+# SPECIES
+
+# PROTOCOLS
