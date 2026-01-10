@@ -6,7 +6,7 @@ output:
     theme: readable
     highlight: 
     toc: yes
-    toc_depth: 3
+    toc_depth: 1
     toc_float:
       smooth_scroll: yes
     code_download: true
@@ -59,26 +59,35 @@ library(here)
 ### Create Function {.hidden}
 
 ```{r}
-# Blank data frame
+# Create blank data frame as error log template
 errors_blank <- data.frame("SavedQuery" = "", "Macroplot" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
 
+# Create error group. Duplicate errors will be grouped by these columns.
+errors_group <- c("SavedQuery", "Macroplot", "Error")
+
+############################################################################################
+## Source Code
+#Pull in source code that creates QAQC functions and builds an empty error table.
+#source("C:/Users/allie/OneDrive/Desktop/R Projects/NER/scripts/1_QAQC/qaqc_function.R")
+
+
 # QAQC function
-qaqc_meta <- function(data, query, query_message, values_check) {
-  
+qaqc <- function(data, query, query_message, values_check) {
+
   # Check if there is data to QAQC
   if(nrow(data) == 0) {
   # If there is no data, default to "No Error" data frame
   errors <- errors_blank %>%
-    mutate(SavedQuery = query,
-           Error = "No Error")
+    mutate("SavedQuery" = query,
+           "Error" = "No Error")
   # If there is data, perform error check
 } else {
-  
+
   # Use relevant dataset to look for errors
-  errors <- data %>%  
+  errors <- data %>%
     # Add columns relevant to error checking
            # Populate the "SavedQuery" column with the query name
-    mutate("SavedQuery" = query, 
+    mutate("SavedQuery" = query,
            # Populate the "Error" column with the query message and relevant data
            "Error" = paste(query_message, "=", values_data),
            # Create a blank "Fixed" column
@@ -86,32 +95,32 @@ qaqc_meta <- function(data, query, query_message, values_check) {
            # Create a blank "Explanation" column
            "Explanation" = "",
            # Create a blank "Queryers" column
-           "Queryers" = "") %>%   
+           "Queryers" = "") %>%
     # Filter for data which is "false" (data does not match valid conditions)
     # NA values are treated as "false" (missing data is not valid)
-    filter(!(values_check %>% replace_na(FALSE))) %>%   
+    filter(!(values_check %>% replace_na(FALSE))) %>%
     # Select relevant columns to view errors
     select(colnames(errors_blank))
-  
+
   # Next, check if there are duplicate errors
-  suppressMessages(errors_temp <- errors %>% 
-    get_dupes(SavedQuery, Macroplot, Error))
+  errors_temp <- errors %>%
+    get_dupes(errors_group)
   # Merge duplicate errors
   errors <- unique(merge(errors, errors_temp, all = T))
   # If duplicate errors exist, add number of duplicates to error message
-  errors <- errors %>% 
-    mutate(Error = ifelse(is.na(dupe_count), Error, paste0("(x", dupe_count, ") ", Error))) %>% 
+  errors <- errors %>%
+    mutate(Error = ifelse(is.na(dupe_count), Error, paste0("(x", dupe_count, ") ", Error))) %>%
     select(!"dupe_count")
 }
-  
+
   # Check if there are no errors
-  if (nrow(errors) == 0) {  
+  if (nrow(errors) == 0) {
     # If there are no errors, default to "No Error" data frame
     errors <- errors_blank %>%
       mutate(SavedQuery = query,
              Error = "No Error")
     # If there are errors, keep error log you just created
-  } else {   
+  } else {
     errors <- errors
   }
 }
@@ -121,14 +130,15 @@ qaqc_meta <- function(data, query, query_message, values_check) {
 
 ```{r}
 # designate target park(s)
-target_park <- "GETT"
+target_park <- "SHEN"
 ```
 
 ### Adjust File Paths {.hidden}
 
 ```{r import data, include=FALSE}
 # adjust file paths
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
 path_save <- paste0(path_main, "R Outputs/", target_park, "/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
@@ -212,7 +222,7 @@ SampleEventReport <- SampleEventReport %>%
 
 # Park: [`r target_park`]{style="color:red"}
 
-## Macroplot Report
+# Macroplot Report
 
 ### Installation
 
@@ -233,7 +243,7 @@ values_valid <- is.na(data$Macroplot_Num)
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_MacroplotReport_MacroplotNum <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_MacroplotNum <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Purpose is not blank and is written correctly ("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Fuels", "Inventory & Monitoring").
@@ -248,7 +258,7 @@ values_valid <- c("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Ass
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_MacroplotReport_Purpose <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_Purpose <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Type is one of the available options ("Forest", "Grassland", "Shrubland", "CBI", "Control", "Inventory", "Measured", "Other", "RA")
@@ -263,7 +273,7 @@ values_valid <- c("Forest", "Grassland", "Shrubland", "CBI", "Control", "Invento
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_MacroplotReport_Type <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_Type <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that DateIn is not blank
@@ -278,7 +288,7 @@ values_valid <- is.na(data$DateIn)
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_MacroplotReport_DateIn <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_DateIn <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Installation Errors {.hidden}
@@ -314,7 +324,7 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_MacroplotReport_Latitude <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_Latitude <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Longitude is not blank
@@ -329,7 +339,7 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_MacroplotReport_Longitude <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_Longitude <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that UTM_X (easting) has 6 digits
@@ -345,7 +355,7 @@ values_valid <- 6
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_MacroplotReport_UTM_X <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_UTM_X <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that UTM_Y (northing) has 7 digits
@@ -361,7 +371,7 @@ values_valid <- 7
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_MacroplotReport_UTM_Y <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_UTM_Y <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that UTM_Zone = 17, 18, or 19
@@ -376,7 +386,7 @@ values_valid <- c(17, 18, 19)
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_MacroplotReport_UTM_Zone <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_UTM_Zone <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Datum = NAD83 or NAD27
@@ -391,7 +401,7 @@ values_valid <- c("NAD83", "NAD27")
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_MacroplotReport_Datum <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_Datum <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Location Errors {.hidden}
@@ -427,7 +437,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 # values_check <- values_data != values_valid
 # 
 # # Identify errors
-# errors_MacroplotReport_Elevation <- qaqc_meta(data, query, query_message, values_check)
+# errors_MacroplotReport_Elevation <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that ElevationUnits = feet
@@ -442,7 +452,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 # values_check <- values_data %in% values_valid
 # 
 # # Identify errors
-# errors_MacroplotReport_ElevationUnits <- qaqc_meta(data, query, query_message, values_check)
+# errors_MacroplotReport_ElevationUnits <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Azimuth values are reasonable
@@ -457,7 +467,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 # values_check <- values_data %in% values_valid
 # 
 # # Identify errors
-# errors_MacroplotReport_Azimuth <- qaqc_meta(data, query, query_message, values_check)
+# errors_MacroplotReport_Azimuth <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Aspect values are reasonable
@@ -472,7 +482,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 # values_check <- values_data %in% values_valid
 # 
 # # Identify errors
-# errors_MacroplotReport_Aspect <- qaqc_meta(data, query, query_message, values_check)
+# errors_MacroplotReport_Aspect <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that SlopeHill values are reasonable
@@ -487,7 +497,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 # values_check <- values_data %in% values_valid
 # 
 # # Identify errors
-# errors_MacroplotReport_SlopeHill <- qaqc_meta(data, query, query_message, values_check)
+# errors_MacroplotReport_SlopeHill <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that SlopeTransect values are reasonable
@@ -502,7 +512,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 # values_check <- values_data %in% values_valid
 # 
 # # Identify errors
-# errors_MacroplotReport_SlopeTransect <- qaqc_meta(data, query, query_message, values_check)
+# errors_MacroplotReport_SlopeTransect <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Site Characteristics Errors {.hidden}
@@ -538,7 +548,7 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_MacroplotReport_Macroplot <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_Macroplot <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that SampleEventDate is not blank
@@ -553,7 +563,7 @@ values_valid <- is.na(data$SampleEventDate)
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_MacroplotReport_SampleEventDate <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_SampleEventDate <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that MonStatusOrd is not blank
@@ -568,7 +578,7 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_MacroplotReport_MonStatusOrd <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_MonStatusOrd <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that MonStatus is not blank
@@ -583,7 +593,7 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_MacroplotReport_MonStatus <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_MonStatus <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Sample Event Errors {.hidden}
@@ -622,7 +632,7 @@ values_valid <- FALSE
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_MacroplotReport_Quotes <- qaqc_meta(data, query, query_message, values_check)
+errors_MacroplotReport_Quotes <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that UV1 = Project Unit / Burn Unit
@@ -650,7 +660,7 @@ if(nrow(errors_MacroplotReport_Comments) > 1) {
 errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent, errors_MacroplotReport_Comments)
 ```
 
-## Project Unit Assignment Report
+# Project Unit Assignment Report
 
 [Problem:]{.underline} Project Unit Assignment Report is missing information
 
@@ -671,7 +681,7 @@ values_valid <- FALSE
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_ProjectUnitReport_Quotes <- qaqc_meta(data, query, query_message, values_check)
+errors_ProjectUnitReport_Quotes <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Macroplot is not blank
@@ -686,7 +696,7 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_ProjectUnitReport_Macroplot <- qaqc_meta(data, query, query_message, values_check)
+errors_ProjectUnitReport_Macroplot <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that ProjectUnit is not blank
@@ -701,7 +711,7 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_ProjectUnitReport_ProjectUnit <- qaqc_meta(data, query, query_message, values_check)
+errors_ProjectUnitReport_ProjectUnit <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Multi_PU = N or Y. If Multi_PU = Y, you will need to isolate which Project Unit contains the primary data for the analysis of interest.
@@ -716,7 +726,7 @@ values_valid <- c("N", "Y")
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_ProjectUnitReport_MultiPU <- qaqc_meta(data, query, query_message, values_check)
+errors_ProjectUnitReport_MultiPU <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Project Unit Report Errors {.hidden}
@@ -733,7 +743,7 @@ if(nrow(errors_ProjectUnitReport) > 1) {
   errors_ProjectUnitReport <- errors_ProjectUnitReport}
 ```
 
-## Sample Event Report
+# Sample Event Report
 
 [Problem:]{.underline} Sample Event Report is missing information or is inconsistent with the Macroplot Report
 
@@ -754,7 +764,7 @@ values_valid <- FALSE
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SampleEventReport_Quotes <- qaqc_meta(data, query, query_message, values_check)
+errors_SampleEventReport_Quotes <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that AdministrationUnit_Name is correct
@@ -769,7 +779,7 @@ values_valid <- target_park
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SampleEventReport_AdministrationUnit <- qaqc_meta(data, query, query_message, values_check)
+errors_SampleEventReport_AdministrationUnit <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Protocols contains the correct information
@@ -785,7 +795,7 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_SampleEventReport_Protocols <- qaqc_meta(data, query, query_message, values_check)
+errors_SampleEventReport_Protocols <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Visited = Y for each relevant monitoring status (excluding disturbance events: Burn, Herbicide, Mow, Mechanical)
@@ -801,7 +811,7 @@ values_valid <- "Y"
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SampleEventReport_Visited_1 <- qaqc_meta(data, query, query_message, values_check)
+errors_SampleEventReport_Visited_1 <- qaqc(data, query, query_message, values_check)
 ```
 
 ```{r}
@@ -815,7 +825,7 @@ values_valid <- "N"
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SampleEventReport_Visited_2 <- qaqc_meta(data, query, query_message, values_check)
+errors_SampleEventReport_Visited_2 <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Compare unique MonStatus between both the Sample Event Report and Metadata Report. Isolate differences between reports.
@@ -850,7 +860,7 @@ values_valid <- data$MonStatus
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SampleEventReport_MonStatus <- qaqc_meta(data, query, query_message, values_check)
+errors_SampleEventReport_MonStatus <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Sample Event Report Errors {.hidden}
@@ -924,5 +934,5 @@ MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("
 MetadataReport[] <- lapply(MetadataReport, function(x) gsub(",", ";", x))
 
 # save metadata file as csv
-write.csv(MetadataReport, paste0(path_save, target_park, "_MetadataReport.csv"), quote = FALSE, row.names = FALSE)
+#write.csv(MetadataReport, paste0(path_save, target_park, "_MetadataReport.csv"), quote = FALSE, row.names = FALSE)
 ```
