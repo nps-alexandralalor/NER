@@ -150,7 +150,7 @@ qaqc <- function(data, query, query_message, values_check) {
 ```{r}
 # designate target values
 # 2025 parks: "CATO" "GETT" "MONO" "NERI" "RICH" "SHEN"
-target_park <- c("ALL")
+target_park <- c("SHEN")
 target_years <- c(2025)
 ```
 
@@ -160,8 +160,8 @@ Make sure to update file paths to be specific for your data.
 
 ```{r}
 # adjust file paths
-#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " FMH Data QAQC Errors")
@@ -257,18 +257,19 @@ Unknowns1 <- HerbsSpComp_all %>%
   filter(SPP == TRUE) %>% 
   summarize(unique(Species.Symbol)) %>% 
   as.vector()
-
 Unknowns2 <- HerbsPoints_all %>% 
   mutate(SPP = str_detect(Species.Symbol, "SPP")) %>% 
   filter(SPP == TRUE) %>% 
   summarize(unique(Species.Symbol)) %>% 
   as.vector()
-              
 unknowns_SpComp_genus <- as.character(Unknowns1$`unique(Species.Symbol)`)
 unknowns_Points_genus <- as.character(Unknowns2$`unique(Species.Symbol)`)
+
+unknowns_genus <- unique(c(unknowns_SpComp_genus, unknowns_Points_genus))
 unknowns_generic <- c("ASTER", "FERN", "FUNGI", "GRASS", "UNKSPP", "UNKSNAG", "UNK_002", "2FERN", "2FORBD", "2FORBM", "2GRAM", "2PLANT", "2SHRUBD", "2TREE", "2VINEHERB", "2VINEWOOD")
-unknowns <- unique(c(unknowns_SpComp_genus, unknowns_Points_genus, unknowns_generic))
-remove(Unknowns1, Unknowns2)
+unknowns <- unique(c(unknowns_genus, unknowns_generic))
+
+remove(Unknowns1, Unknowns2, unknowns_SpComp_genus, unknowns_Points_genus)
 
 substrates <- c("BOLE", "DUFF", "HAY", "LITT", "LITTER", "MOSS", "ROCK", "SOIL", "WOOD")
 ```
@@ -413,20 +414,20 @@ errors_Fuels1000_Dia_Min <- qaqc(data, query, query_message, values_check)
 -   Check that diameter values are reasonable.
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- Fuels1000_all %>%
-  filter(!is.na(Dia))
-data_outlier <- rosnerTest(data_temp$Dia)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_Dia <- ifelse(length(outliers) == 0, max(data_temp$Dia), min(outliers) - 1)
+# # Perform Rosner's Test for outliers using all values
+# data_temp <- Fuels1000_all %>%
+#   filter(!is.na(Dia))
+# data_outlier <- rosnerTest(data_temp$Dia)
+# outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
+# max_Dia <- ifelse(length(outliers) == 0, max(data_temp$Dia), min(outliers) - 1)
 
 # Set parameters
 data <- Fuels1000_data
 query <- "Fuel 1000 Dia"
 query_message <- paste0("Log ", data$LogNum, ". ", "Possible outlier. Diameter")
 values_data <- data$Dia
-values_valid <- max_Dia
-values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
+values_valid <- 25
+values_check <- values_data <= values_valid
 
 # Identify errors
 errors_Fuels1000_Dia_Max <- qaqc(data, query, query_message, values_check)
@@ -722,19 +723,19 @@ errors_FuelsDuffLitt_Transect <- qaqc(data, query, query_message, values_check)
 -   Sort by LittDep. Check that litter depth values are reasonable.
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- FuelsDuffLitt_all %>%
-  filter(!is.na(LittDep))
-data_outlier <- rosnerTest(data_temp$LittDep)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_Litt <- ifelse(length(outliers) == 0, max(data_temp$LittDep), min(outliers) - 0.1)
+# # Perform Rosner's Test for outliers using all values
+# data_temp <- FuelsDuffLitt_all %>%
+#   filter(!is.na(LittDep))
+# data_outlier <- rosnerTest(data_temp$LittDep)
+# outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
+# max_Litt <- ifelse(length(outliers) == 0, max(data_temp$LittDep), min(outliers) - 0.1)
 
 # Set parameters 
 data <- FuelsDuffLitt_data
 query <- "Fuel DL Values LittDep" 
 query_message <- paste0("Transect = ", data$Transect, ". ", "Sample Location = ", data$SampLoc, ". ", "Possible outlier. Litter Depth")
 values_data <- data$LittDep
-values_valid <- max_Litt
+values_valid <- 6
 values_check <- values_data <= values_valid
 
 # Identify errors
@@ -744,19 +745,19 @@ errors_FuelsDuffLitt_LittDep <- qaqc(data, query, query_message, values_check)
 -   Sort by DuffDep. Check that duff depth values are reasonable.
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- FuelsDuffLitt_all %>%
-  filter(!is.na(DuffDep))
-data_outlier <- rosnerTest(data_temp$DuffDep)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_Duff <- ifelse(length(outliers) == 0, max(data_temp$DuffDep), min(outliers) - 0.1)
+# # Perform Rosner's Test for outliers using all values
+# data_temp <- FuelsDuffLitt_all %>%
+#   filter(!is.na(DuffDep))
+# data_outlier <- rosnerTest(data_temp$DuffDep)
+# outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
+# max_Duff <- ifelse(length(outliers) == 0, max(data_temp$DuffDep), min(outliers) - 0.1)
 
 # Set parameters 
 data <- FuelsDuffLitt_data
 query <- "Fuel DL Values DuffDep" 
 query_message <- paste0("Transect = ", data$Transect, ". ", "Sample Location = ", data$SampLoc, ". ", "Possible outlier. Duff Depth")
 values_data <- data$DuffDep
-values_valid <- max_Duff
+values_valid <- 10
 values_check <- values_data <= values_valid
 
 # Identify errors
@@ -1076,19 +1077,19 @@ errors_FuelsFine_Transect <- qaqc(data, query, query_message, values_check)
 -   Check that One Hour values are reasonable.
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- FuelsFine_all %>%
-  filter(!is.na(OneHr))
-data_outlier <- rosnerTest(data_temp$OneHr)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_One <- ifelse(length(outliers) == 0, max(data_temp$OneHr), min(outliers) - 1)
+# # Perform Rosner's Test for outliers using all values
+# data_temp <- FuelsFine_all %>%
+#   filter(!is.na(OneHr))
+# data_outlier <- rosnerTest(data_temp$OneHr)
+# outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
+# max_One <- ifelse(length(outliers) == 0, max(data_temp$OneHr), min(outliers) - 1)
 
 # Set parameters 
 data <- FuelsFine_data
 query <- "Fuel Fine Values OneHr" 
 query_message <- paste0("Transect = ", data$Transect, ". ", "Possible outlier. One Hour Count")
 values_data <- data$OneHr
-values_valid <- seq(0, max_One, by = 1)
+values_valid <- seq(0, 50, by = 1)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -1098,19 +1099,19 @@ errors_FuelsFine_OneHr <- qaqc(data, query, query_message, values_check)
 -   Check that Ten Hour values are reasonable.
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- FuelsFine_all %>%
-  filter(!is.na(TenHr))
-data_outlier <- rosnerTest(data_temp$TenHr)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_Ten <- ifelse(length(outliers) == 0, max(data_temp$TenHr), min(outliers) - 1)
+# # Perform Rosner's Test for outliers using all values
+# data_temp <- FuelsFine_all %>%
+#   filter(!is.na(TenHr))
+# data_outlier <- rosnerTest(data_temp$TenHr)
+# outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
+# max_Ten <- ifelse(length(outliers) == 0, max(data_temp$TenHr), min(outliers) - 1)
 
 # Set parameters 
 data <- FuelsFine_data
 query <- "Fuel Fine Values TenHr" 
 query_message <- paste0("Transect = ", data$Transect, ". ", "Possible outlier. Ten Hour Count")
 values_data <- data$TenHr
-values_valid <- seq(0, max_Ten, by = 1)
+values_valid <- seq(0, 20, by = 1)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -1120,19 +1121,19 @@ errors_FuelsFine_TenHr <- qaqc(data, query, query_message, values_check)
 -   Check that Hundred Hour values are reasonable.
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- FuelsFine_all %>%
-  filter(!is.na(HunHr))
-data_outlier <- rosnerTest(data_temp$HunHr)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_Hun <- ifelse(length(outliers) == 0, max(data_temp$HunHr), min(outliers) - 1)
+# # Perform Rosner's Test for outliers using all values
+# data_temp <- FuelsFine_all %>%
+#   filter(!is.na(HunHr))
+# data_outlier <- rosnerTest(data_temp$HunHr)
+# outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
+# max_Hun <- ifelse(length(outliers) == 0, max(data_temp$HunHr), min(outliers) - 1)
 
 # Set parameters 
 data <- FuelsFine_data
 query <- "Fuel Fine Values HunHr" 
 query_message <- paste0("Transect = ", data$Transect, ". ", "Possible outlier. Hundred Hour Count") 
 values_data <- data$HunHr
-values_valid <- seq(0, max_Hun, by = 1)
+values_valid <- seq(0, 10, by = 1)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -2020,12 +2021,12 @@ errors_Trees_DBH_Min <- qaqc(data, query, query_message, values_check)
 -   Filter to exclude DD trees. Check that DBH is not excessively large. Check that DBH values for standing trees exist.
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- Trees_all %>%
-  filter(!is.na(DBH))
-data_outlier <- rosnerTest(data_temp$DBH)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_DBH <- ifelse(length(outliers) == 0, max(data_temp$DBH), min(outliers) - 1)
+# # Perform Rosner's Test for outliers using all values
+# data_temp <- Trees_all %>%
+#   filter(!is.na(DBH))
+# data_outlier <- rosnerTest(data_temp$DBH)
+# outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
+# max_DBH <- ifelse(length(outliers) == 0, max(data_temp$DBH), min(outliers) - 1)
 
 # Set parameters 
 data <- Trees_data %>% 
@@ -2033,7 +2034,7 @@ data <- Trees_data %>%
 query <- "Trees DBH" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "Possible outlier. DBH")
 values_data <- data$DBH
-values_valid <- max_DBH
+values_valid <- 100
 values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 
 # Identify errors
@@ -3242,19 +3243,19 @@ errors_Seedlings_Count_Min <- qaqc(data, query, query_message, values_check)
 -   Check that Count is not excessively high
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- Seedlings_all %>%
-  filter(!is.na(Count))
-data_outlier <- rosnerTest(data_temp$Count)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_SeedCount <- ifelse(length(outliers) == 0, max(data_temp$Count), min(outliers) - 1)
+# # Perform Rosner's Test for outliers using all values
+# data_temp <- Seedlings_all %>%
+#   filter(!is.na(Count))
+# data_outlier <- rosnerTest(data_temp$Count)
+# outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
+# max_SeedCount <- ifelse(length(outliers) == 0, max(data_temp$Count), min(outliers) - 1)
 
 # Set parameters 
 data <- Seedlings_data
 query <- "Dens Quad Count" 
 query_message <- paste0("Possible outlier. Count")
 values_data <- data$Count
-values_valid <- max_SeedCount
+values_valid <- 1000
 values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 
 # Identify errors
@@ -3650,19 +3651,19 @@ errors_Shrubs_Count_Min <- qaqc(data, query, query_message, values_check)
 -   Check that Count is not excessively high
 
 ```{r}
-# Perform Rosner's Test for outliers using all values
-data_temp <- Shrubs_all %>%
-  filter(!is.na(Count))
-data_outlier <- rosnerTest(data_temp$Count)
-outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
-max_ShrubCount <- ifelse(length(outliers) == 0, max(data_temp$Count), min(outliers) - 1)
+# # Perform Rosner's Test for outliers using all values
+# data_temp <- Shrubs_all %>%
+#   filter(!is.na(Count))
+# data_outlier <- rosnerTest(data_temp$Count)
+# outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
+# max_ShrubCount <- ifelse(length(outliers) == 0, max(data_temp$Count), min(outliers) - 1)
 
 # Set parameters 
 data <- Shrubs_data
 query <- "Dens Belts Count" 
 query_message <- paste0("Possible outlier. Count")
 values_data <- data$Count
-values_valid <- max_ShrubCount
+values_valid <- 540
 values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
 
 # Identify errors
