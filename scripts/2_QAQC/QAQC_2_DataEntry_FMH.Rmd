@@ -150,7 +150,7 @@ qaqc <- function(data, query, query_message, values_check) {
 ```{r}
 # designate target values
 # 2025 parks: "CATO" "GETT" "MONO" "NERI" "RICH" "SHEN"
-target_park <- c("SHEN")
+target_park <- c("ALL")
 target_years <- c(2025)
 ```
 
@@ -3989,54 +3989,7 @@ values_valid <- unknowns
 values_check <- !(values_data %in% values_valid)
 
 # Identify errors
-errors_HerbsSpComp_Unknown <- qaqc(data, query, query_message, values_check)
-```
-
--   Sort by Native = True. Check that Invasive = False
-
-```{r}
-# Set parameters
-data <- HerbsSpComp_data %>% 
-  filter(Native.Species == "True")
-query <- "Cvr SpComp Species"
-query_message <- paste0("Species = ", data$Species.Symbol, ". Native = True. ", "Invasive")
-values_data <- data$Invasive.Species
-values_valid <- c("False")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_HerbsSpComp_Native <- qaqc(data, query, query_message, values_check)
-```
-
--   Sort by Native = False. Check that Invasive = True
-
-```{r}
-# Set parameters
-data <- HerbsSpComp_data %>% 
-  filter(Native.Species == "False",
-         !Species.Symbol %in% unknowns)
-query <- "Cvr SpComp Species"
-query_message <- paste0("Species = ", data$Species.Symbol, ". Native = False. ", "Invasive")
-values_data <- data$Invasive.Species
-values_valid <- c("True")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_HerbsSpComp_NotNative <- qaqc(data, query, query_message, values_check)
-```
-
-#### Combine Species Errors {.hidden}
-
-```{r}
-errors_HerbsSpComp_Species <- unique(rbind(errors_HerbsSpComp_Unknown, errors_HerbsSpComp_Native, errors_HerbsSpComp_NotNative))
-
-remove(errors_HerbsSpComp_Unknown, errors_HerbsSpComp_Native, errors_HerbsSpComp_NotNative)
-
-if(nrow(errors_HerbsSpComp_Species) > 1) {
-  errors_HerbsSpComp_Species <- errors_HerbsSpComp_Species %>%
-    filter(Error != "No Error")
-} else {
-  errors_HerbsSpComp_Species <- errors_HerbsSpComp_Species}
+errors_HerbsSpComp_Species <- qaqc(data, query, query_message, values_check)
 ```
 
 ### HerbsSpComp Status
@@ -4548,55 +4501,7 @@ values_valid <- unknowns
 values_check <- !(values_data %in% values_valid)
 
 # Identify errors
-errors_HerbsPoints_Unknown <- qaqc(data, query, query_message, values_check)
-```
-
--   Sort by Native = True. Check that Invasive = False
-
-```{r}
-# Set parameters
-data <- HerbsPoints_data %>% 
-  filter(Native.Species == "True")
-query <- "Cvr Pts Species"
-query_message <- paste0("Species = ", data$Species.Symbol, ". Native = True. ", "Invasive")
-values_data <- data$Invasive.Species
-values_valid <- c("False")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_HerbsPoints_Native <- qaqc(data, query, query_message, values_check)
-```
-
--   Sort by Native = False. Check that Invasive = True
-
-```{r}
-# Set parameters
-data <- HerbsPoints_data %>% 
-  filter(Native.Species == "False",
-         !Species.Symbol %in% unknowns,
-         !Species.Symbol %in% substrates)
-query <- "Cvr Pts Species"
-query_message <- paste0("Species = ", data$Species.Symbol, ". Native = False. ", "Invasive")
-values_data <- data$Invasive.Species
-values_valid <- c("True")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_HerbsPoints_NotNative <- qaqc(data, query, query_message, values_check)
-```
-
-#### Combine Species Errors {.hidden}
-
-```{r}
-errors_HerbsPoints_Species <- unique(rbind(errors_HerbsPoints_Unknown, errors_HerbsPoints_Native, errors_HerbsPoints_NotNative))
-
-remove(errors_HerbsPoints_Unknown, errors_HerbsPoints_Native, errors_HerbsPoints_NotNative)
-
-if(nrow(errors_HerbsPoints_Species) > 1) {
-  errors_HerbsPoints_Species <- errors_HerbsPoints_Species %>%
-    filter(Error != "No Error")
-} else {
-  errors_HerbsPoints_Species <- errors_HerbsPoints_Species}
+errors_HerbsPoints_Species <- qaqc(data, query, query_message, values_check)
 ```
 
 ### HerbsPoints Status
