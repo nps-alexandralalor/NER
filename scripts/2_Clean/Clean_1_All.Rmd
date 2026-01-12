@@ -90,7 +90,8 @@ Make sure to update file paths to be specific for your data.
 
 ```{r}
 # adjust file paths
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 ```
 
 # METADATA
@@ -244,8 +245,7 @@ for(i in parks) {
 ## Fuels 1000
 
 ```{r}
-# excluding parks CUVA and PRWI because of database exporting issues
-parks <- c("ANTI", "APCO", "CATO", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -294,6 +294,11 @@ for(i in parks) {
   Fuels1000 <- merge(Fuels1000_header, Fuels1000_data, by = c(1:19))
   
   
+  # add column for park name
+  Fuels1000 <- Fuels1000 %>% 
+    add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+    
+  
   # save file
   write.csv(Fuels1000, paste0(path_save, target_park, "_Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
 }
@@ -302,8 +307,7 @@ for(i in parks) {
 ## Fuels Duff Litt
 
 ```{r}
-# excluding parks CUVA and PRWI because of database exporting issues
-parks <- c("ANTI", "APCO", "CATO", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -352,6 +356,11 @@ for(i in parks) {
   FuelsDuffLitt <- merge(FuelsDuffLitt_header, FuelsDuffLitt_data, by = c(1:19))
   
   
+  # add column for park name
+  FuelsDuffLitt <- FuelsDuffLitt %>% 
+    add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
   # save file
   write.csv(FuelsDuffLitt, paste0(path_save, target_park, "_Data_Surface Fuels - Duff_Litter.csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -360,8 +369,7 @@ for(i in parks) {
 ## Fuels Fine
 
 ```{r}
-# excluding parks CUVA and PRWI because of database exporting issues
-parks <- c("ANTI", "APCO", "CATO", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -410,6 +418,11 @@ for(i in parks) {
   FuelsFine <- merge(FuelsFine_header, FuelsFine_data, by = c(1:19))
   
   
+  # add column for park name
+  FuelsFine <- FuelsFine %>% 
+    add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
   # save file
   write.csv(FuelsFine, paste0(path_save, target_park, "_Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -418,8 +431,7 @@ for(i in parks) {
 ## Post Burn
 
 ```{r}
-# excluding park PRWI because of database exporting issues
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -468,6 +480,11 @@ for(i in parks) {
   PostBurn <- merge(PostBurn_header, PostBurn_data, by = c(1:19))
   
   
+  # add column for park name
+  PostBurn <- PostBurn %>% 
+    add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
   # save file
   write.csv(PostBurn, paste0(path_save, target_park, "_Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -476,8 +493,7 @@ for(i in parks) {
 ## Trees
 
 ```{r}
-# excluding park PRWI because of database exporting issues
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -526,6 +542,11 @@ for(i in parks) {
   Trees <- merge(Trees_header, Trees_data, by = c(1:19))
   
   
+  # add column for park name
+  Trees <- Trees %>% 
+    add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
   # save file
   write.csv(Trees, paste0(path_save, target_park, "_Data_Trees - Individuals (metric).csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -536,7 +557,7 @@ for(i in parks) {
 ```{r}
 # excluding park PRWI because of database exporting issues
 # excluding park APCO because Density - Quadrats (metric) aka Seedlings protocol does not include Area header...
-parks <- c("ANTI", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -585,6 +606,11 @@ for(i in parks) {
   Seedlings <- merge(Seedlings_header, Seedlings_data, by = c(1:19))
   
   
+  # add column for park name
+  Seedlings <- Seedlings %>% 
+    add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
   # save file
   write.csv(Seedlings, paste0(path_save, target_park, "_Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -594,8 +620,8 @@ for(i in parks) {
 
 ```{r}
 # excluding park PRWI because of database exporting issues
-# excluding park APCO because Density - Belts (metric) aka Shrubs protocol does not include NumSubbelt header...
-parks <- c("ANTI", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+# excluding park APCO because Density - Belts (metric) aka Shrubs protocol does not include Subbelt, NumSubbelt, or Area header...
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -644,6 +670,11 @@ for(i in parks) {
   Shrubs <- merge(Shrubs_header, Shrubs_data, by = c(1:19))
   
   
+  # add column for park name
+  Shrubs <- Shrubs %>% 
+    add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
   # save file
   write.csv(Shrubs, paste0(path_save, target_park, "_Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -652,8 +683,7 @@ for(i in parks) {
 ## Herbs Species Comp
 
 ```{r}
-# excluding park PRWI because of database exporting issues
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -702,6 +732,11 @@ for(i in parks) {
   HerbsSpComp <- merge(HerbsSpComp_header, HerbsSpComp_data, by = c(1:19))
   
   
+  # add column for park name
+  HerbsSpComp <- HerbsSpComp %>% 
+    add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
   # save file
   write.csv(HerbsSpComp, paste0(path_save, target_park, "_Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -710,8 +745,7 @@ for(i in parks) {
 ## Herbs Points
 
 ```{r}
-# excluding park PRWI because of database exporting issues
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN", "VAFO")
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -758,6 +792,11 @@ for(i in parks) {
   
   # merge data
   HerbsPoints <- merge(HerbsPoints_header, HerbsPoints_data, by = c(1:19))
+  
+  
+  # add column for park name
+  HerbsPoints <- HerbsPoints %>% 
+    add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
   
   
   # save file
