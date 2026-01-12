@@ -249,7 +249,7 @@ HerbsPoints_data <- HerbsPoints_all %>%
          Date_Year %in% target_years)
 ```
 
-### Define Codes
+### Define Codes {.hidden}
 
 ```{r}
 Unknowns1 <- HerbsSpComp_all %>% 
@@ -272,6 +272,8 @@ remove(Unknowns1, Unknowns2)
 
 substrates <- c("BOLE", "DUFF", "HAY", "LITT", "LITTER", "MOSS", "ROCK", "SOIL", "WOOD")
 ```
+
+# Selected park: [`r target_park`]{style="color:red"}
 
 # Selected year(s): [`r target_years`]{style="color:red"}
 
@@ -4791,8 +4793,8 @@ errors_all_cf <- errors_all_cf %>%
   mutate(Color = ifelse(Color == TRUE, "Post", Color))
 
 # Add conditional formating to ouput
-errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:9]) %>%
-  rule_fill_discrete(columns = 1:8,
+errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:10]) %>%
+  rule_fill_discrete(columns = 1:9,
                      expression = (errors_all_cf$Color),
                      colours = c("Standard"="#C6E0B4",
                                  "Post"="#FFC000",
@@ -4808,5 +4810,5 @@ kable(errors_all, "pipe")
 # Save as CSV or XLSX 
 errors_all <- errors_all %>% 
   mutate(Date = as.character(Date))
-#condformat2excel(errors_all, paste0(path_errors, "All_errors_data_FMH.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+condformat2excel(errors_all, paste0(path_errors, target_park, "_errors_data_FMH.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
