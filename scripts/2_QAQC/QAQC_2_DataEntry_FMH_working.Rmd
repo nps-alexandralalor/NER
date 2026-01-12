@@ -160,8 +160,8 @@ Make sure to update file paths to be specific for your data.
 
 ```{r}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " FMH Data QAQC Errors")
@@ -273,7 +273,7 @@ remove(Unknowns1, Unknowns2)
 substrates <- c("BOLE", "DUFF", "HAY", "LITT", "LITTER", "MOSS", "ROCK", "SOIL", "WOOD")
 ```
 
-# Selected park: [`r target_park`]{style="color:red"}
+# Selected park(s): [`r target_park`]{style="color:red"}
 
 # Selected year(s): [`r target_years`]{style="color:red"}
 
