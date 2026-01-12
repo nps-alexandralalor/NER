@@ -126,11 +126,11 @@ qaqc <- function(data, query, query_message, values_check) {
 }
 ```
 
-### Target Park  {.hidden}
+### Target Park {.hidden}
 
 ```{r}
 # designate target park(s)
-target_park <- "SHEN"
+target_park <- "ALL"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -139,7 +139,7 @@ target_park <- "SHEN"
 # adjust file paths
 path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 #path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " Species QAQC Errors")
 ```
@@ -148,29 +148,27 @@ path_errors_name <- paste0(target_park, " Species QAQC Errors")
 
 ```{r load data, include=FALSE}
 ## Load Data
-SpeciesReport <- read.csv(paste0(path_data, "LocalSpeciesReport.csv"), na.strings = c("","NA","N/A"))
-```
-
-### Clean Data {.hidden}
-
-```{r}
-SpeciesReport <- SpeciesReport %>%
-  # remove trailing/leading whitespace
-  mutate(across(where(is.character), str_trim))
-
-# replace commas with semicolons
-SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
+SpeciesReport <- read.csv(paste0(path_data, "SpeciesReport.csv"))
 ```
 
 ### Define Codes {.hidden}
 
 ```{r}
-substrate <- c("BARE", "BOLE", "DUFF", "HAY", "LICHEN", "LITT", "LITTER", "MOSS", "ROCK", "ROOT", "SOIL", "WATER", "WOOD", "DDTREE")
+Unknowns <- SpeciesReport %>% 
+  mutate(SPP = str_detect(LocalSpecies_Symbol, "SPP")) %>% 
+  filter(SPP == TRUE) %>% 
+  summarize(unique(LocalSpecies_Symbol)) %>% 
+  as.vector()
+unknowns_genus <- as.character(Unknowns$`unique(LocalSpecies_Symbol`)
+remove(Unknowns)
 
-unknown <- c("ASTER", "FERN", "FUNGI", "GRASS", "UNKSPP", "UNKSNAG", "UNK_002", "2FERN", "2FORBD", "2FORBM", "2GRAM", "2PLANT", "2SHRUBD", "2TREE", "2VINEHERB", "2VINEWOOD")
+unknowns_generic <- c("ASTER", "FERN", "FUNGI", "GRASS", "UNKSPP", "UNKSNAG", "UNK_002", "2AB", "2BOLE", "2FERN", "2FORBD", "2FORBM", "2GRAM", "2LTR", "2PLANT", "2SHRUBD", "2TDBD", "2TREE", "2VINEHERB", "2VINEWOOD")
+unknowns <- unique(c(unknowns_genus, unknowns_generic))
+
+substrates <- c("BARE", "BOLE", "DUFF", "HAY", "LICHEN", "LITT", "LITTER", "MOSS", "ROCK", "ROOT", "SOIL", "WATER", "WOOD", "DDTREE")
 ```
 
-# Park: [`r target_park`]{style="color:red"}
+# Park(s): [`r target_park`]{style="color:red"}
 
 # Species Report
 
@@ -209,8 +207,8 @@ errors_SpeciesReport_Quotes <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "LocalSpecies_CommonName"
 query_message <- paste0("Common Name")
 values_data <- data$LocalSpecies_CommonName
@@ -226,8 +224,8 @@ errors_SpeciesReport_CommonName <- qaqc(data, query, query_message, values_check
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "LocalSpecies_LifeCycle"
 query_message <- paste0("Life Cycle")
 values_data <- data$LocalSpecies_LifeCycle
@@ -238,44 +236,46 @@ values_check <- values_data %in% values_valid
 errors_SpeciesReport_LifeCycle <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that LocalSpecies_Nativity = True or False
+-   Sort by Native = True. Check that Invasive = False
 
 ```{r}
+# Set parameters
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(LocalSpecies_Nativity == "True")
 query <- "LocalSpecies_Nativity"
-query_message <- paste0("Nativity")
-values_data <- data$LocalSpecies_Nativity
-values_valid <- c("True", "False")
+query_message <- paste0("Native = True. Invasive")
+values_data <- data$LocalSpecies_Invasive
+values_valid <- c("False")
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_SpeciesReport_Nativity <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Native <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that LocalSpecies_Invasive = True or False
+-   Sort by Native = False. Check that Invasive = True
 
 ```{r}
+# Set parameters
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(LocalSpecies_Nativity == "False",
+         !LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "LocalSpecies_Invasive"
-query_message <- paste0("Invasive")
+query_message <- paste0("Native = False. Invasive")
 values_data <- data$LocalSpecies_Invasive
-values_valid <- c("True", "False")
+values_valid <- c("True")
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_SpeciesReport_Invasive <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_NonNative <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that LocalSpecies_Cultural = True or False
 
 ```{r}
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "LocalSpecies_Cultural"
 query_message <- paste0("Cultural")
 values_data <- data$LocalSpecies_Cultural
@@ -290,8 +290,8 @@ errors_SpeciesReport_Cultural <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "LocalSpecies_Concern"
 query_message <- paste0("Concern")
 values_data <- data$LocalSpecies_Concern
@@ -306,8 +306,8 @@ errors_SpeciesReport_Concern <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "LocalSpecies_Retired"
 query_message <- paste0("Retired")
 values_data <- data$LocalSpecies_Retired
@@ -323,7 +323,7 @@ errors_SpeciesReport_Retired <- qaqc(data, query, query_message, values_check)
 ```{r}
 data <- SpeciesReport %>% 
   filter(LocalSpecies_PreferedLifeForm == "Graminoid",
-         !LocalSpecies_Symbol %in% unknown)
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "LocalSpecies_UV1"
 query_message <- paste0("UV1")
 values_data <- data$LocalSpecies_UV1
@@ -339,8 +339,8 @@ errors_SpeciesReport_UV1 <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "LocalSpecies_PreferedLifeForm"
 query_message <- paste0("Life Form")
 values_data <- data$LocalSpecies_PreferedLifeForm
@@ -362,8 +362,8 @@ errors_SpeciesReport_LifeForm <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "MasterSpecies_ScientificName"
 query_message <- paste0("Scientific Name") 
 values_data <- data$MasterSpecies_ScientificName
@@ -379,8 +379,8 @@ errors_SpeciesReport_ScientificName <- qaqc(data, query, query_message, values_c
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "MasterSpecies_ITIS_TSN"
 query_message <- paste0("TSN") 
 values_data <- data$MasterSpecies_ITIS_TSN
@@ -396,8 +396,8 @@ errors_SpeciesReport_TSN <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "MasterSpecies_Genus"
 query_message <- paste0("Genus") 
 values_data <- data$MasterSpecies_Genus
@@ -413,8 +413,8 @@ errors_SpeciesReport_Genus <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate,
-         !LocalSpecies_Symbol %in% unknown)
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
 query <- "MasterSpecies_Family"
 query_message <- paste0("Family") 
 values_data <- data$MasterSpecies_Family
@@ -430,7 +430,7 @@ errors_SpeciesReport_Family <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!LocalSpecies_Symbol %in% substrate)
+  filter(!LocalSpecies_Symbol %in% substrates)
 query <- "MasterSpecies_NotBiological"
 query_message <- paste0("Not Biological") 
 values_data <- data$MasterSpecies_NotBiolgoical
@@ -444,7 +444,7 @@ errors_SpeciesReport_NotBiological_F <- qaqc(data, query, query_message, values_
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(LocalSpecies_Symbol %in% substrate)
+  filter(LocalSpecies_Symbol %in% substrates)
 query <- "MasterSpecies_NotBiological"
 query_message <- paste0("Substrate. Not Biological") 
 values_data <- data$MasterSpecies_NotBiolgoical
@@ -458,10 +458,10 @@ errors_SpeciesReport_NotBiological_T <- qaqc(data, query, query_message, values_
 # ALL ERRORS
 
 ```{r}
-errors_SpeciesReport <- rbind(errors_SpeciesReport_Quotes, errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Nativity, errors_SpeciesReport_Invasive, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired) %>% 
+errors_SpeciesReport <- rbind(errors_SpeciesReport_Quotes, errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Native, errors_SpeciesReport_NonNative, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired) %>% 
   arrange(LocalSpecies_Symbol)
 
-remove(errors_SpeciesReport_Quotes, errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Nativity, errors_SpeciesReport_Invasive, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired)
+remove(errors_SpeciesReport_Quotes, errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Native, errors_SpeciesReport_NonNative, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired)
 
 if(nrow(errors_SpeciesReport) > 1) {
   errors_SpeciesReport <- errors_SpeciesReport %>%
@@ -496,5 +496,5 @@ errors_all <- condformat(errors_SpeciesReport_blanks[1:(nrow(errors_SpeciesRepor
 kable(errors_all, "pipe")
 
 # Save as CSV or XLSX
-condformat2excel(errors_all, paste0(path_errors, paste0(target_park, "_errors_species.xlsx")), sheet_name = path_errors_name, overwrite_wb = TRUE)
+condformat2excel(errors_all, paste0(path_errors, target_park, "_errors_species.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
