@@ -45,12 +45,13 @@ This code is intended to quality check plot data for protocols listed below. Thi
 
 ```{r}
 # install.packages("tidyverse")
+# install.packages("plyr")
 # install.packages("Rtools")
 # install.packages("janitor")
 # install.packages("condformat")
 # install.packages("knitr")
-# install.packages("here")
 # install.packages("EnvStats")
+# install.packages("writexl")
 ```
 
 ### Load Packages {.hidden}
@@ -70,8 +71,6 @@ library(writexl)
 library(condformat)
 # knitr is used to create output files from R Markdown
 library(knitr)
-# here is useful for easily finding the working directory of any project
-library(here)
 ```
 
 ### Create Function {.hidden}
@@ -150,7 +149,7 @@ qaqc <- function(data, query, query_message, values_check) {
 ```{r}
 # designate target values
 # 2025 parks: "CATO" "GETT" "MONO" "NERI" "RICH" "SHEN"
-target_park <- c("ALL")
+target_park <- c("SHEN")
 target_years <- c(2025)
 ```
 
@@ -160,8 +159,8 @@ Make sure to update file paths to be specific for your data.
 
 ```{r}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " FMH Data QAQC Errors")
@@ -3989,7 +3988,37 @@ values_valid <- unknowns
 values_check <- !(values_data %in% values_valid)
 
 # Identify errors
-errors_HerbsSpComp_Species <- qaqc(data, query, query_message, values_check)
+errors_HerbsSpComp_Unknown <- qaqc(data, query, query_message, values_check)
+```
+
+-   Cross check with comments
+
+```{r}
+# Set parameters
+data <- HerbsSpComp_data
+data$Comment[is.na(data$Comment)] <- ""
+query <- "Cvr SpComp Species"
+query_message <- paste0("Species = ", data$Species.Symbol, ". Comment")
+values_data <- data$Comment
+values_valid <- ""
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsSpComp_Comment <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Species Errors {.hidden}
+
+```{r}
+errors_HerbsSpComp_Species <- unique(rbind(errors_HerbsSpComp_Unknown, errors_HerbsSpComp_Comment))
+
+remove(errors_HerbsSpComp_Unknown, errors_HerbsSpComp_Comment)
+
+if(nrow(errors_HerbsSpComp_Species) > 1) {
+  errors_HerbsSpComp_Species <- errors_HerbsSpComp_Species %>%
+    filter(Error != "No Error")
+} else {
+  errors_HerbsSpComp_Species <- errors_HerbsSpComp_Species}
 ```
 
 ### HerbsSpComp Status
@@ -4426,7 +4455,7 @@ data_temp <- HerbsPoints_data %>%
   dplyr::summarize(across(Point, sum))
 
 data_temp <- data_temp %>% 
-  mutate(Missing = abs(expected_sum - data_temp$Point)) %>% 
+  mutate(Missing = abs(expected_sum - Point)) %>% 
   select(!Point)
 
 # Set parameters 
@@ -4453,7 +4482,7 @@ data_temp <- HerbsPoints_data %>%
   dplyr::summarize(across(Point, sum))
 
 data_temp <- data_temp %>% 
-  mutate(Missing = abs(expected_sum - data_temp$Point)) %>% 
+  mutate(Missing = abs(expected_sum - Point)) %>% 
   select(!Point)
 
 # Set parameters 
@@ -4501,7 +4530,37 @@ values_valid <- unknowns
 values_check <- !(values_data %in% values_valid)
 
 # Identify errors
-errors_HerbsPoints_Species <- qaqc(data, query, query_message, values_check)
+errors_HerbsPoints_Unknown <- qaqc(data, query, query_message, values_check)
+```
+
+-   Cross check with comments
+
+```{r}
+# Set parameters
+data <- HerbsPoints_data
+data$Comment[is.na(data$Comment)] <- ""
+query <- "Cvr Pts Species"
+query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Species = ", data$Species.Symbol, ". Comment")
+values_data <- data$Comment
+values_valid <- ""
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsPoints_Comment <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Species Errors {.hidden}
+
+```{r}
+errors_HerbsPoints_Species <- unique(rbind(errors_HerbsPoints_Unknown, errors_HerbsPoints_Comment))
+
+remove(errors_HerbsPoints_Unknown, errors_HerbsPoints_Comment)
+
+if(nrow(errors_HerbsPoints_Species) > 1) {
+  errors_HerbsPoints_Species <- errors_HerbsPoints_Species %>%
+    filter(Error != "No Error")
+} else {
+  errors_HerbsPoints_Species <- errors_HerbsPoints_Species}
 ```
 
 ### HerbsPoints Status
