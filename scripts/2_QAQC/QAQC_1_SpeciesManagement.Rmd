@@ -60,7 +60,7 @@ library(here)
 
 ```{r}
 # Create blank data frame as error log template
-errors_blank <- data.frame("SavedQuery" = "", "LocalSpecies_Symbol" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+errors_blank <- data.frame("SavedQuery" = "", "ReportType" = "", "LocalSpecies_Symbol" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
 
 # Create error group. Duplicate errors will be grouped by these columns.
 errors_group <- c("SavedQuery", "LocalSpecies_Symbol", "Error")
@@ -154,18 +154,13 @@ SpeciesReport <- read.csv(paste0(path_data, "SpeciesReport.csv"))
 ### Define Codes {.hidden}
 
 ```{r}
-Unknowns <- SpeciesReport %>% 
-  mutate(SPP = str_detect(LocalSpecies_Symbol, "SPP")) %>% 
-  filter(SPP == TRUE) %>% 
-  summarize(unique(LocalSpecies_Symbol)) %>% 
-  as.vector()
-unknowns_genus <- as.character(Unknowns$`unique(LocalSpecies_Symbol`)
-remove(Unknowns)
+unknowns_genus <- c("ACALY","ACALYP","ACASPP","ACER","ACHILLEA","AGESPP","AGROS","AGRSPP","ALLIUM","ALLSPP","AMELA","AMESPP","ANDRO","ANDROP","ANDSPP","ANEMO","ANESPP","ANTEN","ANTENN","ANTSPP","APOCY","APOCYNUM","ARABIS","ARALI","ARISPP","ARIST","ASCLE","ASCLEPIAS","ASCSPP","ASPSPP","ASTER","ASTERACEAE","ASTEspp","BETULA","BIDENS","BOTRY","BOTRYCH","BOTSPP","BRASSICACE","BRASPP","BRASS2","BROMU","bromus","BROMUS","BROSPP","CALAM","CALYSTEGIA","CARDA","CAREX","CAREX2","CARSPP","CARSP1","CARSPP2","CARSP2","CARSP3","CARYA","CASSPP","CENTAUREA","CHIMA","CIRCAE","CIRSI","CIRSPP","CLISPP","CONVO","CONVOL","CONVOLVULU","CONVULVULA","CORNspp","CORSPP","CORNU","CORNUS","CRASPP","CRATA","CRATAEGUS","CUSCU","CUSCUTA","CUSSPP","CYPER","CYPSPP","DANSPP","DATSP","DDTREE","DESMO","DESMODIUM","DESSPP","DICHAN","DICHANTHEL","DICSPP","DICSP1","DICSPP1","DICSP2","DICSPP2","DICSPP3","DICSP5","DIGITA","DIGSPP1","DIGSPP","DIOSC","DIOSPP","ELEOCHARIS","ELESPP","ELYMUS","EPILOBIUM","EPISPP","EPISP1","ERAGR","ERASPP","ERAGROSTIS","ERIGE2","ERIGERON","ERISP","ERISPP","EUPATOR","EUPATORIUM","EUPSPP","EURSPP","EURYB","FABSPP","FABA","FESTUC","FESTUCA","FIMBRI","FRASPP","FRAXINUS","FRAXspp","GALIU","GALIUM","GALSP","GALSPP","GENTI","GEUM","GLYCERIA","GNASPP","HELIAN","HEPAT","HIERA","HIERAC","HIERACIUM","HIESPP","HOUSTO","HYPER","HYPERICUM","HYPPER","HYPSPP","IMPATIENS","IPOMO","IPOMOE","IPOMOEA","IPOSPP","IRIS","JUNCUS","JUNIspp","JUNSPP","KRIGI","LACSPP","LACTU","LAMSPP","LESPE","LESSPP","LIASPP","LIATR","LINSPP","LINUM","LITHO3","LONIC","LONICE","LONICERA","LONSPP","LOTUS","LYCHN","LYCOPODIUM","LYCOPUS","LYSIM","LYSSSP","MAGNOLIA","MALUS","MEDICAGO","MELILOTUS","MONARDA","MONSPP","MUHLE","MUHLEN","MUHSPP","MYRIO","OSMOR","OSMSPP","OXALI","OXALIS","OXASPP","PACKER","PACKERA","PACSPP","PANIC","PANICUM","PANSPP","PASPAL","PASSPP","PASSP1","PENSSP","PERSPP","PHLEU","PHYSPP","PINSPP","PINUS","POA","POACEAE","POLYG2","POLYG4","POLYGO","POLYGONUM","POPSPP","POPULUS","POTENT","POTENTILLA","PRESPP","PRUNE","PRUNU","PRUNUS","PRUSPP","PYCNA","PYCNANTHEM","PYRUS","QUERC","QUERCUS","QUESPP","RANSPP","RANUNCULUS","RHAMNUS","RHEXI","RHODO","RIBES","ROSA","ROSSPP","ROSA5","RUBIACEAE","RUBSPP","RUBUS","RUDBECKIA","RUMEX","RUMSPP","SALIX","SAMBU","SANICULA","SANSPP","SCIRP","SCIRPUS","SCLSPP","SCUSPP","SCUTELLARI","SETARIA","SETSPP","SISSPP","SISYR","SMILAX","SMISPP","SOLID","SOLIDAGO","SOLSPP","SOLSP1","SPIRA","SPIRA2","SPIRAE","SPIRAN","STELL","STELLARIA","STIPA","SYMPHY","Symphy2","SYMPHYOTRI","SYMSPP","SYMSP1","SYMSPP1","TARAX","TARSPP","THALICTRUM","TRIFOL","TRIFOLIUM","TRILL","TRILLIUM","TRISPP","ULMSPP","ULMUS","UNKSPP","VACCI","VACCIN","VACCINIUM","VACSPP","VERBA","VERBENA","VERON","VERONICA","VIBURN","VIBURNUM","VICIA","VICSPP","VIOLA","VIOSPP","VIOSPP1","VITIS","VITSPP","YPINE")
 
-unknowns_generic <- c("ASTER", "FERN", "FUNGI", "GRASS", "UNKSPP", "UNKSNAG", "UNK_002", "2AB", "2BOLE", "2FERN", "2FORBD", "2FORBM", "2GRAM", "2LTR", "2PLANT", "2SHRUBD", "2TDBD", "2TREE", "2VINEHERB", "2VINEWOOD")
+unknowns_generic <- c("ASTER","FERN","FUNGI","GRASS","GRSSPP","GRASSSP","GRASSSP1","GRASP1","GRASSP1","GRSSP1","GRSPP1","GRSPP2","2GL","GRASS_LIG","GRASS_THIN","UNKSPP","UNKSNAG","UNK_001","UNK_002","UNKN_98","UNKSP1","UNSKP1","UNKSP2","UNKN_FORB","UNKN_SHRUB","UNKN_WOODY","2AB","2BOLE","2BOLE","2FERN","2FORB","2FORBD","2FORBM","2GRAM","2LICH","2LTR","2PLANT","2SHRUBD","2TDBD","2TREE","2VINEHERB","2VINEWOOD","NOSP","NODATA")
+
 unknowns <- unique(c(unknowns_genus, unknowns_generic))
 
-substrates <- c("BARE", "BOLE", "DUFF", "HAY", "LICHEN", "LITT", "LITTER", "MOSS", "ROCK", "ROOT", "SOIL", "WATER", "WOOD", "DDTREE")
+substrates <- c("BARE","BOLE","DUFF","FUNG","FUNGUS","HAY","LICH","LICHEN","LITT","LITTER","MOSS","ROCK","ROOT","SCAT","SOIL","WATER","WOOD","DDTREE")
 ```
 
 # Park(s): [`r target_park`]{style="color:red"}
@@ -321,17 +316,17 @@ errors_SpeciesReport_Retired <- qaqc(data, query, query_message, values_check)
 -   Filter for Graminoids. Check that LocalSpecies_UV1 = cool or warm
 
 ```{r}
-data <- SpeciesReport %>% 
-  filter(LocalSpecies_PreferedLifeForm == "Graminoid",
-         !LocalSpecies_Symbol %in% unknowns)
-query <- "LocalSpecies_UV1"
-query_message <- paste0("UV1")
-values_data <- data$LocalSpecies_UV1
-values_valid <- c("cool", "warm")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_SpeciesReport_UV1 <- qaqc(data, query, query_message, values_check)
+# data <- SpeciesReport %>% 
+#   filter(LocalSpecies_PreferedLifeForm == "Graminoid",
+#          !LocalSpecies_Symbol %in% unknowns)
+# query <- "LocalSpecies_UV1"
+# query_message <- paste0("UV1")
+# values_data <- data$LocalSpecies_UV1
+# values_valid <- c("cool", "warm")
+# values_check <- values_data %in% values_valid
+# 
+# # Identify errors
+# errors_SpeciesReport_UV1 <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that LocalSpecies_PreferedLifeForm = Nonvascular, Graminoid, Grass-like, Forb/herb, Vine, Shrub, Subshrub, or Tree.
@@ -458,10 +453,10 @@ errors_SpeciesReport_NotBiological_T <- qaqc(data, query, query_message, values_
 # ALL ERRORS
 
 ```{r}
-errors_SpeciesReport <- rbind(errors_SpeciesReport_Quotes, errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Native, errors_SpeciesReport_NonNative, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired) %>% 
+errors_SpeciesReport <- rbind(errors_SpeciesReport_Quotes, errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_Native, errors_SpeciesReport_NonNative, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired) %>% 
   arrange(LocalSpecies_Symbol)
 
-remove(errors_SpeciesReport_Quotes, errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_UV1, errors_SpeciesReport_Native, errors_SpeciesReport_NonNative, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired)
+remove(errors_SpeciesReport_Quotes, errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_Native, errors_SpeciesReport_NonNative, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired)
 
 if(nrow(errors_SpeciesReport) > 1) {
   errors_SpeciesReport <- errors_SpeciesReport %>%
