@@ -80,7 +80,7 @@ MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport
 remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
 
 # Save file
-write.csv(MetadataReport, paste0(path_data, "All_MetadataReport.csv"), quote = FALSE, row.names = FALSE)
+write.csv(MetadataReport, paste0(path_data, "ALL/ALL_MetadataReport.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 # SPECIES
@@ -110,7 +110,7 @@ SpeciesReport <- rbind(SpeciesReport_ANTI, SpeciesReport_APCO, SpeciesReport_CAT
 remove(SpeciesReport_ANTI, SpeciesReport_APCO, SpeciesReport_CATO, SpeciesReport_CUVA, SpeciesReport_DEWA, SpeciesReport_FRSP, SpeciesReport_GATE, SpeciesReport_GETT, SpeciesReport_MONO, SpeciesReport_NERI, SpeciesReport_PRWI, SpeciesReport_RICH, SpeciesReport_SARA, SpeciesReport_SHEN, SpeciesReport_VAFO)
 
 # Save file
-write.csv(SpeciesReport, paste0(path_data, "All_SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
+write.csv(SpeciesReport, paste0(path_data, "ALL/ALL_SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 # PROTOCOLS
@@ -142,7 +142,7 @@ Fuels1000 <- rbind(Fuels1000_ANTI, Fuels1000_APCO, Fuels1000_CATO, Fuels1000_CUV
 remove(Fuels1000_ANTI, Fuels1000_APCO, Fuels1000_CATO, Fuels1000_CUVA, Fuels1000_DEWA, Fuels1000_FRSP, Fuels1000_GATE, Fuels1000_GETT, Fuels1000_MONO, Fuels1000_NERI, Fuels1000_PRWI, Fuels1000_RICH, Fuels1000_SARA, Fuels1000_SHEN, Fuels1000_VAFO)
 
 # Save file
-write.csv(Fuels1000, paste0(path_data, "All_Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
+write.csv(Fuels1000, paste0(path_data, "ALL/ALL_Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Fuels Duff Litt
@@ -171,7 +171,7 @@ FuelsDuffLitt <- rbind(FuelsDuffLitt_ANTI, FuelsDuffLitt_APCO, FuelsDuffLitt_CAT
 remove(FuelsDuffLitt_ANTI, FuelsDuffLitt_APCO, FuelsDuffLitt_CATO, FuelsDuffLitt_CUVA, FuelsDuffLitt_DEWA, FuelsDuffLitt_FRSP, FuelsDuffLitt_GATE, FuelsDuffLitt_GETT, FuelsDuffLitt_MONO, FuelsDuffLitt_NERI, FuelsDuffLitt_PRWI, FuelsDuffLitt_RICH, FuelsDuffLitt_SARA, FuelsDuffLitt_SHEN, FuelsDuffLitt_VAFO)
 
 # Save file
-write.csv(FuelsDuffLitt, paste0(path_data, "All_Data_Surface Fuels - Duff_Litter.csv"), quote = FALSE, row.names = FALSE)
+write.csv(FuelsDuffLitt, paste0(path_data, "ALL/ALL_Data_Surface Fuels - Duff_Litter.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Fuels Fine
@@ -200,7 +200,7 @@ FuelsFine <- rbind(FuelsFine_ANTI, FuelsFine_APCO, FuelsFine_CATO, FuelsFine_CUV
 remove(FuelsFine_ANTI, FuelsFine_APCO, FuelsFine_CATO, FuelsFine_CUVA, FuelsFine_DEWA, FuelsFine_FRSP, FuelsFine_GATE, FuelsFine_GETT, FuelsFine_MONO, FuelsFine_NERI, FuelsFine_PRWI, FuelsFine_RICH, FuelsFine_SARA, FuelsFine_SHEN, FuelsFine_VAFO)
 
 # Save file
-write.csv(FuelsFine, paste0(path_data, "All_Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE)
+write.csv(FuelsFine, paste0(path_data, "ALL/ALL_Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Post Burn
@@ -229,7 +229,7 @@ PostBurn <- rbind(PostBurn_ANTI, PostBurn_APCO, PostBurn_CATO, PostBurn_CUVA, Po
 remove(PostBurn_ANTI, PostBurn_APCO, PostBurn_CATO, PostBurn_CUVA, PostBurn_DEWA, PostBurn_FRSP, PostBurn_GATE, PostBurn_GETT, PostBurn_MONO, PostBurn_NERI, PostBurn_PRWI, PostBurn_RICH, PostBurn_SARA, PostBurn_SHEN, PostBurn_VAFO)
 
 # Save file
-write.csv(PostBurn, paste0(path_data, "All_Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE)
+write.csv(PostBurn, paste0(path_data, "ALL/ALL_Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Trees
@@ -258,7 +258,7 @@ Trees <- rbind(Trees_ANTI, Trees_APCO, Trees_CATO, Trees_CUVA, Trees_DEWA, Trees
 remove(Trees_ANTI, Trees_APCO, Trees_CATO, Trees_CUVA, Trees_DEWA, Trees_FRSP, Trees_GATE, Trees_GETT, Trees_MONO, Trees_NERI, Trees_PRWI, Trees_RICH, Trees_SARA, Trees_SHEN, Trees_VAFO)
 
 # Save file
-write.csv(Trees, paste0(path_data, "All_Data_Trees - Individuals (metric).csv"), quote = FALSE, row.names = FALSE)
+write.csv(Trees, paste0(path_data, "ALL/ALL_Data_Trees - Individuals (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Seedlings
@@ -287,7 +287,7 @@ Seedlings <- rbind(Seedlings_ANTI, Seedlings_APCO, Seedlings_CATO, Seedlings_CUV
 remove(Seedlings_ANTI, Seedlings_APCO, Seedlings_CATO, Seedlings_CUVA, Seedlings_DEWA, Seedlings_FRSP, Seedlings_GATE, Seedlings_GETT, Seedlings_MONO, Seedlings_NERI, Seedlings_PRWI, Seedlings_RICH, Seedlings_SARA, Seedlings_SHEN, Seedlings_VAFO)
 
 # Save file
-write.csv(Seedlings, paste0(path_data, "All_Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE)
+write.csv(Seedlings, paste0(path_data, "ALL/ALL_Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Shrubs
@@ -316,7 +316,7 @@ Shrubs <- rbind(Shrubs_ANTI, Shrubs_APCO, Shrubs_CATO, Shrubs_CUVA, Shrubs_DEWA,
 remove(Shrubs_ANTI, Shrubs_APCO, Shrubs_CATO, Shrubs_CUVA, Shrubs_DEWA, Shrubs_FRSP, Shrubs_GATE, Shrubs_GETT, Shrubs_MONO, Shrubs_NERI, Shrubs_PRWI, Shrubs_RICH, Shrubs_SARA, Shrubs_SHEN, Shrubs_VAFO)
 
 # Save file
-write.csv(Shrubs, paste0(path_data, "All_Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE)
+write.csv(Shrubs, paste0(path_data, "ALL/ALL_Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Herbs Species Comp
@@ -345,7 +345,7 @@ HerbsSpComp <- rbind(HerbsSpComp_ANTI, HerbsSpComp_APCO, HerbsSpComp_CATO, Herbs
 remove(HerbsSpComp_ANTI, HerbsSpComp_APCO, HerbsSpComp_CATO, HerbsSpComp_CUVA, HerbsSpComp_DEWA, HerbsSpComp_FRSP, HerbsSpComp_GATE, HerbsSpComp_GETT, HerbsSpComp_MONO, HerbsSpComp_NERI, HerbsSpComp_PRWI, HerbsSpComp_RICH, HerbsSpComp_SARA, HerbsSpComp_SHEN, HerbsSpComp_VAFO)
 
 # Save file
-write.csv(HerbsSpComp, paste0(path_data, "All_Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE)
+write.csv(HerbsSpComp, paste0(path_data, "ALL/ALL_Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Herbs Points
@@ -374,5 +374,5 @@ HerbsPoints <- rbind(HerbsPoints_ANTI, HerbsPoints_APCO, HerbsPoints_CATO, Herbs
 remove(HerbsPoints_ANTI, HerbsPoints_APCO, HerbsPoints_CATO, HerbsPoints_CUVA, HerbsPoints_DEWA, HerbsPoints_FRSP, HerbsPoints_GATE, HerbsPoints_GETT, HerbsPoints_MONO, HerbsPoints_NERI, HerbsPoints_PRWI, HerbsPoints_RICH, HerbsPoints_SARA, HerbsPoints_SHEN, HerbsPoints_VAFO)
 
 # Save file
-write.csv(HerbsPoints, paste0(path_data, "All_Data_Cover - Points (metric).csv"), quote = FALSE, row.names = FALSE)
+write.csv(HerbsPoints, paste0(path_data, "ALL/ALL_Data_Cover - Points (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
