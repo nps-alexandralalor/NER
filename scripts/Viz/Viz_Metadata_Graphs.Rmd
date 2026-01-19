@@ -410,12 +410,12 @@ MetadataReport_all %>%
 #unique(MetadataReport_all$AdministrationUnit_Name)
 target_purpose <- "Fire Monitoring Handbook"
 target_park <- "RICH"
-target_type <- "Grassland"
+target_type <- "Forest"
 ```
 
 ```{r}
 graph_MetadataReport <- MetadataReport_all %>% 
-  filter(Purpose %in% target_purpose,
+  filter(Purpose %in% target_project,
          AdministrationUnit_Name %in% target_park,
          Type %in% target_type)
 
@@ -438,7 +438,7 @@ Selected type: [`r target_type`]{style="color:red"}
 ### Disturbance History
 
 ```{r}
-graph_MetadataReport %>% 
+graph_MetadataReport %>%
   ggplot(aes(x = DisturbanceDate, y = Macroplot_Num)) +
   # geom_line(aes(group = Macroplot_Num, color = Entry)) +
   # geom_point(aes(color = Entry), size = 2) +
@@ -455,7 +455,7 @@ graph_MetadataReport %>%
        y = "",
        x = "Year",
        fill = "") +
-  scale_x_date(limits = c(min(graph_MetadataReport$SampleEventDate), Sys.Date()), 
+  scale_x_date(limits = c(min(graph_MetadataReport$SampleEventDate), Sys.Date()),
                date_labels = "%Y", date_breaks = "1 year") +
   theme_light() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
