@@ -50,8 +50,9 @@ library(fs)
 
 ```{r}
 ## Adjust File Paths
-#path_data <- "E:/Allie/FireFX_NER/FFI Data Management/Exports/"
-path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
+#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+path_data <- paste0(path_file, "ALL/ALL_")
 ```
 
 ### Load Data {.hidden}
@@ -60,47 +61,7 @@ Load in the Metadata Report. This Metadata Report was created by combining Macro
 
 ```{r}
 # Load in data
-MetadataReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_MetadataReport.csv"))
-MetadataReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_MetadataReport.csv"))
-MetadataReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_MetadataReport.csv"))
-MetadataReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_MetadataReport.csv"))
-MetadataReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_MetadataReport.csv"))
-MetadataReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_MetadataReport.csv"))
-MetadataReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_MetadataReport.csv"))
-MetadataReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_MetadataReport.csv"))
-MetadataReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_MetadataReport.csv"))
-MetadataReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_MetadataReport.csv"))
-MetadataReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_MetadataReport.csv"))
-MetadataReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_MetadataReport.csv"))
-MetadataReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_MetadataReport.csv"))
-MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"))
-MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"))
-```
-
-### Merge Data {.hidden}
-
-```{r}
-#MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_GETT, MetadataReport_RICH)
-
-MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
-
-remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
-```
-
-### Add Columns {.hidden}
-
-```{r}
-table <- MetadataReport %>%
-  mutate(Purpose_Code = ifelse(Purpose == "Fire Monitoring Handbook", "FMH",
-                            ifelse(Purpose == "Inventory & Monitoring", "I&M",
-                                   ifelse(Purpose == "Composite Burn Index", "CBI",
-                                          ifelse(Purpose=="Rapid Assessment","RA",
-                                                 ifelse(Purpose=="Fuels","Fuels",
-                                                        "FMH")))))) %>%
-  mutate(Purpose_Code = ifelse(is.na(Purpose_Code), "FMH", Purpose_Code)) %>% 
-  mutate(Plot_Type = paste0(Purpose_Code, " - ", Type)) %>% 
-  group_by(AdministrationUnit_Name, Plot_Type) %>%
-  mutate(n_total_plots_ByParkPlotType = n_distinct(Macroplot))
+MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
 ```
 
 ### Target Year {.hidden}
@@ -114,9 +75,9 @@ target_year <- c(2025)
 ### Group By {.hidden}
 
 ```{r}
-table_ProjectUnit <- table %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, UV1) %>% 
-  dplyr::summarise(UV2 = paste(na.omit(unique(UV2)), collapse = ", "),
+table_ProjectUnit <- MetadataReport_all %>% 
+  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1) %>% 
+  dplyr::summarise(MacroPlot.UV2 = paste(na.omit(unique(MacroPlot.UV2)), collapse = ", "),
                    First_Year = min(SampleEventDate_Year),
                    Last_Year = max(SampleEventDate_Year),
                    Annual_Total = n_distinct(Macroplot[SampleEventDate_Year == target_year]),
@@ -124,16 +85,16 @@ table_ProjectUnit <- table %>%
                    Total_Plots_ByPark = mean(n_total_plots_ByParkPlotType),
                     .groups = "drop")
 
-table_MonitoringType <- table %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, UV2) %>% 
-  dplyr::summarise(UV1 = paste(na.omit(unique(UV1)), collapse = ", "),
+table_MonitoringType <- MetadataReport_all %>% 
+  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV2) %>% 
+  dplyr::summarise(MacroPlot.UV1 = paste(na.omit(unique(MacroPlot.UV1)), collapse = ", "),
                    First_Year = min(SampleEventDate_Year),
                    Last_Year = max(SampleEventDate_Year),
                    Annual_Total = n_distinct(Macroplot[SampleEventDate_Year == target_year]),
                    Total_Plots_ByProject = n_distinct(Macroplot),
                    Total_Plots_ByPark = mean(n_total_plots_ByParkPlotType),
                     .groups = "drop") %>% 
-  rename(UV1 = UV2, UV2 = UV1)
+  dplyr::rename(MacroPlot.UV1 = MacroPlot.UV2, MacroPlot.UV2 = MacroPlot.UV1)
 ```
 
 # Table 1. Fire Effects Plot Workload
@@ -145,7 +106,7 @@ The table below summarizes all projects with plots sampled in the current year.
 table1 <- table_ProjectUnit %>% 
   filter(Annual_Total > 0) %>% 
   group_by(AdministrationUnit_Name, Plot_Type) %>% 
-  dplyr::summarise(UV1 = paste(na.omit(unique(UV1)), collapse = ", "),
+  dplyr::summarise(MacroPlot.UV1 = paste(na.omit(unique(MacroPlot.UV1)), collapse = ", "),
                    Years = paste0 (min(First_Year), "-", max(Last_Year)),
                    Annual_Total = sum(as.numeric(Annual_Total)),
                    Total_Plots = mean(Total_Plots_ByPark),
@@ -155,7 +116,7 @@ table1 <- table_ProjectUnit %>%
 table1_totals <- table1 %>%
   mutate(AdministrationUnit_Name = "Total",
          Plot_Type = "",
-         UV1 = "",
+         MacroPlot.UV1 = "",
          Years = "",
          Annual_Total = sum(as.numeric(Annual_Total)),
          Total_Plots = sum(as.numeric(Total_Plots))) %>% 
@@ -167,13 +128,13 @@ table1_w_totals <- bind_rows(table1, table1_totals)
 
 # Rearrange and rename columns
 table1_w_totals_final <- table1_w_totals %>% 
-  select(AdministrationUnit_Name, UV1, Plot_Type, Years, Annual_Total, Total_Plots) %>%
-  rename("Park" = AdministrationUnit_Name,
-         "Plot Type" = Plot_Type,
-         "Monitoring Unit" = UV1,
-         "Years Data Collected<br>(start-end)" = Years,
-         "Annual Total<br>(current year)" = Annual_Total,
-         "Total Plots<br>(at park)" = Total_Plots) %>% 
+  select(AdministrationUnit_Name, MacroPlot.UV1, Plot_Type, Years, Annual_Total, Total_Plots) %>%
+  dplyr::rename("Park" = AdministrationUnit_Name,
+                "Plot Type" = Plot_Type,
+                "Monitoring Unit" = MacroPlot.UV1,
+                "Years Data Collected<br>(start-end)" = Years,
+                "Annual Total<br>(current year)" = Annual_Total,
+                "Total Plots<br>(at park)" = Total_Plots) %>% 
   mutate_all(as.character)
 
 table1_w_totals_final %>%
@@ -193,20 +154,22 @@ This table, found in Appendix B, summarizes the number of plots by type in each 
 ```{r all plot summ, warning=FALSE}
 # Summarise plot activity
 tableB1 <- table_ProjectUnit %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, UV1) %>%
-  dplyr::summarise(UV2 = paste(na.omit(unique(UV2)), collapse = ", "),
+  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1) %>%
+  dplyr::summarise(MacroPlot.UV2 = paste(na.omit(unique(MacroPlot.UV2)), collapse = ", "),
                    Years = paste0(min(First_Year), "-", max(Last_Year)),
                    Total_Plots = mean(Total_Plots_ByProject),
                    .groups = "drop") %>% 
   #mutate(UV2 = ifelse(Plot_Type == "FMH - Grassland", "Mixed Grassland", UV2)) %>% 
-  mutate(UV1 = ifelse(UV2 != "", paste0(UV1, "<br>(", UV2, ")"), UV1)) %>% 
-  select(!c(UV2))
+  mutate(MacroPlot.UV1 = ifelse(MacroPlot.UV2 != "", 
+                                paste0(MacroPlot.UV1, "<br>(", MacroPlot.UV2, ")"), 
+                                MacroPlot.UV1)) %>% 
+  select(!c(MacroPlot.UV2))
 
 # Calculate totals
 tableB1_totals <- tableB1 %>%
   mutate(AdministrationUnit_Name = "Total",
          Plot_Type = "",
-         UV1 = "",
+         MacroPlot.UV1 = "",
          Years = "",
          Total_Plots = sum(as.numeric(Total_Plots))) %>% 
   arrange(AdministrationUnit_Name, Plot_Type) %>% 
@@ -217,12 +180,12 @@ tableB1_w_totals <- bind_rows(tableB1, tableB1_totals)
 
 # Rearrange and rename columns
 tableB1_w_totals_final <- tableB1_w_totals %>% 
-  select(AdministrationUnit_Name, UV1, Plot_Type, Years, Total_Plots) %>%
-  rename("Park" = AdministrationUnit_Name,
-         "Plot Type" = Plot_Type,
-         "Monitoring Unit" = UV1,
-         "Years Data Collected<br>(start-end)" = Years,
-         "Total Plots<br>(at park)" = Total_Plots) %>% 
+  select(AdministrationUnit_Name, MacroPlot.UV1, Plot_Type, Years, Total_Plots) %>%
+  dplyr::rename("Park" = AdministrationUnit_Name,
+                "Plot Type" = Plot_Type,
+                "Monitoring Unit" = MacroPlot.UV1,
+                "Years Data Collected<br>(start-end)" = Years,
+                "Total Plots<br>(at park)" = Total_Plots) %>% 
   mutate_all(as.character)
 
 tableB1_w_totals_final %>%
