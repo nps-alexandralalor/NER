@@ -196,6 +196,16 @@ for(i in parks) {
     relocate(MonStatus, .after = LegacyMonStatus) %>%
     relocate(LocatedBy, .before = StartPoint)
   
+  # final column renaming to match protocol exports
+    MetadataReport <- MetadataReport %>% 
+      dplyr::rename(MacroPlot.UV1 = UV1,
+                    MacroPlot.UV2 = UV2,
+                    MacroPlot.UV3 = UV3,
+                    MacroPlot.UV4 = UV4,
+                    MacroPlot.UV5 = UV5,
+                    MacroPlot.UV6 = UV6,
+                    MacroPlot.UV7 = UV7,
+                    MacroPlot.UV8 = UV8)
   
   # replace commas with semicolons
   MetadataReport[] <- lapply(MetadataReport, function(x) gsub(",", ";", x))
@@ -297,7 +307,18 @@ for(i in parks) {
   # add column for park name
   Fuels1000 <- Fuels1000 %>% 
     add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
-    
+  
+  
+  # final column renaming to match metadata
+  Fuels1000 <- Fuels1000 %>% 
+    dplyr::rename(Purpose = MacroPlot.Purpose,
+                  Type = MacroPlot.Type,
+                  Macroplot = MacroPlot.Name,
+                  MonStatus = Monitoring.Status,
+                  MonStatusOrd = Status.Order,
+                  SampleEventDate = Date,
+                  SampleEventDate_Year = Date_Year)
+  
   
   # save file
   write.csv(Fuels1000, paste0(path_save, target_park, "_Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
@@ -359,6 +380,17 @@ for(i in parks) {
   # add column for park name
   FuelsDuffLitt <- FuelsDuffLitt %>% 
     add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
+  # final column renaming to match metadata
+  FuelsDuffLitt <- FuelsDuffLitt %>% 
+    dplyr::rename(Purpose = MacroPlot.Purpose,
+                  Type = MacroPlot.Type,
+                  Macroplot = MacroPlot.Name,
+                  MonStatus = Monitoring.Status,
+                  MonStatusOrd = Status.Order,
+                  SampleEventDate = Date,
+                  SampleEventDate_Year = Date_Year)
   
   
   # save file
@@ -423,6 +455,17 @@ for(i in parks) {
     add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
   
   
+  # final column renaming to match metadata
+  FuelsFine <- FuelsFine %>% 
+    dplyr::rename(Purpose = MacroPlot.Purpose,
+                  Type = MacroPlot.Type,
+                  Macroplot = MacroPlot.Name,
+                  MonStatus = Monitoring.Status,
+                  MonStatusOrd = Status.Order,
+                  SampleEventDate = Date,
+                  SampleEventDate_Year = Date_Year)
+  
+  
   # save file
   write.csv(FuelsFine, paste0(path_save, target_park, "_Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -485,6 +528,17 @@ for(i in parks) {
     add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
   
   
+  # final column renaming to match metadata
+  PostBurn <- PostBurn %>% 
+    dplyr::rename(Purpose = MacroPlot.Purpose,
+                  Type = MacroPlot.Type,
+                  Macroplot = MacroPlot.Name,
+                  MonStatus = Monitoring.Status,
+                  MonStatusOrd = Status.Order,
+                  SampleEventDate = Date,
+                  SampleEventDate_Year = Date_Year)
+  
+  
   # save file
   write.csv(PostBurn, paste0(path_save, target_park, "_Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -545,6 +599,17 @@ for(i in parks) {
   # add column for park name
   Trees <- Trees %>% 
     add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
+  # final column renaming to match metadata
+  Trees <- Trees %>% 
+    dplyr::rename(Purpose = MacroPlot.Purpose,
+                  Type = MacroPlot.Type,
+                  Macroplot = MacroPlot.Name,
+                  MonStatus = Monitoring.Status,
+                  MonStatusOrd = Status.Order,
+                  SampleEventDate = Date,
+                  SampleEventDate_Year = Date_Year)
   
   
   # save file
@@ -611,6 +676,17 @@ for(i in parks) {
     add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
   
   
+  # final column renaming to match metadata
+  Seedlings <- Seedlings %>% 
+    dplyr::rename(Purpose = MacroPlot.Purpose,
+                  Type = MacroPlot.Type,
+                  Macroplot = MacroPlot.Name,
+                  MonStatus = Monitoring.Status,
+                  MonStatusOrd = Status.Order,
+                  SampleEventDate = Date,
+                  SampleEventDate_Year = Date_Year)
+  
+  
   # save file
   write.csv(Seedlings, paste0(path_save, target_park, "_Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -675,6 +751,17 @@ for(i in parks) {
     add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
   
   
+  # final column renaming to match metadata
+  Shrubs <- Shrubs %>% 
+    dplyr::rename(Purpose = MacroPlot.Purpose,
+                  Type = MacroPlot.Type,
+                  Macroplot = MacroPlot.Name,
+                  MonStatus = Monitoring.Status,
+                  MonStatusOrd = Status.Order,
+                  SampleEventDate = Date,
+                  SampleEventDate_Year = Date_Year)
+  
+  
   # save file
   write.csv(Shrubs, paste0(path_save, target_park, "_Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -737,6 +824,17 @@ for(i in parks) {
     add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
   
   
+  # final column renaming to match metadata
+  HerbsSpComp <- HerbsSpComp %>% 
+    dplyr::rename(Purpose = MacroPlot.Purpose,
+                  Type = MacroPlot.Type,
+                  Macroplot = MacroPlot.Name,
+                  MonStatus = Monitoring.Status,
+                  MonStatusOrd = Status.Order,
+                  SampleEventDate = Date,
+                  SampleEventDate_Year = Date_Year)
+  
+  
   # save file
   write.csv(HerbsSpComp, paste0(path_save, target_park, "_Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE) 
 }
@@ -797,6 +895,17 @@ for(i in parks) {
   # add column for park name
   HerbsPoints <- HerbsPoints %>% 
     add_column(AdministrationUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
+  # final column renaming to match metadata
+  HerbsPoints <- HerbsPoints %>% 
+    dplyr::rename(Purpose = MacroPlot.Purpose,
+                  Type = MacroPlot.Type,
+                  Macroplot = MacroPlot.Name,
+                  MonStatus = Monitoring.Status,
+                  MonStatusOrd = Status.Order,
+                  SampleEventDate = Date,
+                  SampleEventDate_Year = Date_Year)
   
   
   # save file
