@@ -52,9 +52,10 @@ library(ggplot2)
 ### Target Park
 
 ```{r}
-target_park <- "SHEN"
+target_park <- c("RICH")
+target_project <- c("Big Meadows West")
+target_type <- c("Forest")
 target_years <- c(2025)
-target_project <- "Big Meadows West"
 ```
 
 ### Adjust File Paths
@@ -63,7 +64,7 @@ target_project <- "Big Meadows West"
 ## Adjust File Paths
 path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
 #path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
-path_data <- paste0(path_file, target_park, "/", target_park, "_")
+path_data <- paste0(path_file, "ALL/ALL_")
 ```
 
 ### Load Data {.hidden}
@@ -91,63 +92,83 @@ HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 #####
 # Fuels1000 data
 Fuels1000_data <- Fuels1000 %>%
-  filter(Date_Year %in% target_years)
+  filter(
+    AdministrationUnit_Name == target_park,
+    Date_Year %in% target_years
+    )
 
 #####
 # FuelsDuffLitt
 #####
 # FuelsDuffLitt data
 FuelsDuffLitt_data <- FuelsDuffLitt %>%   
-  filter(Date_Year %in% target_years)  
-
+  filter(
+    AdministrationUnit_Name == target_park,
+    Date_Year %in% target_years
+    )
 #####
 # FuelsFine
 #####
 # FuelsFine data
 FuelsFine_data <- FuelsFine %>%   
-  filter(Date_Year %in% target_years)  
-
+  filter(
+    AdministrationUnit_Name == target_park,
+    Date_Year %in% target_years
+    )
 #####
 # PostBurn
 #####
 # PostBurn data
 PostBurn_data <- PostBurn %>%
-  filter(Date_Year %in% target_years)
-
+  filter(
+    AdministrationUnit_Name == target_park,
+    Date_Year %in% target_years
+    )
 #####
 # Trees
 #####
 # Trees data
 Trees_data <- Trees %>%   
-  filter(Date_Year %in% target_years)  
-
+  filter(
+    AdministrationUnit_Name == target_park,
+    Date_Year %in% target_years
+    )
 #####
 # Seedlings
 #####
 # Seedlings data
 Seedlings_data <- Seedlings %>%
-  filter(Date_Year %in% target_years)
-
+  filter(
+    AdministrationUnit_Name == target_park,
+    Date_Year %in% target_years
+    )
 #####
 # Shrubs
 #####
 # Shrubs data
 Shrubs_data <- Shrubs %>%
-  filter(Date_Year %in% target_years)
-
+  filter(
+    AdministrationUnit_Name == target_park,
+    Date_Year %in% target_years
+    )
 #####
 # HerbsSpComp
 #####
 # HerbsSpComp data
 HerbsSpComp_data <- HerbsSpComp %>%
-  filter(Date_Year %in% target_years)
-
+  filter(
+    AdministrationUnit_Name == target_park,
+    Date_Year %in% target_years
+    )
 #####
 # HerbsPoints
 #####
 # HerbsPoints data
 HerbsPoints_data <- HerbsPoints %>%
-  filter(Date_Year %in% target_years)
+  filter(
+    AdministrationUnit_Name == target_park,
+    Date_Year %in% target_years
+    )
 ```
 
 # Background
@@ -159,6 +180,61 @@ HerbsPoints_data <- HerbsPoints %>%
 # Results Summary
 
 # Graphs
+
+## Burn History
+
+```{r}
+graph_MetadataReport <- MetadataReport_all %>% 
+  filter(AdministrationUnit_Name == target_park)
+
+graph_Disturbances <- graph_MetadataReport %>% 
+  filter(MonStatus %in% c("Burn", "Herbicide", "Mechanical", "Mow"))
+
+graph_sum_Disturbances <- graph_Disturbances %>%
+  group_by(Region, Zone, Unit, AdministrationUnit_Name, Plot_Type, DisturbanceDate, DisturbanceDate_Year, SampleEventDate_Year, MonStatus) %>%
+  filter(DisturbanceDate_Year == SampleEventDate_Year) %>%
+  dplyr::summarize(n_Macroplot = n()) %>%
+  mutate(DisturbanceDate = as.Date(DisturbanceDate),
+         Macroplot_Num = "All") %>%
+  arrange(desc(MonStatus))
+```
+
+```{r}
+graph_MetadataReport %>%
+  ggplot(aes(x = DisturbanceDate, y = Macroplot_Num)) +
+  # geom_line(aes(group = Macroplot_Num, color = Entry)) +
+  # geom_point(aes(color = Entry), size = 2) +
+  geom_line(aes(group = Macroplot_Num),
+            data = graph_sum_Disturbances) +
+  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+             data = graph_sum_Disturbances, shape = 21) +
+  geom_line(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+            data = graph_sum_Disturbances) +
+  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+             data = graph_sum_Disturbances, shape = 21, size = 2.5) +
+  facet_grid(Plot_Type ~ AdministrationUnit_Name) +
+  labs(title = "Disturbance History",
+       y = "",
+       x = "Year",
+       fill = "") +
+  # scale_x_date(limits = c(min(graph_MetadataReport$SampleEventDate), Sys.Date()),
+  #              date_labels = "%Y", date_breaks = "1 year") +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+        axis.title = element_text(size = 12, face="bold"),
+        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+        axis.text.y = element_text(size = 8),
+        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1),
+        legend.position = "top")
+```
+
+## Surface Fuels
+
+```{r}
+
+```
 
 ```{r}
 test <- HerbsSpComp %>% 
