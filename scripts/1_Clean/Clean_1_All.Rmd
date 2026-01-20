@@ -90,8 +90,14 @@ Make sure to update file paths to be specific for your data.
 
 ```{r}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+```
+
+### Parks
+
+```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 ```
 
 # METADATA
@@ -99,8 +105,6 @@ path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 ## Sample Event & Macroplot Report
 
 ```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-
 for(i in parks) {
   # select target park
   target_park <- i
@@ -221,8 +225,6 @@ for(i in parks) {
 ## Species Report
 
 ```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-
 for(i in parks) {
   # select target park
   target_park <- i
@@ -255,8 +257,6 @@ for(i in parks) {
 ## Fuels 1000
 
 ```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-
 for(i in parks) {
   # select target park
   target_park <- i
@@ -328,8 +328,6 @@ for(i in parks) {
 ## Fuels Duff Litt
 
 ```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-
 for(i in parks) {
   # select target park
   target_park <- i
@@ -401,8 +399,6 @@ for(i in parks) {
 ## Fuels Fine
 
 ```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-
 for(i in parks) {
   # select target park
   target_park <- i
@@ -474,8 +470,6 @@ for(i in parks) {
 ## Post Burn
 
 ```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-
 for(i in parks) {
   # select target park
   target_park <- i
@@ -547,8 +541,6 @@ for(i in parks) {
 ## Trees
 
 ```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-
 for(i in parks) {
   # select target park
   target_park <- i
@@ -622,7 +614,6 @@ for(i in parks) {
 ```{r}
 # excluding park PRWI because of database exporting issues
 # excluding park APCO because Density - Quadrats (metric) aka Seedlings protocol does not include Area header...
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -697,7 +688,6 @@ for(i in parks) {
 ```{r}
 # excluding park PRWI because of database exporting issues
 # excluding park APCO because Density - Belts (metric) aka Shrubs protocol does not include Subbelt, NumSubbelt, or Area header...
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 for(i in parks) {
   # select target park
@@ -770,8 +760,6 @@ for(i in parks) {
 ## Herbs Species Comp
 
 ```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-
 for(i in parks) {
   # select target park
   target_park <- i
@@ -843,8 +831,6 @@ for(i in parks) {
 ## Herbs Points
 
 ```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-
 for(i in parks) {
   # select target park
   target_park <- i
