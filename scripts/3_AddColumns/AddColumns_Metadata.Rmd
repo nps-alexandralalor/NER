@@ -156,7 +156,7 @@ MetadataReport_all <- MetadataReport %>%
 MetadataReport_all <- MetadataReport_all %>% 
   # Calculations
   group_by(AdministrationUnit_Name, Plot_Type) %>%
-  dplyr::mutate(n_plots_ByParkPlotType = n_distinct(Macroplot)) %>% 
+  dplyr::mutate(n_plots_ByPlotType = n_distinct(Macroplot)) %>% 
   group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1) %>% 
   dplyr::mutate(n_plots_ByProjectUnit = n_distinct(Macroplot)) %>%
   group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV2) %>% 
@@ -175,7 +175,7 @@ MetadataReport_merge <- MetadataReport_all %>%
            MacroPlot.UV5, MacroPlot.UV6, MacroPlot.UV7, MacroPlot.UV8,
            MonStatus, 
            SampleEventDate, SampleEventDate_Year,
-           n_plots_ByParkPlotType, n_plots_ByProjectUnit, n_plots_ByMonitoringType)) %>% 
+           n_plots_ByPlotType, n_plots_ByProjectUnit, n_plots_ByMonitoringType)) %>% 
   unique()
 ```
 
@@ -284,7 +284,7 @@ MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %
 ## Fuels 1000
 
 ```{r}
-Fuels1000 <- merge(Fuels1000, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
+Fuels1000_all <- merge(Fuels1000, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
   # Reorganize Columns
   relocate(Region, .before = AdministrationUnit_Name) %>% 
   relocate(Zone, .before = AdministrationUnit_Name) %>%
@@ -312,5 +312,31 @@ Fuels1000 <- merge(Fuels1000, MetadataReport_merge, by = c("AdministrationUnit_N
 ## Shrubs
 
 ## Herbs Species Comp
+
+```{r}
+HerbsSpComp_all <- merge(HerbsSpComp, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
+  # Reorganize Columns
+  relocate(Region, .before = AdministrationUnit_Name) %>% 
+  relocate(Zone, .before = AdministrationUnit_Name) %>%
+  relocate(Unit, .before = AdministrationUnit_Name) %>% 
+  relocate(Purpose_Code, .after = Purpose) %>% 
+  relocate(Plot_Type, .after = Type) %>% 
+  relocate(Macroplot_Num, .after = Macroplot) %>% 
+  relocate(Macroplot_Code, .after = Macroplot) %>% 
+  # Protocol Specific Columns
+  mutate(Nativity = ifelse(Native.Species == "True", "Native",
+                           ifelse(Invasive.Species == "True", "Invasive", "Unknown"))) 
+```
+
+```{r}
+HerbsSpComp_all <- HerbsSpComp_all %>% 
+  group_by(AdministrationUnit_Name, Plot_Type, Macroplot, SampleEventDate) %>%
+  dplyr::mutate(n_species_ByPlotDate = n_distinct(Species.Symbol)) %>% 
+  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1, SampleEventDate) %>% 
+  dplyr::mutate(n_species_ByDate = n_distinct(Species.Symbol)) %>% 
+  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1, SampleEventDate, Nativity) %>% 
+  dplyr::mutate(n_species_ByNativity = n_distinct(Species.Symbol)) %>% 
+  ungroup()
+```
 
 ## Herbs Points
