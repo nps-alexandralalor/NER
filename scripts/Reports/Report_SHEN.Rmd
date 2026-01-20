@@ -236,10 +236,21 @@ graph_MetadataReport %>%
 
 ```
 
+## Herbs Species Comp
+
 ```{r}
-test <- HerbsSpComp %>% 
-  group_by(SampleEvent_TreatmentUnit, MacroPlot.Name) %>% 
-  mutate(n_plants = n_distinct(Species.Symbol))
+HerbsSpComp_graph <- HerbsSpComp_all %>% 
+  filter(AdministrationUnit_Name == target_park,
+         Type == target_type) %>% 
+  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year, Nativity) %>% 
+  dplyr::summarise(n_species_ByNativity = n_distinct(Species.Symbol),
+                   .groups = "drop")
+```
+
+```{r}
+HerbsSpComp_graph %>%
+  ggplot(aes(x = SampleEventDate_Year, y = n_species_ByNativity, fill = Nativity)) +
+  geom_bar(position = "stack", stat = "identity")
 ```
 
 # Discussion
