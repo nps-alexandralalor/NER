@@ -60,7 +60,7 @@ This code is intended to quality check plot data for protocols listed below. Thi
 # tidyverse and dplyr have lots of useful functions for data cleaning
 library(tidyverse)
 library(dplyr)
-library(plyr)
+#library(plyr)
 # janitor has functions to find duplicates
 library(janitor)
 # EnvStats is needed for the rosnerTest() function
@@ -77,11 +77,11 @@ library(knitr)
 
 ```{r}
 # Create blank data frame as error log template
-errors_blank <- data.frame("SavedQuery" = "", "AdministrationUnit_Name" = "", "SampleEvent_TreatmentUnit" = "", "MacroPlot.Name" = "", "Date" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>%
-  mutate(Date = as.Date(Date))
+errors_blank <- data.frame("SavedQuery" = "", "AdministrationUnit_Name" = "", "SampleEvent_TreatmentUnit" = "", "Macroplot" = "", "SampleEventDate" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>%
+  mutate(SampleEventDate = as.Date(SampleEventDate))
 
 # Create error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "AdministrationUnit_Name", "MacroPlot.Name", "Date", "Error")
+errors_group <- c("SavedQuery", "AdministrationUnit_Name", "Macroplot", "SampleEventDate", "Error")
 
 ############################################################################################
 ## Source Code
@@ -149,7 +149,7 @@ qaqc <- function(data, query, query_message, values_check) {
 ```{r}
 # designate target values
 # 2025 parks: "CATO" "GETT" "MONO" "NERI" "RICH" "SHEN"
-target_park <- c("NERI")
+target_park <- c("SHEN")
 target_years <- c(2025)
 ```
 
@@ -159,8 +159,8 @@ Make sure to update file paths to be specific for your data.
 
 ```{r}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " FMH Data QAQC Errors")
@@ -188,76 +188,67 @@ HerbsPoints_all <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"
 # Fuels1000
 #####
 Fuels1000_data <- Fuels1000_all %>%
-  filter(#MacroPlot.Purpose == "Fire Monitoring Handbook",
-         Date_Year %in% target_years)
+  filter(SampleEventDate_Year %in% target_years)
 
 #####
 # FuelsDuffLitt
 #####
 FuelsDuffLitt_data <- FuelsDuffLitt_all %>%   
-  filter(#MacroPlot.Purpose == "Fire Monitoring Handbook",
-         Date_Year %in% target_years)
+  filter(SampleEventDate_Year %in% target_years)
 
 #####
 # FuelsFine
 #####
 FuelsFine_data <- FuelsFine_all %>%   
-  filter(#MacroPlot.Purpose == "Fire Monitoring Handbook",
-         Date_Year %in% target_years)
+  filter(SampleEventDate_Year %in% target_years)
 
 #####
 # PostBurn
 #####
 PostBurn_data <- PostBurn_all %>%
-  filter(#MacroPlot.Purpose == "Fire Monitoring Handbook",
-         Date_Year %in% target_years)
+  filter(SampleEventDate_Year %in% target_years)
 
 #####
 # Trees
 #####
 Trees_data <- Trees_all %>%   
-  filter(#MacroPlot.Purpose == "Fire Monitoring Handbook",
-         Date_Year %in% target_years)
+  filter(SampleEventDate_Year %in% target_years)
 
 #####
 # Seedlings
 #####
 Seedlings_data <- Seedlings_all %>%
-  filter(#MacroPlot.Purpose == "Fire Monitoring Handbook",
-         Date_Year %in% target_years)
+  filter(SampleEventDate_Year %in% target_years)
 
 #####
 # Shrubs
 #####
 Shrubs_data <- Shrubs_all %>%
-  filter(#MacroPlot.Purpose == "Fire Monitoring Handbook",
-         Date_Year %in% target_years)
+  filter(SampleEventDate_Year %in% target_years)
 
 #####
 # HerbsSpComp
 #####
 HerbsSpComp_data <- HerbsSpComp_all %>%
-  filter(#MacroPlot.Purpose == "Fire Monitoring Handbook",
-         Date_Year %in% target_years)
+  filter(SampleEventDate_Year %in% target_years)
 
 #####
 # HerbsPoints
 #####
 HerbsPoints_data <- HerbsPoints_all %>%
-  filter(#MacroPlot.Purpose == "Fire Monitoring Handbook",
-         Date_Year %in% target_years)
+  filter(SampleEventDate_Year %in% target_years)
 ```
 
 ### Define Codes {.hidden}
 
 ```{r}
-unknowns_genus <- c("ACALY","ACALYP","ACASPP","ACER","ACHILLEA","AGESPP","AGROS","AGRSPP","ALLIUM","ALLSPP","AMELA","AMESPP","ANDRO","ANDROP","ANDSPP","ANEMO","ANESPP","ANTEN","ANTENN","ANTSPP","APOCY","APOCYNUM","ARABIS","ARALI","ARISPP","ARIST","ASCLE","ASCLEPIAS","ASCSPP","ASPSPP","ASTER","ASTERACEAE","ASTEspp","BETULA","BIDENS","BOTRY","BOTRYCH","BOTSPP","BRASSICACE","BRASPP","BRASS2","BROMU","bromus","BROMUS","BROSPP","CALAM","CALYSTEGIA","CARDA","CAREX","CAREX2","CARSPP","CARSP1","CARSPP2","CARSP2","CARSP3","CARYA","CASSPP","CENTAUREA","CHIMA","CIRCAE","CIRSI","CIRSPP","CLISPP","CONVO","CONVOL","CONVOLVULU","CONVULVULA","CORNspp","CORSPP","CORNU","CORNUS","CRASPP","CRATA","CRATAEGUS","CUSCU","CUSCUTA","CUSSPP","CYPER","CYPSPP","DANSPP","DATSP","DDTREE","DESMO","DESMODIUM","DESSPP","DICHAN","DICHANTHEL","DICSPP","DICSP1","DICSPP1","DICSP2","DICSPP2","DICSPP3","DICSP5","DIGITA","DIGSPP1","DIGSPP","DIOSC","DIOSPP","ELEOCHARIS","ELESPP","ELYMUS","EPILOBIUM","EPISPP","EPISP1","ERAGR","ERASPP","ERAGROSTIS","ERIGE2","ERIGERON","ERISP","ERISPP","EUPATOR","EUPATORIUM","EUPSPP","EURSPP","EURYB","FABSPP","FABA","FESTUC","FESTUCA","FIMBRI","FRASPP","FRAXINUS","FRAXspp","GALIU","GALIUM","GALSP","GALSPP","GENTI","GEUM","GLYCERIA","GNASPP","HELIAN","HEPAT","HIERA","HIERAC","HIERACIUM","HIESPP","HOUSTO","HYPER","HYPERICUM","HYPPER","HYPSPP","IMPATIENS","IPOMO","IPOMOE","IPOMOEA","IPOSPP","IRIS","JUNCUS","JUNIspp","JUNSPP","KRIGI","LACSPP","LACTU","LAMSPP","LESPE","LESSPP","LIASPP","LIATR","LINSPP","LINUM","LITHO3","LONIC","LONICE","LONICERA","LONSPP","LOTUS","LYCHN","LYCOPODIUM","LYCOPUS","LYSIM","LYSSSP","MAGNOLIA","MALUS","MEDICAGO","MELILOTUS","MONARDA","MONSPP","MUHLE","MUHLEN","MUHSPP","MYRIO","OSMOR","OSMSPP","OXALI","OXALIS","OXASPP","PACKER","PACKERA","PACSPP","PANIC","PANICUM","PANSPP","PASPAL","PASSPP","PASSP1","PENSSP","PERSPP","PHLEU","PHYSPP","PINSPP","PINUS","POA","POACEAE","POLYG2","POLYG4","POLYGO","POLYGONUM","POPSPP","POPULUS","POTENT","POTENTILLA","PRESPP","PRUNE","PRUNU","PRUNUS","PRUSPP","PYCNA","PYCNANTHEM","PYRUS","QUERC","QUERCUS","QUESPP","RANSPP","RANUNCULUS","RHAMNUS","RHEXI","RHODO","RIBES","ROSA","ROSSPP","ROSA5","RUBIACEAE","RUBSPP","RUBUS","RUDBECKIA","RUMEX","RUMSPP","SALIX","SAMBU","SANICULA","SANSPP","SCIRP","SCIRPUS","SCLSPP","SCUSPP","SCUTELLARI","SETARIA","SETSPP","SISSPP","SISYR","SMILAX","SMISPP","SOLID","SOLIDAGO","SOLSPP","SOLSP1","SPIRA","SPIRA2","SPIRAE","SPIRAN","STELL","STELLARIA","STIPA","SYMPHY","Symphy2","SYMPHYOTRI","SYMSPP","SYMSP1","SYMSPP1","TARAX","TARSPP","THALICTRUM","TRIFOL","TRIFOLIUM","TRILL","TRILLIUM","TRISPP","ULMSPP","ULMUS","UNKSPP","VACCI","VACCIN","VACCINIUM","VACSPP","VERBA","VERBENA","VERON","VERONICA","VIBURN","VIBURNUM","VICIA","VICSPP","VIOLA","VIOSPP","VIOSPP1","VITIS","VITSPP","YPINE")
+unknowns_genus <- c("ACALY","ACALYP","ACASPP","ACER","ACHILLEA","AGESPP","AGROS","AGRSPP","ALLIUM","ALLSPP","AMELA","AMESPP","ANDRO","ANDROP","ANDSPP","ANEMO","ANESPP","ANTEN","ANTENN","ANTSPP","APOCY","APOCYNUM","ARABIS","ARALI","ARISPP","ARIST","ASCLE","ASCLEPIAS","ASCSPP","ASPSPP","ASTER","ASTERACEAE","ASTEspp","BETULA","BIDENS","BOTRY","BOTRYCH","BOTSPP","BRASSICACE","BRASPP","BRASS2","BROMU","bromus","BROMUS","BROSPP","CALAM","CALYSTEGIA","CARDA","CAREX","CAREX2","CARSPP","CARSP1","CARSPP2","CARSP2","CARSP3","CARYA","CASSPP","CENTAUREA","CHIMA","CIRCAE","CIRSI","CIRSPP","CLISPP","CONVO","CONVOL","CONVOLVULU","CONVULVULA","CORNspp","CORSPP","CORNU","CORNUS","CRASPP","CRATA","CRATAEGUS","CUSCU","CUSCUTA","CUSSPP","CYPER","CYPSPP","DANSPP","DATSP","DDTREE","DESMO","DESMODIUM","DESSPP","DICHAN","DICHANTHEL","DICSPP","DICSP1","DICSPP1","DICSP2","DICSPP2","DICSPP3","DICSP5","DIGITA","DIGSPP1","DIGSPP","DIOSC","DIOSPP","ELEOCHARIS","ELESPP","ELYMUS","EPILOBIUM","EPISPP","EPISP1","ERAGR","ERASPP","ERAGROSTIS","ERIGE2","ERIGERON","ERISP","ERISPP","EUPATOR","EUPATORIUM","EUPSPP","EURSPP","EURYB","FABSPP","FABA","FESTUC","FESTUCA","FIMBRI","FRASPP","FRAXINUS","FRAXspp","GALIU","GALIUM","GALSP","GALSPP","GENTI","GEUM","GLYCERIA","GNASPP","HELIAN","HEPAT","HIERA","HIERAC","HIERACIUM","HIESPP","HOUSTO","HYPER","HYPERICUM","HYPPER","HYPSPP","IMPATIENS","IPOMO","IPOMOE","IPOMOEA","IPOSPP","IRIS","JUNCUS","JUNIspp","JUNSPP","KRIGI","LACSPP","LACTU","LAMSPP","LESPE","LESSPP","LIASPP","LIATR","LINSPP","LINUM","LITHO3","LONIC","LONICE","LONICERA","LONSPP","LOTUS","LYCHN","LYCOPODIUM","LYCOPUS","LYSIM","LYSSSP","MAGNOLIA","MALUS","MEDICAGO","MELILOTUS","MONARDA","MONSPP","MUHLE","MUHLEN","MUHSPP","MYRIO","OSMOR","OSMSPP","OXALI","OXALIS","OXASPP","PACKER","PACKERA","PACSPP","PANIC","PANICUM","PANSPP","PASPAL","PASSPP","PASSP1","PENSSP","PERSPP","PHLEU","PHYSPP","PINSPP","PINUS","POA","POACEAE","POLYG2","POLYG4","POLYGO","POLYGONUM","POPSPP","POPULUS","POTENT","POTENTILLA","PRESPP","PRUNE","PRUNU","PRUNUS","PRUSPP","PYCNA","PYCNANTHEM","PYRUS","QUERC","QUERCUS","QUESPP","RANSPP","RANUNCULUS","RHAMNUS","RHEXI","RHODO","RIBES","ROSA","ROSSPP","ROSA5","RUBIACEAE","RUBSPP","RUBUS","RUDBECKIA","RUMEX","RUMSPP","SALIX","SAMBU","SANICULA","SANSPP","SCIRP","SCIRPUS","SCLSPP","SCUSPP","SCUTELLARI","SETARIA","SETSPP","SISSPP","SISYR","SMILAX","SMISPP","SOLID","SOLIDAGO","SOLSPP","SOLSP1","SPIRA","SPIRA2","SPIRAE","SPIRAN","STELL","STELLARIA","STIPA","SYMPHY","Symphy2","SYMPHYOTRI","SYMSPP","SYMSP1","SYMSPP1","TARAX","TARSPP","THALICTRUM","TRIFOL","TRIFOLIUM","TRILL","TRILLIUM","TRISPP","ULMSPP","ULMUS","VACCI","VACCIN","VACCINIUM","VACSPP","VERBA","VERBENA","VERON","VERONICA","VIBURN","VIBURNUM","VICIA","VICSPP","VIOLA","VIOSPP","VIOSPP1","VITIS","VITSPP","YPINE")
 
-unknowns_generic <- c("ASTER","FERN","FUNGI","GRASS","GRSSPP","GRASSSP","GRASSSP1","GRASP1","GRASSP1","GRSSP1","GRSPP1","GRSPP2","2GL","GRASS_LIG","GRASS_THIN","UNKSPP","UNKSNAG","UNK_001","UNK_002","UNKN_98","UNKSP1","UNSKP1","UNKSP2","UNKN_FORB","UNKN_SHRUB","UNKN_WOODY","2AB","2BOLE","2BOLE","2FERN","2FORB","2FORBD","2FORBM","2GRAM","2LICH","2LTR","2PLANT","2SHRUBD","2TDBD","2TREE","2VINEHERB","2VINEWOOD","NOSP","NODATA")
+unknowns_generic <- c("ASTER","FERN","FUNGI","GRASS","GRSSPP","GRASSSP","GRASSSP1","GRASP1","GRASSP1","GRSSP1","GRSPP1","GRSPP2","2GL","GRASS_LIG","GRASS_THIN","UNKSPP","UNKSNAG","UNK_001","UNK_002","UNKN_98","UNKSP1","UNSKP1","UNKSP2","UNKN_FORB","UNKN_SHRUB","UNKN_WOODY","2AB","2FERN","2FORB","2FORBD","2FORBM","2GRAM","2LICH","2PLANT","2SHRUBD","2TDBD","2TREE","2VINEHERB","2VINEWOOD","NOSP","NODATA")
 
 unknowns <- unique(c(unknowns_genus, unknowns_generic))
 
-substrates <- c("BARE","BOLE","DUFF","FUNG","FUNGUS","HAY","LICH","LICHEN","LITT","LITTER","MOSS","ROCK","ROOT","SCAT","SOIL","WATER","WOOD","DDTREE")
+substrates <- c("BARE","BOLE","2BOLE", "DUFF","FUNG","FUNGUS","HAY","LICH","LICHEN","LITT","LITTER","2LTR","MOSS","ROCK","ROOT","SCAT","SOIL","WATER","WOOD","DDTREE")
 ```
 
 # Selected park(s): [`r target_park`]{style="color:red"}
@@ -283,7 +274,7 @@ It checks for errors in: headers, decay class values, diameters, fuel constants,
 ```{r}
 # Set parameters 
 data <- Fuels1000_data %>% 
-  filter(MacroPlot.Purpose == "Fire Monitoring Handbook")
+  filter(Purpose == "Fire Monitoring Handbook")
 query <- "Fuel 1000 Header"
 query_message <- "Number of Transects" 
 values_data <- data$NumTran
@@ -297,7 +288,7 @@ errors_Fuels1000_NumTran_FMH <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Fuels1000_data %>% 
-  filter(MacroPlot.Purpose == "Inventory & Monitoring")
+  filter(Purpose == "Inventory & Monitoring")
 query <- "Fuel 1000 Header"
 query_message <- "Number of Transects" 
 values_data <- data$NumTran
@@ -476,12 +467,12 @@ errors_Fuels1000_FuelConst <- qaqc(data, query, query_message, values_check)
 
 [Procedure:]{.underline}
 
--   Check for duplicate logs across Date, MacroPlot.Name, Transect, LogNum, Dia [and]{.underline} DecayCl.
+-   Check for duplicate logs across Date, Macroplot, Transect, LogNum, Dia [and]{.underline} DecayCl.
 
 ```{r}
 # Check for log duplication and store results in new column
 data_temp <- Fuels1000_data %>%
-  get_dupes(Date, MacroPlot.Name, Transect, LogNum, Dia, DecayCl)
+  get_dupes(SampleEventDate, Macroplot, Transect, LogNum, Dia, DecayCl)
 
 # Set parameters 
 data <- merge(Fuels1000_data, data_temp, all.x = T)
@@ -574,7 +565,7 @@ It checks for errors in: headers, fuel constants, offset values, sample location
 ```{r}
 # Set parameters  
 data <- FuelsDuffLitt_data %>% 
-  filter(MacroPlot.Purpose == "Fire Monitoring Handbook")
+  filter(Purpose == "Fire Monitoring Handbook")
 query <- "Fuel DL Header" 
 query_message <- "FMH plot. Number of Transects"  
 values_data <- data$NumTran  
@@ -588,7 +579,7 @@ errors_FuelsDuffLitt_NumTran_FMH <- qaqc(data, query, query_message, values_chec
 ```{r}
 # Set parameters  
 data <- FuelsDuffLitt_data %>% 
-  filter(MacroPlot.Purpose == "Inventory & Monitoring")
+  filter(Purpose == "Inventory & Monitoring")
 query <- "Fuel DL Header" 
 query_message <- "I&M plot. Number of Transects"  
 values_data <- data$NumTran  
@@ -847,7 +838,7 @@ It checks for errors in: headers, azimuth, fuel constants, slope, transects, and
 ```{r}
 # Set parameters  
 data <- FuelsFine_data %>% 
-  filter(MacroPlot.Purpose == "Fire Monitoring Handbook")
+  filter(Purpose == "Fire Monitoring Handbook")
 query <- "Fuel Fine Header" 
 query_message <- "Number of Transects"  
 values_data <- data$NumTran  
@@ -861,7 +852,7 @@ errors_FuelsFine_NumTran_FMH <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- FuelsFine_data %>% 
-  filter(MacroPlot.Purpose == "Inventory & Monitoring")
+  filter(Purpose == "Inventory & Monitoring")
 query <- "Fuel Fine Header" 
 query_message <- "Number of Transects"  
 values_data <- data$NumTran  
@@ -1031,19 +1022,19 @@ errors_FuelsFine_Slope_Value <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 data_temp1 <- Fuels1000_data %>%
-  group_by(MacroPlot.Name, Date, Transect, Slope) %>%
-  dplyr::summarise("MacroPlot.Name" = unique(MacroPlot.Name),
+  group_by(Macroplot, SampleEventDate, Transect, Slope) %>%
+  dplyr::summarise("Macroplot" = unique(Macroplot),
             "Transect" = unique(Transect)) %>%
   mutate(Slope_1000 = Slope) %>%
-  arrange(MacroPlot.Name, Transect) %>%
+  arrange(Macroplot, Transect) %>%
   select(!Slope)
 
 data_temp2 <- FuelsFine_data %>%
-  group_by(MacroPlot.Name, Date, Transect, Slope) %>%
-  dplyr::summarise("MacroPlot.Name" = unique(MacroPlot.Name),
+  group_by(Macroplot, SampleEventDate, Transect, Slope) %>%
+  dplyr::summarise("Macroplot" = unique(Macroplot),
             "Transect" = unique(Transect)) %>%
   mutate(Slope_fine = Slope) %>%
-  arrange(MacroPlot.Name, Transect) %>%
+  arrange(Macroplot, Transect) %>%
   select(!Slope)
 
 data_temp <- merge(data_temp1, data_temp2, all.y = T)
@@ -1052,7 +1043,7 @@ data_temp <- data_temp %>%
 remove(data_temp1, data_temp2)
 
 # Set parameters
-data <- merge(FuelsFine_data, data_temp, by = c("MacroPlot.Name", "Date", "Transect"), all = T)
+data <- merge(FuelsFine_data, data_temp, by = c("Macroplot", "SampleEventDate", "Transect"), all = T)
 query <- "Fuel Fine Slope"
 query_message <- paste0("Transect = ", data$Transect, ". ", "CWD slope = ", data$Slope_1000, ". ", "FWD slope")
 values_data <- data$Slope_fine
@@ -2022,7 +2013,7 @@ remove(errors_Trees_DamCd_L, errors_Trees_DamCd_D, errors_Trees_DamCd_Blank)
 if(nrow(errors_Trees_DamCd) > 1) {
   errors_Trees_DamCd <- errors_Trees_DamCd %>%
     filter(Error != "No Error") %>% 
-    arrange(MacroPlot.Name)
+    arrange(Macroplot)
 } else {
   errors_Trees_DamCd <- errors_Trees_DamCd}
 ```
@@ -2161,12 +2152,12 @@ if(nrow(errors_Trees_DD) > 1) {
 
 [Procedure:]{.underline}
 
--   Check for duplicate tree tags across Date, MacroPlot.Name, SubFrac [and]{.underline} TagNo.
+-   Check for duplicate tree tags across Date, Macroplot, SubFrac [and]{.underline} TagNo.
 
 ```{r}
 # Check for tag duplication and store results in new column
 data_temp <- Trees_data %>% 
-  get_dupes(Date, MacroPlot.Name, SubFrac, TagNo)
+  get_dupes(SampleEventDate, Macroplot, SubFrac, TagNo)
 
 # Set parameters 
 data <- merge(Trees_data, data_temp, all.x = T)
@@ -2266,8 +2257,10 @@ errors_Trees_LifeForm <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(!Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"))
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == FALSE)
 data$CharHt[is.na(data$CharHt)] <- ""
 query <- "Trees Non-Post Severity" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "Non-post read. Char Height")
@@ -2281,8 +2274,10 @@ errors_Trees_NonPost_Severity_CharHt <- qaqc(data, query, query_message, values_
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(!Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"))
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == FALSE)
 data$ScorchHt[is.na(data$ScorchHt)] <- ""
 query <- "Trees Non-Post Severity" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "Non-post read. Scorch Height")
@@ -2296,8 +2291,10 @@ errors_Trees_NonPost_Severity_ScorchHt <- qaqc(data, query, query_message, value
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(!Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"))
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == FALSE)
 data$CrScPct[is.na(data$CrScPct)] <- ""
 query <- "Trees Non-Post Severity" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "Non-post read. Crown Scorch Percent")
@@ -2334,8 +2331,10 @@ if(nrow(errors_Trees_NonPost_Severity) > 1) {
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == TRUE,
          CrwnCl %in% c("DD", "BBD", "CUS"))
 data$CharHt[is.na(data$CharHt)] <- ""
 query <- "Trees Post Char" 
@@ -2352,8 +2351,10 @@ errors_Trees_Post_Char_DD <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == TRUE,
          !CrwnCl %in% c("DD", "BBD", "CUS"))
 data$CharHt[is.na(data$CharHt)] <- ""
 query <- "Trees Post Char" 
@@ -2371,7 +2372,7 @@ errors_Trees_Post_Char_Standing <- qaqc(data, query, query_message, values_check
 ```{r}
 # # Perform Rosner's Test for outliers using all values
 # data_temp <- Trees_all %>%
-#   filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+#   filter(MonStatus %in% c("01Post", "02Post", "03Post", "04Post"),
 #          !is.na(CharHt))
 # data_outlier <- rosnerTest(data_temp$CharHt)
 # outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
@@ -2379,7 +2380,9 @@ errors_Trees_Post_Char_Standing <- qaqc(data, query, query_message, values_check
 
 # Set parameters
 data <- Trees_data %>%
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == TRUE,
          !is.na(CharHt))
 query <- "Trees Post Char"
 query_message <- paste0("Tag ", data$TagNo, ". ", "Possible outlier. Char Height")
@@ -2416,8 +2419,10 @@ if(nrow(errors_Trees_Post_Char) > 1) {
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == TRUE,
          CrwnCl %in% c("DD", "BBD", "CUS"))
 data$ScorchHt[is.na(data$ScorchHt)] <- ""
 query <- "Trees Post Scorch" 
@@ -2434,8 +2439,10 @@ errors_Trees_Post_Scorch_DD <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == TRUE,
          !CrwnCl %in% c("DD", "BBD", "CUS"),
          Status == "D",
          ScorchHt != Ht)
@@ -2454,8 +2461,10 @@ errors_Trees_Post_Scorch_Dead <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == TRUE,
          Status == "L")
 query <- "Trees Post Scorch" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "Status = L. Possible outlier. Scorch Height")
@@ -2494,8 +2503,10 @@ if(nrow(errors_Trees_Post_ScorchHt) > 1) {
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == TRUE,
          CrwnCl %in% c("DD", "BBD", "CUS"))
 data$CrScPct[is.na(data$CrScPct)] <- ""
 query <- "Trees Post Scorch%" 
@@ -2512,8 +2523,10 @@ errors_Trees_Post_ScorchPct_DD <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == TRUE,
          !CrwnCl %in% c("DD", "BBD", "CUS"),
          Status == "D")
 data$CrScPct[is.na(data$CrScPct)] <- ""
@@ -2531,8 +2544,10 @@ errors_Trees_Post_ScorchPct_Dead <- qaqc(data, query, query_message, values_chec
 
 ```{r}
 # Set parameters 
-data <- Trees_data %>% 
-  filter(Monitoring.Status %in% c("01Post", "02Post", "03Post", "04Post"),
+data <- Trees_data %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+                       TRUE, FALSE)) %>%
+  filter(Post == TRUE,
          Status == "L")
 query <- "Trees Post Scorch%" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "Status = L. Scorch Percent")
@@ -4016,7 +4031,7 @@ data <- HerbsSpComp_data
 query <- "Cvr SpComp Species"
 query_message <- paste0("Species")
 values_data <- data$Species.Symbol
-values_valid <- unknowns
+values_valid <- unknowns_generic
 values_check <- !(values_data %in% values_valid)
 
 # Identify errors
@@ -4403,12 +4418,12 @@ values_check <- values_data > values_valid
 errors_HerbsPoints_Order_Number <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check for duplicate points across Date, MacroPlot.Name, Transect, Point, [and]{.underline} Order.
+-   Check for duplicate points across SampleEventDate, Macroplot, Transect, Point, [and]{.underline} Order.
 
 ```{r}
 # Check for tag duplication and store results in new column
 data_temp <- HerbsPoints_data %>% 
-  get_dupes(Date, MacroPlot.Name, Transect, Point, Order)
+  get_dupes(SampleEventDate, Macroplot, Transect, Point, Order)
 
 # Set parameters 
 data <- merge(HerbsPoints_data, data_temp, all.x = T)
@@ -4482,8 +4497,8 @@ expected_sum <- 166 * (1 + 166) / 2
 
 data_temp <- HerbsPoints_data %>%
   filter(is.na(Order)|Order == 1,
-         MacroPlot.Type == "Forest") %>% 
-  group_by(MacroPlot.Name, Date, Transect) %>% 
+         Type == "Forest") %>% 
+  group_by(Macroplot, SampleEventDate, Transect) %>% 
   dplyr::summarize(across(Point, sum))
 
 data_temp <- data_temp %>% 
@@ -4491,8 +4506,8 @@ data_temp <- data_temp %>%
   select(!Point)
 
 # Set parameters 
-data <- merge(HerbsPoints_data, data_temp, by = c("MacroPlot.Name", "Date", "Transect"), all = T) %>% 
-  filter(MacroPlot.Type == "Forest")
+data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot", "SampleEventDate", "Transect"), all = T) %>% 
+  filter(Type == "Forest")
 query <- "Cvr Pts Point" 
 query_message <- paste0("Transect = ", data$Transect, ". ", "Order = 1. Missing/Extra Point") 
 values_data <- data$Missing
@@ -4509,8 +4524,8 @@ expected_sum <- 100 * (1 + 100) / 2
 
 data_temp <- HerbsPoints_data %>%
   filter(is.na(Order)|Order == 1,
-         MacroPlot.Type == "Grassland") %>% 
-  group_by(MacroPlot.Name, Date, Transect) %>% 
+         Type == "Grassland") %>% 
+  group_by(Macroplot, SampleEventDate, Transect) %>% 
   dplyr::summarize(across(Point, sum))
 
 data_temp <- data_temp %>% 
@@ -4518,8 +4533,8 @@ data_temp <- data_temp %>%
   select(!Point)
 
 # Set parameters 
-data <- merge(HerbsPoints_data, data_temp, by = c("MacroPlot.Name", "Date", "Transect"), all = T) %>% 
-  filter(MacroPlot.Type == "Grassland")
+data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot", "SampleEventDate", "Transect"), all = T) %>% 
+  filter(Type == "Grassland")
 query <- "Cvr Pts Point" 
 query_message <- paste0("Transect = ", data$Transect, ". ", "Order = 1. Missing/Extra Point") 
 values_data <- data$Missing
@@ -4558,7 +4573,7 @@ data <- HerbsPoints_data
 query <- "Cvr Pts Species"
 query_message <- paste0("Species")
 values_data <- data$Species.Symbol
-values_valid <- unknowns
+values_valid <- unknowns_generic
 values_check <- !(values_data %in% values_valid)
 
 # Identify errors
@@ -4770,10 +4785,6 @@ errors_blank_HerbsPoints <- errors_blank %>%
 
 ```{r}
 # Save to master error list 
-# errors_all <- unique(rbind(errors_Fuels1000, errors_FuelsDuffLitt, errors_FuelsFine, errors_PostBurn, errors_Trees, errors_Seedlings, errors_Shrubs, errors_HerbsSpComp, errors_HerbsPts))
-
-# errors_all <- rbind(errors_Fuels1000, errors_blank, errors_FuelsDuffLitt, errors_blank, errors_FuelsFine, errors_blank, errors_PostBurn, errors_blank, errors_Trees, errors_blank, errors_Seedlings, errors_blank, errors_Shrubs, errors_blank, errors_HerbsSpComp, errors_blank, errors_HerbsPts)
-
 errors_all <- rbind(errors_blank_Fuels1000, errors_blank, errors_Fuels1000, errors_blank, errors_blank_FuelsDuffLitt, errors_blank, errors_FuelsDuffLitt, errors_blank, errors_blank_FuelsFine, errors_blank, errors_FuelsFine, errors_blank, errors_blank_PostBurn, errors_blank, errors_PostBurn, errors_blank, errors_blank_Trees, errors_blank, errors_Trees, errors_blank, errors_blank_Seedlings, errors_blank, errors_Seedlings, errors_blank, errors_blank_Shrubs, errors_blank, errors_Shrubs, errors_blank, errors_blank_HerbsSpComp, errors_blank, errors_HerbsSpComp, errors_blank, errors_blank_HerbsPoints, errors_blank, errors_HerbsPoints)
 ```
 
@@ -4806,6 +4817,6 @@ kable(errors_all, "pipe")
 
 # Save as CSV or XLSX 
 errors_all <- errors_all %>% 
-  mutate(Date = as.character(Date))
+  mutate(SampleEventDate = as.character(SampleEventDate))
 condformat2excel(errors_all, paste0(path_errors, target_park, "_errors_data_FMH.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
