@@ -45,7 +45,6 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 # tidyverse and dplyr have lots of useful functions for data cleaning
 library(tidyverse)
 library(dplyr)
-#library(plyr)
 # janitor has functions to find duplicates
 library(janitor)
 # writexl is used to create excel output files
@@ -54,8 +53,6 @@ library(writexl)
 library(condformat)
 # knitr is used to create output files from R Markdown
 library(knitr)
-# "here" helps you easily find and reference your working directory
-library(here)
 ```
 
 ### Create Function {.hidden}
@@ -151,10 +148,131 @@ path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 
 ```{r load data, include=FALSE}
 ## Load Data, replace blanks and text NA as actual NA
-MacroplotReport <- read.csv(paste0(path_data, "MacroplotReport.csv"))
-ProjectUnitReport <- read.csv(paste0(path_data, "ProjectUnitAssignmentReport.csv"))
-SampleEventReport <- read.csv(paste0(path_data, "SampleEventReport.csv"))
-SpeciesReport <- read.csv(paste0(path_data, "LocalSpeciesReport.csv"))
+MacroplotReport <- read.csv(paste0(path_data, "MacroplotReport.csv"), quote = "")
+ProjectUnitReport <- read.csv(paste0(path_data, "ProjectUnitAssignmentReport.csv"), quote = "")
+SampleEventReport <- read.csv(paste0(path_data, "SampleEventReport.csv"), quote = "")
+SpeciesReport <- read.csv(paste0(path_data, "LocalSpeciesReport.csv"), quote = "")
+Fuels1000_all <- read.csv(paste0(path_data, "Surface Fuels - 1000Hr_XPT.csv"), quote = "")
+FuelsDuffLitt_all <- read.csv(paste0(path_data, "Surface Fuels - Duff_Litter_XPT.csv"), quote = "")
+FuelsFine_all <- read.csv(paste0(path_data, "Surface Fuels - Fine_XPT.csv"), quote = "")
+PostBurn_all <- read.csv(paste0(path_data, "Post Burn Severity (metric)_XPT.csv"), quote = "")
+Trees_all <- read.csv(paste0(path_data, "Trees - Individuals (metric)_XPT.csv"), quote = "")
+Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), quote = "")
+Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), quote = "")
+HerbsSpComp_all <- read.csv(paste0(path_data, "Cover - Species Composition (metric)_XPT.csv"), quote = "")
+HerbsPoints_all <- read.csv(paste0(path_data, "Cover - Points (metric)_XPT.csv"), quote = "")
+```
+
+### Filter Data {.hidden}
+
+```{r}
+#####
+# Fuels1000
+#####
+# Ensure blanks in Visited column are NA
+Fuels1000_all$Visited[Fuels1000_all$Visited==""] <- NA
+# Fuels1000 data
+Fuels1000_data <- Fuels1000_all %>%
+  filter(is.na(Visited))
+# Fuels1000 headers
+Fuels1000_header <- Fuels1000_all %>%
+  filter(!is.na(Visited))
+
+#####
+# FuelsDuffLitt
+#####
+# Ensure blanks in Visited column are NA 
+FuelsDuffLitt_all$Visited[FuelsDuffLitt_all$Visited==""] <- NA 
+# FuelsDuffLitt data
+FuelsDuffLitt_data <- FuelsDuffLitt_all %>%
+  filter(is.na(Visited))
+# FuelsDuffLitt headers
+FuelsDuffLitt_header <- FuelsDuffLitt_all %>%
+  filter(!is.na(Visited))
+
+#####
+# FuelsFine
+#####
+# Ensure blanks in Visited column are NA 
+FuelsFine_all$Visited[FuelsFine_all$Visited==""] <- NA  
+# FuelsFine data
+FuelsFine_data <- FuelsFine_all %>%
+  filter(is.na(Visited))
+# FuelsFine headers
+FuelsFine_header <- FuelsFine_all %>%
+  filter(!is.na(Visited))
+
+#####
+# PostBurn
+#####
+# Ensure blanks in Visited column are NA
+PostBurn_all$Visited[PostBurn_all$Visited==""] <- NA
+# PostBurn data
+PostBurn_data <- PostBurn_all %>%
+  filter(is.na(Visited))
+# PostBurn headers
+PostBurn_header <- PostBurn_all %>%
+  filter(!is.na(Visited))
+
+#####
+# Trees
+#####
+# Ensure blanks in Visited column are NA 
+Trees_all$Visited[Trees_all$Visited==""] <- NA  
+# Trees data
+Trees_data <- Trees_all %>%
+  filter(is.na(Visited))
+# Trees headers
+Trees_header <- Trees_all %>%
+  filter(!is.na(Visited))
+
+#####
+# Seedlings
+#####
+# Ensure blanks in Visited column are NA
+Seedlings_all$Visited[Seedlings_all$Visited==""] <- NA
+# Seedlings data
+Seedlings_data <- Seedlings_all %>%
+  filter(is.na(Visited))
+# Seedlings headers
+Seedlings_header <- Seedlings_all %>%
+  filter(!is.na(Visited))
+
+#####
+# Shrubs
+#####
+# Ensure blanks in Visited column are NA
+Shrubs_all$Visited[Shrubs_all$Visited==""] <- NA
+# Shrubs data
+Shrubs_data <- Shrubs_all %>%
+  filter(is.na(Visited))
+# Shrubs headers
+Shrubs_header <- Shrubs_all %>%
+  filter(!is.na(Visited))
+
+#####
+# HerbsSpComp
+#####
+# Ensure blanks in Visited column are NA
+HerbsSpComp_all$Visited[HerbsSpComp_all$Visited==""] <- NA
+# HerbsSpComp data
+HerbsSpComp_data <- HerbsSpComp_all %>%
+  filter(is.na(Visited))
+# HerbsSpComp headers
+HerbsSpComp_header <- HerbsSpComp_all %>%
+  filter(!is.na(Visited))
+
+#####
+# HerbsPoints
+#####
+# Ensure blanks in Visited column are NA
+HerbsPoints_all$Visited[HerbsPoints_all$Visited==""] <- NA
+# HerbsPoints data
+HerbsPoints_data <- HerbsPoints_all %>%
+  filter(is.na(Visited))
+# HerbsPoints headers
+HerbsPoints_header <- HerbsPoints_all %>%
+  filter(!is.na(Visited))
 ```
 
 # Park: [`r target_park`]{style="color:red"}
@@ -582,6 +700,36 @@ if(nrow(errors_SpeciesReport) > 1) {
 ```
 
 # ALL ERRORS
+
+```{r}
+# Create protocol separators
+errors_blank_Fuels1000 <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - FUEL 1000")
+
+errors_blank_FuelsDuffLitt <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - FUEL DUFF LITTER")
+
+errors_blank_FuelsFine <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - FUEL FINE")
+
+errors_blank_PostBurn <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - POST BURN")
+
+errors_blank_Trees <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - TREES")
+
+errors_blank_Seedlings <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - SEEDLINGS")
+
+errors_blank_Shrubs <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - SHRUBS")
+
+errors_blank_HerbsSpComp <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - HERBS OBSERVED")
+
+errors_blank_HerbsPoints <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - HERBS POINTS")
+```
 
 ```{r}
 errors_all <- rbind(errors_MacroplotReport, errors_blank, errors_ProjectUnitReport, errors_blank, errors_SampleEventReport, errors_blank, errors_SpeciesReport)
