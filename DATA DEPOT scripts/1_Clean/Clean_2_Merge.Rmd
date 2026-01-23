@@ -1,0 +1,378 @@
+---
+title: "FFI Database Summary"
+subtitle: Northeast Region
+output:
+  word_document:
+    toc: true
+    toc_depth: 2
+  pdf_document:
+    toc: true
+    toc_depth: 2
+  html_document:
+    theme: readable
+    highlight: null
+    toc: true
+    toc_depth: 2
+    toc_float:
+      smooth_scroll: true
+    code_download: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Before Starting
+
+### Setup {.hidden}
+
+```{r}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+## Install packages (if needed)
+
+# install.packages("tidyverse")
+```
+
+```{r}
+## Load Packages
+
+# "tidyverse" has lots of useful functions for data cleaning
+library(tidyverse)
+library(stringr)
+```
+
+### Adjust File Paths {.hidden}
+
+```{r}
+## Adjust File Paths
+#path_data <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
+path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+```
+
+# METADATA
+
+```{r}
+# Load data
+MetadataReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_MetadataReport.csv"))
+MetadataReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_MetadataReport.csv"))
+MetadataReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_MetadataReport.csv"))
+MetadataReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_MetadataReport.csv"))
+MetadataReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_MetadataReport.csv"))
+MetadataReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_MetadataReport.csv"))
+MetadataReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_MetadataReport.csv"))
+MetadataReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_MetadataReport.csv"))
+MetadataReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_MetadataReport.csv"))
+MetadataReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_MetadataReport.csv"))
+MetadataReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_MetadataReport.csv"))
+MetadataReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_MetadataReport.csv"))
+MetadataReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_MetadataReport.csv"))
+MetadataReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_MetadataReport.csv"))
+MetadataReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_MetadataReport.csv"))
+
+# Merge data
+MetadataReport <- rbind(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+
+# Remove data
+remove(MetadataReport_ANTI, MetadataReport_APCO, MetadataReport_CATO, MetadataReport_CUVA, MetadataReport_DEWA, MetadataReport_FRSP, MetadataReport_GATE, MetadataReport_GETT, MetadataReport_MONO, MetadataReport_NERI, MetadataReport_PRWI, MetadataReport_RICH, MetadataReport_SARA, MetadataReport_SHEN, MetadataReport_VAFO)
+
+# Save file
+write.csv(MetadataReport, paste0(path_data, "ALL/ALL_MetadataReport.csv"), quote = FALSE, row.names = FALSE)
+```
+
+# SPECIES
+
+```{r}
+# Load data
+SpeciesReport_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_SpeciesReport.csv"))
+SpeciesReport_APCO <- read.csv(paste0(path_data, "APCO/APCO_SpeciesReport.csv"))
+SpeciesReport_CATO <- read.csv(paste0(path_data, "CATO/CATO_SpeciesReport.csv"))
+SpeciesReport_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_SpeciesReport.csv"))
+SpeciesReport_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_SpeciesReport.csv"))
+SpeciesReport_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_SpeciesReport.csv"))
+SpeciesReport_GATE <- read.csv(paste0(path_data, "GATE/GATE_SpeciesReport.csv"))
+SpeciesReport_GETT <- read.csv(paste0(path_data, "GETT/GETT_SpeciesReport.csv"))
+SpeciesReport_MONO <- read.csv(paste0(path_data, "MONO/MONO_SpeciesReport.csv"))
+SpeciesReport_NERI <- read.csv(paste0(path_data, "NERI/NERI_SpeciesReport.csv"))
+SpeciesReport_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_SpeciesReport.csv"))
+SpeciesReport_RICH <- read.csv(paste0(path_data, "RICH/RICH_SpeciesReport.csv"))
+SpeciesReport_SARA <- read.csv(paste0(path_data, "SARA/SARA_SpeciesReport.csv"))
+SpeciesReport_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_SpeciesReport.csv"))
+SpeciesReport_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_SpeciesReport.csv"))
+
+# Merge data
+SpeciesReport <- rbind(SpeciesReport_ANTI, SpeciesReport_APCO, SpeciesReport_CATO, SpeciesReport_CUVA, SpeciesReport_DEWA, SpeciesReport_FRSP, SpeciesReport_GATE, SpeciesReport_GETT, SpeciesReport_MONO, SpeciesReport_NERI, SpeciesReport_PRWI, SpeciesReport_RICH, SpeciesReport_SARA, SpeciesReport_SHEN, SpeciesReport_VAFO)
+
+# Remove data
+remove(SpeciesReport_ANTI, SpeciesReport_APCO, SpeciesReport_CATO, SpeciesReport_CUVA, SpeciesReport_DEWA, SpeciesReport_FRSP, SpeciesReport_GATE, SpeciesReport_GETT, SpeciesReport_MONO, SpeciesReport_NERI, SpeciesReport_PRWI, SpeciesReport_RICH, SpeciesReport_SARA, SpeciesReport_SHEN, SpeciesReport_VAFO)
+
+# Save file
+write.csv(SpeciesReport, paste0(path_data, "ALL/ALL_SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
+```
+
+# PROTOCOLS
+
+## Fuels 1000
+
+```{r}
+# Load data
+Fuels1000_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_APCO <- read.csv(paste0(path_data, "APCO/APCO_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_CATO <- read.csv(paste0(path_data, "CATO/CATO_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_GETT <- read.csv(paste0(path_data, "GETT/GETT_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_MONO <- read.csv(paste0(path_data, "MONO/MONO_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_NERI <- read.csv(paste0(path_data, "NERI/NERI_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_RICH <- read.csv(paste0(path_data, "RICH/RICH_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_SARA <- read.csv(paste0(path_data, "SARA/SARA_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_Data_Surface Fuels - 1000Hr.csv"))
+Fuels1000_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_Data_Surface Fuels - 1000Hr.csv"))
+
+# Merge data
+Fuels1000 <- rbind(Fuels1000_ANTI, Fuels1000_APCO, Fuels1000_CATO, Fuels1000_CUVA, Fuels1000_DEWA, Fuels1000_FRSP, Fuels1000_GATE, Fuels1000_GETT, Fuels1000_MONO, Fuels1000_NERI, Fuels1000_PRWI, Fuels1000_RICH, Fuels1000_SARA, Fuels1000_SHEN, Fuels1000_VAFO)
+
+# Remove data
+remove(Fuels1000_ANTI, Fuels1000_APCO, Fuels1000_CATO, Fuels1000_CUVA, Fuels1000_DEWA, Fuels1000_FRSP, Fuels1000_GATE, Fuels1000_GETT, Fuels1000_MONO, Fuels1000_NERI, Fuels1000_PRWI, Fuels1000_RICH, Fuels1000_SARA, Fuels1000_SHEN, Fuels1000_VAFO)
+
+# Save file
+write.csv(Fuels1000, paste0(path_data, "ALL/ALL_Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
+```
+
+## Fuels Duff Litt
+
+```{r}
+FuelsDuffLitt_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_APCO <- read.csv(paste0(path_data, "APCO/APCO_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_CATO <- read.csv(paste0(path_data, "CATO/CATO_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_GETT <- read.csv(paste0(path_data, "GETT/GETT_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_MONO <- read.csv(paste0(path_data, "MONO/MONO_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_NERI <- read.csv(paste0(path_data, "NERI/NERI_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_RICH <- read.csv(paste0(path_data, "RICH/RICH_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_SARA <- read.csv(paste0(path_data, "SARA/SARA_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_Data_Surface Fuels - Duff_Litter.csv"))
+FuelsDuffLitt_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_Data_Surface Fuels - Duff_Litter.csv"))
+
+# Merge data
+FuelsDuffLitt <- rbind(FuelsDuffLitt_ANTI, FuelsDuffLitt_APCO, FuelsDuffLitt_CATO, FuelsDuffLitt_CUVA, FuelsDuffLitt_DEWA, FuelsDuffLitt_FRSP, FuelsDuffLitt_GATE, FuelsDuffLitt_GETT, FuelsDuffLitt_MONO, FuelsDuffLitt_NERI, FuelsDuffLitt_PRWI, FuelsDuffLitt_RICH, FuelsDuffLitt_SARA, FuelsDuffLitt_SHEN, FuelsDuffLitt_VAFO)
+
+# Remove data
+remove(FuelsDuffLitt_ANTI, FuelsDuffLitt_APCO, FuelsDuffLitt_CATO, FuelsDuffLitt_CUVA, FuelsDuffLitt_DEWA, FuelsDuffLitt_FRSP, FuelsDuffLitt_GATE, FuelsDuffLitt_GETT, FuelsDuffLitt_MONO, FuelsDuffLitt_NERI, FuelsDuffLitt_PRWI, FuelsDuffLitt_RICH, FuelsDuffLitt_SARA, FuelsDuffLitt_SHEN, FuelsDuffLitt_VAFO)
+
+# Save file
+write.csv(FuelsDuffLitt, paste0(path_data, "ALL/ALL_Data_Surface Fuels - Duff_Litter.csv"), quote = FALSE, row.names = FALSE)
+```
+
+## Fuels Fine
+
+```{r}
+FuelsFine_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_Data_Surface Fuels - Fine.csv"))
+FuelsFine_APCO <- read.csv(paste0(path_data, "APCO/APCO_Data_Surface Fuels - Fine.csv"))
+FuelsFine_CATO <- read.csv(paste0(path_data, "CATO/CATO_Data_Surface Fuels - Fine.csv"))
+FuelsFine_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_Data_Surface Fuels - Fine.csv"))
+FuelsFine_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_Data_Surface Fuels - Fine.csv"))
+FuelsFine_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_Data_Surface Fuels - Fine.csv"))
+FuelsFine_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Surface Fuels - Fine.csv"))
+FuelsFine_GETT <- read.csv(paste0(path_data, "GETT/GETT_Data_Surface Fuels - Fine.csv"))
+FuelsFine_MONO <- read.csv(paste0(path_data, "MONO/MONO_Data_Surface Fuels - Fine.csv"))
+FuelsFine_NERI <- read.csv(paste0(path_data, "NERI/NERI_Data_Surface Fuels - Fine.csv"))
+FuelsFine_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Surface Fuels - Fine.csv"))
+FuelsFine_RICH <- read.csv(paste0(path_data, "RICH/RICH_Data_Surface Fuels - Fine.csv"))
+FuelsFine_SARA <- read.csv(paste0(path_data, "SARA/SARA_Data_Surface Fuels - Fine.csv"))
+FuelsFine_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_Data_Surface Fuels - Fine.csv"))
+FuelsFine_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_Data_Surface Fuels - Fine.csv"))
+
+# Merge data
+FuelsFine <- rbind(FuelsFine_ANTI, FuelsFine_APCO, FuelsFine_CATO, FuelsFine_CUVA, FuelsFine_DEWA, FuelsFine_FRSP, FuelsFine_GATE, FuelsFine_GETT, FuelsFine_MONO, FuelsFine_NERI, FuelsFine_PRWI, FuelsFine_RICH, FuelsFine_SARA, FuelsFine_SHEN, FuelsFine_VAFO)
+
+# Remove data
+remove(FuelsFine_ANTI, FuelsFine_APCO, FuelsFine_CATO, FuelsFine_CUVA, FuelsFine_DEWA, FuelsFine_FRSP, FuelsFine_GATE, FuelsFine_GETT, FuelsFine_MONO, FuelsFine_NERI, FuelsFine_PRWI, FuelsFine_RICH, FuelsFine_SARA, FuelsFine_SHEN, FuelsFine_VAFO)
+
+# Save file
+write.csv(FuelsFine, paste0(path_data, "ALL/ALL_Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE)
+```
+
+## Post Burn
+
+```{r}
+PostBurn_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_Data_Post Burn Severity (metric).csv"))
+PostBurn_APCO <- read.csv(paste0(path_data, "APCO/APCO_Data_Post Burn Severity (metric).csv"))
+PostBurn_CATO <- read.csv(paste0(path_data, "CATO/CATO_Data_Post Burn Severity (metric).csv"))
+PostBurn_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_Data_Post Burn Severity (metric).csv"))
+PostBurn_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_Data_Post Burn Severity (metric).csv"))
+PostBurn_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_Data_Post Burn Severity (metric).csv"))
+PostBurn_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Post Burn Severity (metric).csv"))
+PostBurn_GETT <- read.csv(paste0(path_data, "GETT/GETT_Data_Post Burn Severity (metric).csv"))
+PostBurn_MONO <- read.csv(paste0(path_data, "MONO/MONO_Data_Post Burn Severity (metric).csv"))
+PostBurn_NERI <- read.csv(paste0(path_data, "NERI/NERI_Data_Post Burn Severity (metric).csv"))
+PostBurn_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Post Burn Severity (metric).csv"))
+PostBurn_RICH <- read.csv(paste0(path_data, "RICH/RICH_Data_Post Burn Severity (metric).csv"))
+PostBurn_SARA <- read.csv(paste0(path_data, "SARA/SARA_Data_Post Burn Severity (metric).csv"))
+PostBurn_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_Data_Post Burn Severity (metric).csv"))
+PostBurn_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_Data_Post Burn Severity (metric).csv"))
+
+# Merge data
+PostBurn <- rbind(PostBurn_ANTI, PostBurn_APCO, PostBurn_CATO, PostBurn_CUVA, PostBurn_DEWA, PostBurn_FRSP, PostBurn_GATE, PostBurn_GETT, PostBurn_MONO, PostBurn_NERI, PostBurn_PRWI, PostBurn_RICH, PostBurn_SARA, PostBurn_SHEN, PostBurn_VAFO)
+
+# Remove data
+remove(PostBurn_ANTI, PostBurn_APCO, PostBurn_CATO, PostBurn_CUVA, PostBurn_DEWA, PostBurn_FRSP, PostBurn_GATE, PostBurn_GETT, PostBurn_MONO, PostBurn_NERI, PostBurn_PRWI, PostBurn_RICH, PostBurn_SARA, PostBurn_SHEN, PostBurn_VAFO)
+
+# Save file
+write.csv(PostBurn, paste0(path_data, "ALL/ALL_Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE)
+```
+
+## Trees
+
+```{r}
+Trees_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_Data_Trees - Individuals (metric).csv"))
+Trees_APCO <- read.csv(paste0(path_data, "APCO/APCO_Data_Trees - Individuals (metric).csv"))
+Trees_CATO <- read.csv(paste0(path_data, "CATO/CATO_Data_Trees - Individuals (metric).csv"))
+Trees_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_Data_Trees - Individuals (metric).csv"))
+Trees_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_Data_Trees - Individuals (metric).csv"))
+Trees_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_Data_Trees - Individuals (metric).csv"))
+Trees_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Trees - Individuals (metric).csv"))
+Trees_GETT <- read.csv(paste0(path_data, "GETT/GETT_Data_Trees - Individuals (metric).csv"))
+Trees_MONO <- read.csv(paste0(path_data, "MONO/MONO_Data_Trees - Individuals (metric).csv"))
+Trees_NERI <- read.csv(paste0(path_data, "NERI/NERI_Data_Trees - Individuals (metric).csv"))
+Trees_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Trees - Individuals (metric).csv"))
+Trees_RICH <- read.csv(paste0(path_data, "RICH/RICH_Data_Trees - Individuals (metric).csv"))
+Trees_SARA <- read.csv(paste0(path_data, "SARA/SARA_Data_Trees - Individuals (metric).csv"))
+Trees_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_Data_Trees - Individuals (metric).csv"))
+Trees_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_Data_Trees - Individuals (metric).csv"))
+
+# Merge data
+Trees <- rbind(Trees_ANTI, Trees_APCO, Trees_CATO, Trees_CUVA, Trees_DEWA, Trees_FRSP, Trees_GATE, Trees_GETT, Trees_MONO, Trees_NERI, Trees_PRWI, Trees_RICH, Trees_SARA, Trees_SHEN, Trees_VAFO)
+
+# Remove data
+remove(Trees_ANTI, Trees_APCO, Trees_CATO, Trees_CUVA, Trees_DEWA, Trees_FRSP, Trees_GATE, Trees_GETT, Trees_MONO, Trees_NERI, Trees_PRWI, Trees_RICH, Trees_SARA, Trees_SHEN, Trees_VAFO)
+
+# Save file
+write.csv(Trees, paste0(path_data, "ALL/ALL_Data_Trees - Individuals (metric).csv"), quote = FALSE, row.names = FALSE)
+```
+
+## Seedlings
+
+```{r}
+Seedlings_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_Data_Density - Quadrats (metric).csv"))
+Seedlings_APCO <- read.csv(paste0(path_data, "APCO/APCO_Data_Density - Quadrats (metric).csv"))
+Seedlings_CATO <- read.csv(paste0(path_data, "CATO/CATO_Data_Density - Quadrats (metric).csv"))
+Seedlings_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_Data_Density - Quadrats (metric).csv"))
+Seedlings_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_Data_Density - Quadrats (metric).csv"))
+Seedlings_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_Data_Density - Quadrats (metric).csv"))
+Seedlings_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Density - Quadrats (metric).csv"))
+Seedlings_GETT <- read.csv(paste0(path_data, "GETT/GETT_Data_Density - Quadrats (metric).csv"))
+Seedlings_MONO <- read.csv(paste0(path_data, "MONO/MONO_Data_Density - Quadrats (metric).csv"))
+Seedlings_NERI <- read.csv(paste0(path_data, "NERI/NERI_Data_Density - Quadrats (metric).csv"))
+Seedlings_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Density - Quadrats (metric).csv"))
+Seedlings_RICH <- read.csv(paste0(path_data, "RICH/RICH_Data_Density - Quadrats (metric).csv"))
+Seedlings_SARA <- read.csv(paste0(path_data, "SARA/SARA_Data_Density - Quadrats (metric).csv"))
+Seedlings_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_Data_Density - Quadrats (metric).csv"))
+Seedlings_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_Data_Density - Quadrats (metric).csv"))
+
+# Merge data
+Seedlings <- rbind(Seedlings_ANTI, Seedlings_APCO, Seedlings_CATO, Seedlings_CUVA, Seedlings_DEWA, Seedlings_FRSP, Seedlings_GATE, Seedlings_GETT, Seedlings_MONO, Seedlings_NERI, Seedlings_PRWI, Seedlings_RICH, Seedlings_SARA, Seedlings_SHEN, Seedlings_VAFO)
+
+# Remove data
+remove(Seedlings_ANTI, Seedlings_APCO, Seedlings_CATO, Seedlings_CUVA, Seedlings_DEWA, Seedlings_FRSP, Seedlings_GATE, Seedlings_GETT, Seedlings_MONO, Seedlings_NERI, Seedlings_PRWI, Seedlings_RICH, Seedlings_SARA, Seedlings_SHEN, Seedlings_VAFO)
+
+# Save file
+write.csv(Seedlings, paste0(path_data, "ALL/ALL_Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE)
+```
+
+## Shrubs
+
+```{r}
+Shrubs_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_Data_Density - Belts (metric).csv"))
+Shrubs_APCO <- read.csv(paste0(path_data, "APCO/APCO_Data_Density - Belts (metric).csv"))
+Shrubs_CATO <- read.csv(paste0(path_data, "CATO/CATO_Data_Density - Belts (metric).csv"))
+Shrubs_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_Data_Density - Belts (metric).csv"))
+Shrubs_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_Data_Density - Belts (metric).csv"))
+Shrubs_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_Data_Density - Belts (metric).csv"))
+Shrubs_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Density - Belts (metric).csv"))
+Shrubs_GETT <- read.csv(paste0(path_data, "GETT/GETT_Data_Density - Belts (metric).csv"))
+Shrubs_MONO <- read.csv(paste0(path_data, "MONO/MONO_Data_Density - Belts (metric).csv"))
+Shrubs_NERI <- read.csv(paste0(path_data, "NERI/NERI_Data_Density - Belts (metric).csv"))
+Shrubs_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Density - Belts (metric).csv"))
+Shrubs_RICH <- read.csv(paste0(path_data, "RICH/RICH_Data_Density - Belts (metric).csv"))
+Shrubs_SARA <- read.csv(paste0(path_data, "SARA/SARA_Data_Density - Belts (metric).csv"))
+Shrubs_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_Data_Density - Belts (metric).csv"))
+Shrubs_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_Data_Density - Belts (metric).csv"))
+
+# Merge data
+Shrubs <- rbind(Shrubs_ANTI, Shrubs_APCO, Shrubs_CATO, Shrubs_CUVA, Shrubs_DEWA, Shrubs_FRSP, Shrubs_GATE, Shrubs_GETT, Shrubs_MONO, Shrubs_NERI, Shrubs_PRWI, Shrubs_RICH, Shrubs_SARA, Shrubs_SHEN, Shrubs_VAFO)
+
+# Remove data
+remove(Shrubs_ANTI, Shrubs_APCO, Shrubs_CATO, Shrubs_CUVA, Shrubs_DEWA, Shrubs_FRSP, Shrubs_GATE, Shrubs_GETT, Shrubs_MONO, Shrubs_NERI, Shrubs_PRWI, Shrubs_RICH, Shrubs_SARA, Shrubs_SHEN, Shrubs_VAFO)
+
+# Save file
+write.csv(Shrubs, paste0(path_data, "ALL/ALL_Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE)
+```
+
+## Herbs Species Comp
+
+```{r}
+HerbsSpComp_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_APCO <- read.csv(paste0(path_data, "APCO/APCO_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_CATO <- read.csv(paste0(path_data, "CATO/CATO_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_GETT <- read.csv(paste0(path_data, "GETT/GETT_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_MONO <- read.csv(paste0(path_data, "MONO/MONO_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_NERI <- read.csv(paste0(path_data, "NERI/NERI_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_RICH <- read.csv(paste0(path_data, "RICH/RICH_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_SARA <- read.csv(paste0(path_data, "SARA/SARA_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_Data_Cover - Species Composition (metric).csv"))
+
+# Merge data
+HerbsSpComp <- rbind(HerbsSpComp_ANTI, HerbsSpComp_APCO, HerbsSpComp_CATO, HerbsSpComp_CUVA, HerbsSpComp_DEWA, HerbsSpComp_FRSP, HerbsSpComp_GATE, HerbsSpComp_GETT, HerbsSpComp_MONO, HerbsSpComp_NERI, HerbsSpComp_PRWI, HerbsSpComp_RICH, HerbsSpComp_SARA, HerbsSpComp_SHEN, HerbsSpComp_VAFO)
+
+# Remove data
+remove(HerbsSpComp_ANTI, HerbsSpComp_APCO, HerbsSpComp_CATO, HerbsSpComp_CUVA, HerbsSpComp_DEWA, HerbsSpComp_FRSP, HerbsSpComp_GATE, HerbsSpComp_GETT, HerbsSpComp_MONO, HerbsSpComp_NERI, HerbsSpComp_PRWI, HerbsSpComp_RICH, HerbsSpComp_SARA, HerbsSpComp_SHEN, HerbsSpComp_VAFO)
+
+# Save file
+write.csv(HerbsSpComp, paste0(path_data, "ALL/ALL_Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE)
+```
+
+## Herbs Points
+
+```{r}
+HerbsPoints_ANTI <- read.csv(paste0(path_data, "ANTI/ANTI_Data_Cover - Points (metric).csv"))
+HerbsPoints_APCO <- read.csv(paste0(path_data, "APCO/APCO_Data_Cover - Points (metric).csv"))
+HerbsPoints_CATO <- read.csv(paste0(path_data, "CATO/CATO_Data_Cover - Points (metric).csv"))
+HerbsPoints_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_Data_Cover - Points (metric).csv"))
+HerbsPoints_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_Data_Cover - Points (metric).csv"))
+HerbsPoints_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_Data_Cover - Points (metric).csv"))
+HerbsPoints_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Cover - Points (metric).csv"))
+HerbsPoints_GETT <- read.csv(paste0(path_data, "GETT/GETT_Data_Cover - Points (metric).csv"))
+HerbsPoints_MONO <- read.csv(paste0(path_data, "MONO/MONO_Data_Cover - Points (metric).csv"))
+HerbsPoints_NERI <- read.csv(paste0(path_data, "NERI/NERI_Data_Cover - Points (metric).csv"))
+HerbsPoints_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Cover - Points (metric).csv"))
+HerbsPoints_RICH <- read.csv(paste0(path_data, "RICH/RICH_Data_Cover - Points (metric).csv"))
+HerbsPoints_SARA <- read.csv(paste0(path_data, "SARA/SARA_Data_Cover - Points (metric).csv"))
+HerbsPoints_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_Data_Cover - Points (metric).csv"))
+HerbsPoints_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_Data_Cover - Points (metric).csv"))
+
+# Merge data
+HerbsPoints <- rbind(HerbsPoints_ANTI, HerbsPoints_APCO, HerbsPoints_CATO, HerbsPoints_CUVA, HerbsPoints_DEWA, HerbsPoints_FRSP, HerbsPoints_GATE, HerbsPoints_GETT, HerbsPoints_MONO, HerbsPoints_NERI, HerbsPoints_PRWI, HerbsPoints_RICH, HerbsPoints_SARA, HerbsPoints_SHEN, HerbsPoints_VAFO)
+
+# Remove data
+remove(HerbsPoints_ANTI, HerbsPoints_APCO, HerbsPoints_CATO, HerbsPoints_CUVA, HerbsPoints_DEWA, HerbsPoints_FRSP, HerbsPoints_GATE, HerbsPoints_GETT, HerbsPoints_MONO, HerbsPoints_NERI, HerbsPoints_PRWI, HerbsPoints_RICH, HerbsPoints_SARA, HerbsPoints_SHEN, HerbsPoints_VAFO)
+
+# Save file
+write.csv(HerbsPoints, paste0(path_data, "ALL/ALL_Data_Cover - Points (metric).csv"), quote = FALSE, row.names = FALSE)
+```

@@ -1,0 +1,744 @@
+---
+title: "QAQC MetaData"
+author: "Alexandra Lalor"
+output:
+  html_document:
+    theme: readable
+    highlight: 
+    toc: yes
+    toc_depth: 1
+    toc_float:
+      smooth_scroll: yes
+    code_download: true
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+# Before Starting
+
+This code is intended to quality check plot metadata, including the Macroplot Report, Project Unit Assignment Report, and Sample Event Report. These reports can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server. This code also produces a clean Metadata Report, which combines the Macroplot Report, Project Unit Assignment Report, and Sample Event Report into a single flat file. The Metadata Report is used in subsequent R scripts.
+
+### Setup {.hidden}
+
+```{r setup, include=FALSE}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r install packages, include=FALSE}
+## Install packages (if needed)
+
+# install.packages("tidyverse")
+# install.packages("Rtools")
+# install.packages("janitor")
+# install.packages("condformat")
+# install.packages("knitr")
+# install.packages("here")
+```
+
+```{r load packages, include=FALSE}
+## Load Packages
+
+# tidyverse and dplyr have lots of useful functions for data cleaning
+library(tidyverse)
+library(dplyr)
+#library(plyr)
+# janitor has functions to find duplicates
+library(janitor)
+# writexl is used to create excel output files
+library(writexl)
+# condformat is used to format excel output files
+library(condformat)
+# knitr is used to create output files from R Markdown
+library(knitr)
+# "here" helps you easily find and reference your working directory
+library(here)
+```
+
+### Create Function {.hidden}
+
+```{r}
+# Create blank data frame as error log template
+errors_blank <- data.frame("SavedQuery" = "", "Macroplot" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+
+# Create error group. Duplicate errors will be grouped by these columns.
+errors_group <- c("SavedQuery", "Macroplot", "Error")
+
+############################################################################################
+## Source Code
+#Pull in source code that creates QAQC functions and builds an empty error table.
+#source("C:/Users/allie/OneDrive/Desktop/R Projects/NER/scripts/1_QAQC/qaqc_function.R")
+
+
+# QAQC function
+qaqc <- function(data, query, query_message, values_check) {
+
+  # Check if there is data to QAQC
+  if(nrow(data) == 0) {
+  # If there is no data, default to "No Error" data frame
+  errors <- errors_blank %>%
+    mutate("SavedQuery" = query,
+           "Error" = "No Error")
+  # If there is data, perform error check
+} else {
+
+  # Use relevant dataset to look for errors
+  errors <- data %>%
+    # Add columns relevant to error checking
+           # Populate the "SavedQuery" column with the query name
+    mutate("SavedQuery" = query,
+           # Populate the "Error" column with the query message and relevant data
+           "Error" = paste(query_message, "=", values_data),
+           # Create a blank "Fixed" column
+           "Fixed" = "",
+           # Create a blank "Explanation" column
+           "Explanation" = "",
+           # Create a blank "Queryers" column
+           "Queryers" = "") %>%
+    # Filter for data which is "false" (data does not match valid conditions)
+    # NA values are treated as "false" (missing data is not valid)
+    filter(!(values_check %>% replace_na(FALSE))) %>%
+    # Select relevant columns to view errors
+    select(colnames(errors_blank))
+
+  # Next, check if there are duplicate errors
+  errors_temp <- errors %>%
+    get_dupes(errors_group)
+  # Merge duplicate errors
+  errors <- unique(merge(errors, errors_temp, all = T))
+  # If duplicate errors exist, add number of duplicates to error message
+  errors <- errors %>%
+    mutate(Error = ifelse(is.na(dupe_count), Error, paste0("(x", dupe_count, ") ", Error))) %>%
+    select(!"dupe_count")
+}
+
+  # Check if there are no errors
+  if (nrow(errors) == 0) {
+    # If there are no errors, default to "No Error" data frame
+    errors <- errors_blank %>%
+      mutate(SavedQuery = query,
+             Error = "No Error")
+    # If there are errors, keep error log you just created
+  } else {
+    errors <- errors
+  }
+}
+```
+
+### Target Park {.hidden}
+
+```{r}
+# designate target park(s)
+target_park <- "SHEN"
+```
+
+### Adjust File Paths {.hidden}
+
+```{r import data, include=FALSE}
+# adjust file paths
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
+path_errors <- paste0(path_main, "QAQC/", target_park, "/")
+path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
+```
+
+### Load Data {.hidden}
+
+```{r load data, include=FALSE}
+## Load Data, replace blanks and text NA as actual NA
+#MacroplotReport <- read.csv(paste0(path_data, "MacroplotReport.csv"))
+#ProjectUnitReport <- read.csv(paste0(path_data, "ProjectUnitAssignmentReport.csv"))
+#SampleEventReport <- read.csv(paste0(path_data, "SampleEventReport.csv"))
+
+MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
+```
+
+# Park: [`r target_park`]{style="color:red"}
+
+# Macroplot Report
+
+### Installation
+
+[Problem:]{.underline} Macroplot Report is missing information related to plot installation
+
+[Procedure:]{.underline}
+
+-   Check that Macroplot is not blank and has correct naming convention. Plots should have a 2-digit number associated with it (e.g. Plot 01, Plot 02, Plot 03, etc.)
+
+```{r}
+# Set parameters 
+data <- MetadataReport %>% 
+  extract(Macroplot, regex = "([0-9]+[0-9]+)", into = c("Macroplot_Num"), remove = F)
+query <- "Macroplot Report - Installation"
+query_message <- "Macroplot naming convention is incorrect. Macroplot Number" 
+values_data <- data$Macroplot_Num
+values_valid <- is.na(data$Macroplot_Num)
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_MacroplotReport_MacroplotNum <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Purpose is not blank and is written correctly ("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Fuels", "Inventory & Monitoring").
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Macroplot Report - Installation"
+query_message <- "Purpose" 
+values_data <- data$Purpose
+values_valid <- c("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Fuels", "Inventory & Monitoring")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_MacroplotReport_Purpose <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Type is one of the available options ("Forest", "Grassland", "Shrubland", "CBI", "Control", "Inventory", "Measured", "Other", "RA")
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Macroplot Report - Installation"
+query_message <- "Type" 
+values_data <- data$Type
+values_valid <- c("Forest", "Grassland", "Shrubland", "CBI", "Control", "Inventory", "Measured", "Other", "RA")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_MacroplotReport_Type <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that DateIn is not blank
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Macroplot Report - Installation"
+query_message <- "Date In" 
+values_data <- data$DateIn
+values_valid <- is.na(data$DateIn)
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_MacroplotReport_DateIn <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Installation Errors {.hidden}
+
+```{r}
+# Combine
+errors_MacroplotReport_Installation <- unique(rbind(errors_MacroplotReport_MacroplotNum, errors_MacroplotReport_Purpose, errors_MacroplotReport_Type, errors_MacroplotReport_DateIn))
+
+remove(errors_MacroplotReport_MacroplotNum, errors_MacroplotReport_Purpose, errors_MacroplotReport_Type, errors_MacroplotReport_DateIn)
+
+if(nrow(errors_MacroplotReport_Installation) > 1) {
+  errors_MacroplotReport_Installation <- errors_MacroplotReport_Installation %>%
+    filter(Error != "No Error")
+} else {
+  errors_MacroplotReport_Installation <- errors_MacroplotReport_Installation}
+```
+
+### Location
+
+[Problem:]{.underline} Macroplot Report is missing information related to plot geographic location
+
+[Procedure:]{.underline}
+
+-   Check that Latitude is not blank
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Macroplot Report - Location"
+query_message <- "Latitude" 
+values_data <- data$Latitude
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_MacroplotReport_Latitude <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Longitude is not blank
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Macroplot Report - Location"
+query_message <- "Longitude" 
+values_data <- data$Longitude
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_MacroplotReport_Longitude <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that UTM_X (easting) has 6 digits
+
+```{r}
+# Set parameters 
+data <- MetadataReport %>% 
+  mutate(UTM_X_digits = round(UTM_X))
+query <- "Macroplot Report - Location"
+query_message <- "UTM_X (easting) should have 6 digits. Digits" 
+values_data <- nchar(data$UTM_X_digits)
+values_valid <- 6
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_MacroplotReport_UTM_X <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that UTM_Y (northing) has 7 digits
+
+```{r}
+# Set parameters 
+data <- MetadataReport %>% 
+  mutate(UTM_Y_digits = round(UTM_Y))
+query <- "Macroplot Report - Location"
+query_message <- "UTM_Y (northing) should have 7 digits. Digits" 
+values_data <- nchar(data$UTM_Y_digits)
+values_valid <- 7
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_MacroplotReport_UTM_Y <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that UTM_Zone = 17, 18, or 19
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Macroplot Report - Location"
+query_message <- "UTM_Zone" 
+values_data <- data$UTM_Zone
+values_valid <- c(17, 18, 19)
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_MacroplotReport_UTM_Zone <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Datum = NAD83 or NAD27
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Macroplot Report - Location"
+query_message <- "Datum" 
+values_data <- data$Datum
+values_valid <- c("NAD83", "NAD27")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_MacroplotReport_Datum <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Location Errors {.hidden}
+
+```{r}
+# Combine
+errors_MacroplotReport_Location <- unique(rbind(errors_MacroplotReport_Latitude, errors_MacroplotReport_Longitude, errors_MacroplotReport_UTM_X, errors_MacroplotReport_UTM_Y, errors_MacroplotReport_UTM_Zone, errors_MacroplotReport_Datum))
+
+remove(errors_MacroplotReport_Latitude, errors_MacroplotReport_Longitude, errors_MacroplotReport_UTM_X, errors_MacroplotReport_UTM_Y, errors_MacroplotReport_UTM_Zone, errors_MacroplotReport_Datum)
+
+if(nrow(errors_MacroplotReport_Location) > 1) {
+  errors_MacroplotReport_Location <- errors_MacroplotReport_Location %>%
+    filter(Error != "No Error")
+} else {
+  errors_MacroplotReport_Location <- errors_MacroplotReport_Location}
+```
+
+### Site Characteristics
+
+[Problem:]{.underline} Macroplot Report is missing information related to plot site characteristics
+
+[Procedure:]{.underline}
+
+-   Check that Elevation is not blank
+
+```{r}
+# # Set parameters 
+# data <- MetadataReport
+# query <- "Macroplot Report - Site Characteristics"
+# query_message <- "Elevation" 
+# values_data <- data$Elevation
+# values_valid <- ""
+# values_check <- values_data != values_valid
+# 
+# # Identify errors
+# errors_MacroplotReport_Elevation <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that ElevationUnits = feet
+
+```{r}
+# # Set parameters 
+# data <- MetadataReport
+# query <- "Macroplot Report - Site Characteristics"
+# query_message <- "Elevation Units" 
+# values_data <- data$ElevationUnits
+# values_valid <- c("feet")
+# values_check <- values_data %in% values_valid
+# 
+# # Identify errors
+# errors_MacroplotReport_ElevationUnits <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Azimuth values are reasonable
+
+```{r}
+# # Set parameters 
+# data <- MetadataReport
+# query <- "Macroplot Report - Site Characteristics"
+# query_message <- "Azimuth" 
+# values_data <- data$Azimuth
+# values_valid <- seq(0, 359, by = 1)
+# values_check <- values_data %in% values_valid
+# 
+# # Identify errors
+# errors_MacroplotReport_Azimuth <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Aspect values are reasonable
+
+```{r}
+# # Set parameters 
+# data <- MetadataReport
+# query <- "Macroplot Report - Site Characteristics"
+# query_message <- "Aspect" 
+# values_data <- data$Aspect
+# values_valid <- seq(0, 359, by = 1)
+# values_check <- values_data %in% values_valid
+# 
+# # Identify errors
+# errors_MacroplotReport_Aspect <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that SlopeHill values are reasonable
+
+```{r}
+# # Set parameters 
+# data <- MetadataReport
+# query <- "Macroplot Report - Site Characteristics"
+# query_message <- "Slope Hill" 
+# values_data <- data$SlopeHill
+# values_valid <- seq(0, 40, by = 1)
+# values_check <- values_data %in% values_valid
+# 
+# # Identify errors
+# errors_MacroplotReport_SlopeHill <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that SlopeTransect values are reasonable
+
+```{r}
+# # Set parameters 
+# data <- MetadataReport
+# query <- "Macroplot Report - Site Characteristics"
+# query_message <- "Slope Transect" 
+# values_data <- data$SlopeTransect
+# values_valid <- seq(0, 40, by = 1)
+# values_check <- values_data %in% values_valid
+# 
+# # Identify errors
+# errors_MacroplotReport_SlopeTransect <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Site Characteristics Errors {.hidden}
+
+```{r}
+# # Combine
+# errors_MacroplotReport_SiteCharacteristics <- unique(rbind(errors_MacroplotReport_Elevation, errors_MacroplotReport_ElevationUnits, errors_MacroplotReport_Azimuth, errors_MacroplotReport_Aspect, errors_MacroplotReport_SlopeHill, errors_MacroplotReport_SlopeTransect))
+# 
+# remove(errors_MacroplotReport_Elevation, errors_MacroplotReport_ElevationUnits, errors_MacroplotReport_Azimuth, errors_MacroplotReport_Aspect, errors_MacroplotReport_SlopeHill, errors_MacroplotReport_SlopeTransect)
+# 
+# if(nrow(errors_MacroplotReport_SiteCharacteristics) > 1) {
+#   errors_MacroplotReport_SiteCharacteristics <- errors_MacroplotReport_SiteCharacteristics %>%
+#     filter(Error != "No Error")
+# } else {
+#   errors_MacroplotReport_SiteCharacteristics <- errors_MacroplotReport_SiteCharacteristics}
+```
+
+### Sample Events
+
+[Problem:]{.underline} Macroplot Report is missing information related to sample events
+
+[Procedure:]{.underline}
+
+-   Check that Macroplot is not blank
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Macroplot Report - Sample Events"
+query_message <- "Macroplot" 
+values_data <- data$Macroplot
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_MacroplotReport_Macroplot <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that SampleEventDate is not blank
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Macroplot Report - Sample Events"
+query_message <- "Sample Event Date" 
+values_data <- data$SampleEventDate
+values_valid <- is.na(data$SampleEventDate)
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_MacroplotReport_SampleEventDate <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that MonStatus is not blank
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Macroplot Report - Sample Events"
+query_message <- "Monitoring Status" 
+values_data <- data$MonStatus
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_MacroplotReport_MonStatus <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Sample Event Errors {.hidden}
+
+```{r}
+# Combine
+errors_MacroplotReport_SampleEvent <- unique(rbind(errors_MacroplotReport_Macroplot, errors_MacroplotReport_SampleEventDate, errors_MacroplotReport_MonStatus))
+
+remove(errors_MacroplotReport_Macroplot, errors_MacroplotReport_SampleEventDate, errors_MacroplotReport_MonStatus)
+
+if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
+  errors_MacroplotReport_SampleEvent <- errors_MacroplotReport_SampleEvent %>%
+    filter(Error != "No Error")
+} else {
+  errors_MacroplotReport_SampleEvent <- errors_MacroplotReport_SampleEvent}
+```
+
+### Combine Macroplot Report Errors {.hidden}
+
+```{r}
+errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent)
+```
+
+# Project Unit Assignment Report
+
+[Problem:]{.underline} Project Unit Assignment Report is missing information
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# # Set parameters 
+# data <- ProjectUnitReport %>% 
+#   mutate(Quotes = pmap_lgl(as.list(ProjectUnitReport), 
+#     ~ any(str_detect(c(...), '["]')))) %>% 
+#   mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+# query <- "Project Unit Report"
+# query_message <- "Quotes"
+# values_data <- data$Quotes
+# values_valid <- FALSE
+# values_check <- values_data == values_valid
+# 
+# # Identify errors
+# errors_ProjectUnitReport_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Macroplot is not blank
+
+```{r}
+# # Set parameters 
+# data <- ProjectUnitReport
+# query <- "Project Unit Report"
+# query_message <- "Macroplot" 
+# values_data <- data$Macroplot
+# values_valid <- ""
+# values_check <- values_data != values_valid
+# 
+# # Identify errors
+# errors_ProjectUnitReport_Macroplot <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that ProjectUnit is not blank
+
+```{r}
+# # Set parameters 
+# data <- ProjectUnitReport
+# query <- "Project Unit Report"
+# query_message <- "Project Unit" 
+# values_data <- data$ProjectUnit
+# values_valid <- ""
+# values_check <- values_data != values_valid
+# 
+# # Identify errors
+# errors_ProjectUnitReport_ProjectUnit <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Multi_PU = N or Y. If Multi_PU = Y, you will need to isolate which Project Unit contains the primary data for the analysis of interest.
+
+```{r}
+# # Set parameters 
+# data <- ProjectUnitReport
+# query <- "Project Unit Report"
+# query_message <- "Multi Project Units" 
+# values_data <- data$Multi_PU
+# values_valid <- c("N", "Y")
+# values_check <- values_data %in% values_valid
+# 
+# # Identify errors
+# errors_ProjectUnitReport_MultiPU <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Project Unit Report Errors {.hidden}
+
+```{r}
+# errors_ProjectUnitReport <- unique(rbind(errors_ProjectUnitReport_Quotes, errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU))
+# 
+# remove(errors_ProjectUnitReport_Quotes, errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU)
+# 
+# if(nrow(errors_ProjectUnitReport) > 1) {
+#   errors_ProjectUnitReport <- errors_ProjectUnitReport %>%
+#     filter(Error != "No Error")
+# } else {
+#   errors_ProjectUnitReport <- errors_ProjectUnitReport}
+```
+
+# Sample Event Report
+
+[Problem:]{.underline} Sample Event Report is missing information or is inconsistent with the Macroplot Report
+
+[Procedure:]{.underline}
+
+-   Check that AdministrationUnit_Name is correct
+
+```{r}
+# Set parameters 
+data <- MetadataReport
+query <- "Sample Event Report"
+query_message <- "Administration Unit Name" 
+values_data <- data$AdministrationUnit_Name
+values_valid <- target_park
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SampleEventReport_AdministrationUnit <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Protocols contains the correct information
+
+```{r}
+# Set parameters 
+data <- MetadataReport %>% 
+  filter(!MonStatus %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
+query <- "Sample Event Report"
+query_message <- paste0("Date = ", data$SampleEventDate, ". Read = ", data$MonStatus, ". Protocol")
+values_data <- data$Protocol
+values_valid <- c("Surface Fuels", "Surface Fuels - 1000Hr", "Surface Fuels - Duff_Litter", "Surface Fuels - Fine", "Post Burn Severity (metric)", "Trees - Individuals (metric)", "Density - Quadrats (metric)", "Density - Belts (metric)", "Cover - Species Composition (metric)", "Cover - Points (metric)", "CBI")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SampleEventReport_Protocols <- qaqc(data, query, query_message, values_check)
+```
+
+```{r}
+data <- MetadataReport %>% 
+  filter(MonStatus %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
+query <- "Sample Event Report"
+query_message <- paste0("Date = ", data$SampleEventDate, ". Read = ", data$MonStatus, ". Protocol")
+values_data <- data$Protocol
+values_valid <- c("Disturbance History", NA)
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SampleEventReport_ProtocolsPost <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Visited = Y for each relevant monitoring status (excluding disturbance events: Burn, Herbicide, Mow, Mechanical)
+
+```{r}
+# Set parameters 
+data <- MetadataReport %>% 
+  filter(!MonStatus %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
+query <- "Sample Event Report"
+query_message <- paste0("Date = ", data$SampleEventDate, ". Read = ", data$MonStatus, ". Visited")
+values_data <- data$Visited
+values_valid <- "Y"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SampleEventReport_Visited_1 <- qaqc(data, query, query_message, values_check)
+```
+
+```{r}
+# Set parameters 
+data <- MetadataReport %>% 
+  filter(MonStatus %in% c("Burn", "Herbicide", "Mow", "Mechanical"),
+         Protocols != "Disturbance History")
+query <- "Sample Event Report"
+query_message <- paste0("Date = ", data$SampleEventDate, ". Read = ", data$MonStatus, ". Visited")
+values_data <- data$Visited
+values_valid <- "N"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SampleEventReport_Visited_2 <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Sample Event Report Errors {.hidden}
+
+```{r}
+errors_SampleEventReport <- unique(rbind(errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_ProtocolsPost, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2))
+
+remove(errors_SampleEventReport_Quotes, errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_ProtocolsPost, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2)
+
+if(nrow(errors_SampleEventReport) > 1) {
+  errors_SampleEventReport <- errors_SampleEventReport %>%
+    filter(Error != "No Error")
+} else {
+  errors_SampleEventReport <- errors_SampleEventReport}
+```
+
+# ALL ERRORS
+
+```{r}
+errors_all <- rbind(errors_MacroplotReport, errors_blank, errors_SampleEventReport)
+```
+
+```{r}
+# Create conditional formatting rules
+errors_all_cf <- errors_all %>% 
+  mutate(Color = ifelse(SavedQuery == "", NA, "Color"))
+
+# Add conditional formating to ouput
+errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:7]) %>%
+  rule_fill_discrete(columns = 1:6,
+                     expression = (errors_all_cf$Color),
+                     colours = c("Color"="#C6E0B4"),
+                     na.value = "#FFFFFF") %>%
+  select(!c("Color"))
+```
+
+```{r}
+# Table of results for quick check
+kable(errors_all, "pipe")
+
+# Save as CSV or XLSX 
+condformat2excel(errors_all, paste0(path_errors, paste0(target_park, "_errors_metadata.xlsx")), sheet_name = path_errors_name, overwrite_wb = TRUE)
+```

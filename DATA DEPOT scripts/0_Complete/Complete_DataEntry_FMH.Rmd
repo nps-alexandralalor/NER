@@ -1,0 +1,1267 @@
+---
+title: "QAQC for FMH Data"
+author: "Alexandra Lalor"
+output:
+  html_document:
+    theme: readable
+    highlight: 
+    toc: yes
+    toc_depth: 1
+    toc_float:
+      smooth_scroll: yes
+    code_download: true
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+# BEFORE STARTING
+
+This code is intended to quality check plot data for protocols listed below. This data can be downloaded via Query tab on the FFI Remote App Server by selecting each protocol/method and exporting the file.
+
+-   Surface Fuels - 1000Hr
+
+-   Surface Fuels - Duff_Litter
+
+-   Surface Fuels - Fine
+
+-   Post Burn Severity
+
+-   Trees - Individuals (metric)
+
+-   Density - Quadrats (metric)
+
+-   Density - Belts (metric)
+
+-   Cover - Species Composition (metric)
+
+-   Cover - Points (metric)
+
+### Install Packages (if needed) {.hidden}
+
+```{r}
+# install.packages("tidyverse")
+# install.packages("Rtools")
+# install.packages("janitor")
+# install.packages("condformat")
+# install.packages("knitr")
+# install.packages("here")
+# install.packages("EnvStats")
+```
+
+### Load Packages {.hidden}
+
+```{r}
+# tidyverse and dplyr have lots of useful functions for data cleaning
+library(tidyverse)
+library(dplyr)
+#library(plyr)
+# janitor has functions to find duplicates
+library(janitor)
+# EnvStats is needed for the rosnerTest() function
+library(EnvStats)
+# writexl is used to create excel output files
+library(writexl)
+# condformat is used to format excel output files
+library(condformat)
+# knitr is used to create output files from R Markdown
+library(knitr)
+# here is useful for easily finding the working directory of any project
+#library(here)
+```
+
+### Create Function {.hidden}
+
+```{r}
+# Create blank data frame as error log template
+errors_blank <- data.frame("SavedQuery" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+
+# Create error group. Duplicate errors will be grouped by these columns.
+errors_group <- c("SavedQuery", "Error")
+
+############################################################################################
+## Source Code
+#Pull in source code that creates QAQC functions and builds an empty error table.
+#source("C:/Users/allie/OneDrive/Desktop/R Projects/NER/scripts/1_QAQC/qaqc_function.R")
+
+
+# QAQC function
+qaqc <- function(data, query, query_message, values_check) {
+
+  # Check if there is data to QAQC
+  if(nrow(data) == 0) {
+  # If there is no data, default to "No Error" data frame
+  errors <- errors_blank %>%
+    mutate("SavedQuery" = query,
+           "Error" = "No Error")
+  # If there is data, perform error check
+} else {
+
+  # Use relevant dataset to look for errors
+  errors <- data %>%
+    # Add columns relevant to error checking
+           # Populate the "SavedQuery" column with the query name
+    mutate("SavedQuery" = query,
+           # Populate the "Error" column with the query message and relevant data
+           "Error" = paste(query_message, "=", values_data),
+           # Create a blank "Fixed" column
+           "Fixed" = "",
+           # Create a blank "Explanation" column
+           "Explanation" = "",
+           # Create a blank "Queryers" column
+           "Queryers" = "") %>%
+    # Filter for data which is "false" (data does not match valid conditions)
+    # NA values are treated as "false" (missing data is not valid)
+    filter(!(values_check %>% replace_na(FALSE))) %>%
+    # Select relevant columns to view errors
+    select(colnames(errors_blank))
+
+  # Next, check if there are duplicate errors
+  errors_temp <- errors %>%
+    get_dupes(errors_group)
+  # Merge duplicate errors
+  errors <- unique(merge(errors, errors_temp, all = T))
+  # If duplicate errors exist, add number of duplicates to error message
+  errors <- errors %>%
+    mutate(Error = ifelse(is.na(dupe_count), Error, paste0("(x", dupe_count, ") ", Error))) %>%
+    select(!"dupe_count")
+}
+
+  # Check if there are no errors
+  if (nrow(errors) == 0) {
+    # If there are no errors, default to "No Error" data frame
+    errors <- errors_blank %>%
+      mutate(SavedQuery = query,
+             Error = "No Error")
+    # If there are errors, keep error log you just created
+  } else {
+    errors <- errors
+  }
+}
+```
+
+### Target Values {.hidden}
+
+```{r}
+# designate target park(s)
+target_park <- "SHEN"
+#years <- c(2025)
+```
+
+### Adjust File Paths {.hidden}
+
+Make sure to update file paths to be specific for your data.
+
+```{r}
+# adjust file paths
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
+path_errors <- paste0(path_main, "QAQC/", target_park, "/")
+path_errors_name <- paste0(target_park, " Data QAQC Errors")
+```
+
+### Load Data {.hidden}
+
+```{r}
+# Load in data
+Fuels1000_all <- read.csv(paste0(path_data, "Surface Fuels - 1000Hr_XPT.csv"), quote = "")
+FuelsDuffLitt_all <- read.csv(paste0(path_data, "Surface Fuels - Duff_Litter_XPT.csv"), quote = "")
+FuelsFine_all <- read.csv(paste0(path_data, "Surface Fuels - Fine_XPT.csv"), quote = "")
+PostBurn_all <- read.csv(paste0(path_data, "Post Burn Severity (metric)_XPT.csv"), quote = "")
+Trees_all <- read.csv(paste0(path_data, "Trees - Individuals (metric)_XPT.csv"), quote = "")
+Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), quote = "")
+Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), quote = "")
+HerbsSpComp_all <- read.csv(paste0(path_data, "Cover - Species Composition (metric)_XPT.csv"), quote = "")
+HerbsPoints_all <- read.csv(paste0(path_data, "Cover - Points (metric)_XPT.csv"), quote = "")
+
+# # Drop last column if it's an empty placeholder (common in Excel exports)
+# Fuels1000_all <- Fuels1000_all[, -ncol(Fuels1000_all)]
+# FuelsDuffLitt_all <- FuelsDuffLitt_all[, -ncol(FuelsDuffLitt_all)]
+# FuelsFine_all <- FuelsFine_all[, -ncol(FuelsFine_all)]
+# PostBurn_all <- PostBurn_all[, -ncol(PostBurn_all)]
+# Trees_all <- Trees_all[, -ncol(Trees_all)]
+# Seedlings_all <- Seedlings_all[, -ncol(Seedlings_all)]
+# Shrubs_all <- Shrubs_all[, -ncol(Shrubs_all)]
+# HerbsSpComp_all <- HerbsSpComp_all[, -ncol(HerbsSpComp_all)]
+# HerbsPoints_all <- HerbsPoints_all[, -ncol(HerbsPoints_all)]
+```
+
+### Clean Data {.hidden}
+
+```{r}
+# #####
+# # Fuels1000
+# #####
+# # Reformat date column
+# Fuels1000_all <- Fuels1000_all %>%
+#   # Separate Date column
+#   separate(Date, sep = " ", into = c("Date", "Time")) %>%
+#   separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+#   # Reformat Date column
+#   mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+#   # Remove Month, Day, and Time columns
+#   select(!c("Month", "Day", "Time"))
+# 
+# #####
+# # FuelsDuffLitt
+# #####
+# # Reformat date column
+# FuelsDuffLitt_all <- FuelsDuffLitt_all %>%  
+#   # Separate Date column
+#   separate(Date, sep = " ", into = c("Date", "Time")) %>%
+#   separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+#   # Reformat Date column
+#   mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+#   # Remove Month, Day, and Time columns
+#   select(!c("Month", "Day", "Time"))
+# 
+# #####
+# # FuelsFine
+# #####
+# # Reformat date column
+# FuelsFine_all <- FuelsFine_all %>%
+#   # Separate Date column
+#   separate(Date, sep = " ", into = c("Date", "Time")) %>%
+#   separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+#   # Reformat Date column
+#   mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+#   # Remove Month, Day, and Time columns
+#   select(!c("Month", "Day", "Time"))
+# 
+# #####
+# # PostBurn
+# #####
+# # Reformat date column
+# PostBurn_all <- PostBurn_all %>%
+#   # Separate Date column
+#   separate(Date, sep = " ", into = c("Date", "Time")) %>%
+#   separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+#   # Reformat Date column
+#   mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+#   # Remove Month, Day, and Time columns
+#   select(!c("Month", "Day", "Time"))
+# 
+# #####
+# # Trees
+# #####
+# # Reformat date column
+# Trees_all <- Trees_all %>%
+#   # Separate Date column
+#   separate(Date, sep = " ", into = c("Date", "Time")) %>%
+#   separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+#   # Reformat Date column
+#   mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+#   # Remove Month, Day, and Time columns
+#   select(!c("Month", "Day", "Time"))
+# 
+# #####
+# # Seedlings
+# #####
+# # Reformat date column
+# Seedlings_all <- Seedlings_all %>%
+#   # Separate Date column
+#   separate(Date, sep = " ", into = c("Date", "Time")) %>%
+#   separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+#   # Reformat Date column
+#   mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+#   # Remove Month, Day, and Time columns
+#   select(!c("Month", "Day", "Time"))
+# 
+# #####
+# # Shrubs
+# #####
+# # Reformat date column
+# Shrubs_all <- Shrubs_all %>%
+#   # Separate Date column
+#   separate(Date, sep = " ", into = c("Date", "Time")) %>%
+#   separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+#   # Reformat Date column
+#   mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+#   # Remove Month, Day, and Time columns
+#   select(!c("Month", "Day", "Time"))
+# 
+# #####
+# # HerbsSpComp
+# #####
+# # Reformat date column
+# HerbsSpComp_all <- HerbsSpComp_all %>%
+#   # Separate Date column
+#   separate(Date, sep = " ", into = c("Date", "Time")) %>%
+#   separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+#   # Reformat Date column
+#   mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+#   # Remove Month, Day, and Time columns
+#   select(!c("Month", "Day", "Time"))
+# 
+# #####
+# # HerbsPoints
+# #####
+# # Reformat date column
+# HerbsPoints_all <- HerbsPoints_all %>%
+#   # Separate Date column
+#   separate(Date, sep = " ", into = c("Date", "Time")) %>%
+#   separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+#   # Reformat Date column
+#   mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+#   # Remove Month, Day, and Time columns
+#   select(!c("Month", "Day", "Time"))
+```
+
+### Filter Data {.hidden}
+
+```{r}
+#####
+# Fuels1000
+#####
+# Ensure blanks in Visited column are NA
+Fuels1000_all$Visited[Fuels1000_all$Visited==""] <- NA
+# Fuels1000 data
+Fuels1000_data <- Fuels1000_all %>%
+  filter(is.na(Visited))
+# Fuels1000 headers
+Fuels1000_header <- Fuels1000_all %>%
+  filter(!is.na(Visited))
+
+#####
+# FuelsDuffLitt
+#####
+# Ensure blanks in Visited column are NA 
+FuelsDuffLitt_all$Visited[FuelsDuffLitt_all$Visited==""] <- NA 
+# FuelsDuffLitt data
+FuelsDuffLitt_data <- FuelsDuffLitt_all %>%
+  filter(is.na(Visited))
+# FuelsDuffLitt headers
+FuelsDuffLitt_header <- FuelsDuffLitt_all %>%
+  filter(!is.na(Visited))
+
+#####
+# FuelsFine
+#####
+# Ensure blanks in Visited column are NA 
+FuelsFine_all$Visited[FuelsFine_all$Visited==""] <- NA  
+# FuelsFine data
+FuelsFine_data <- FuelsFine_all %>%
+  filter(is.na(Visited))
+# FuelsFine headers
+FuelsFine_header <- FuelsFine_all %>%
+  filter(!is.na(Visited))
+
+#####
+# PostBurn
+#####
+# Ensure blanks in Visited column are NA
+PostBurn_all$Visited[PostBurn_all$Visited==""] <- NA
+# PostBurn data
+PostBurn_data <- PostBurn_all %>%
+  filter(is.na(Visited))
+# PostBurn headers
+PostBurn_header <- PostBurn_all %>%
+  filter(!is.na(Visited))
+
+#####
+# Trees
+#####
+# Ensure blanks in Visited column are NA 
+Trees_all$Visited[Trees_all$Visited==""] <- NA  
+# Trees data
+Trees_data <- Trees_all %>%
+  filter(is.na(Visited))
+# Trees headers
+Trees_header <- Trees_all %>%
+  filter(!is.na(Visited))
+
+#####
+# Seedlings
+#####
+# Ensure blanks in Visited column are NA
+Seedlings_all$Visited[Seedlings_all$Visited==""] <- NA
+# Seedlings data
+Seedlings_data <- Seedlings_all %>%
+  filter(is.na(Visited))
+# Seedlings headers
+Seedlings_header <- Seedlings_all %>%
+  filter(!is.na(Visited))
+
+#####
+# Shrubs
+#####
+# Ensure blanks in Visited column are NA
+Shrubs_all$Visited[Shrubs_all$Visited==""] <- NA
+# Shrubs data
+Shrubs_data <- Shrubs_all %>%
+  filter(is.na(Visited))
+# Shrubs headers
+Shrubs_header <- Shrubs_all %>%
+  filter(!is.na(Visited))
+
+#####
+# HerbsSpComp
+#####
+# Ensure blanks in Visited column are NA
+HerbsSpComp_all$Visited[HerbsSpComp_all$Visited==""] <- NA
+# HerbsSpComp data
+HerbsSpComp_data <- HerbsSpComp_all %>%
+  filter(is.na(Visited))
+# HerbsSpComp headers
+HerbsSpComp_header <- HerbsSpComp_all %>%
+  filter(!is.na(Visited))
+
+#####
+# HerbsPoints
+#####
+# Ensure blanks in Visited column are NA
+HerbsPoints_all$Visited[HerbsPoints_all$Visited==""] <- NA
+# HerbsPoints data
+HerbsPoints_data <- HerbsPoints_all %>%
+  filter(is.na(Visited))
+# HerbsPoints headers
+HerbsPoints_header <- HerbsPoints_all %>%
+  filter(!is.na(Visited))
+```
+
+# Selected park: [`r target_park`]{style="color:red"}
+
+# PROTOCOL - SURFACE FUELS
+
+## 1000HR (CWD)
+
+This code conducts quality control checks on coarse woody debris (CWD) surface fuels data within the "Surface Fuels - 1000Hr" data set.
+
+[Problem:]{.underline} Extra or missing data points in FMH plots. Plots with no course woody debris should be verified. Or data includes symbols which will cause issues later on.
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- Fuels1000_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(Fuels1000_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Fuel 1000"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Fuels1000_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Commas = FALSE
+
+```{r}
+# Set parameters 
+data <- Fuels1000_all %>% 
+  mutate(Commas = pmap_lgl(as.list(Fuels1000_all), 
+    ~ any(str_detect(c(...), '[,]')))) %>% 
+  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
+query <- "Fuel 1000"
+query_message <- "Commas"
+values_data <- data$Commas
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Fuels1000_Commas <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that columns match expected
+
+```{r}
+# Set parameters 
+data <- Fuels1000_all
+values_data <- names(data)
+values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Slope","LogNum","Dia","DecayCl","CWDFuConSt","Comment","UV1","UV2","UV3","NumTran","TranLen","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Visited")
+MissingColumn <- setdiff(values_data, values_valid)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
+
+data$MissingColumn <- MissingColumn
+query <- "Fuel 1000"
+query_message <- "Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Fuels1000_Columns <- qaqc(data, query, query_message, values_check)
+```
+
+-   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits \> 0
+
+```{r}
+# Filter NA values. Add number of hits and store in new column
+data_temp1 <- Fuels1000_data %>%
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarize("sum_hits" = n())
+
+data_temp2 <- Fuels1000_header %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise()
+
+data_temp <- merge(data_temp1, data_temp2, by = c("MacroPlot.Name","Date"), all = TRUE)
+data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
+remove(data_temp1, data_temp2)
+
+# Set parameters 
+data <- merge(Fuels1000_header, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Fuel 1000" 
+query_message <- paste0(data$MacroPlot.Name, ". Date = ",data$Date, ". Sample Event Comment = ", data$SaComment, ". Sample Event UV1 = ", data$UV1Desc, ". CWD")
+values_data <- data$sum_hits
+values_valid <- 0
+values_check <- values_data > values_valid
+
+# Identify errors
+errors_Fuels1000_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Fuels 1000 Errors {.hidden}
+
+```{r}
+# Combine
+errors_Fuels1000 <- unique(rbind(errors_Fuels1000_Quotes, errors_Fuels1000_Commas, errors_Fuels1000_Columns, errors_Fuels1000_NoData))
+
+remove(errors_Fuels1000_Quotes, errors_Fuels1000_Commas, errors_Fuels1000_Columns, errors_Fuels1000_NoData)
+
+if(nrow(errors_Fuels1000) > 1) {
+  errors_Fuels1000 <- errors_Fuels1000 %>%
+    filter(Error != "No Error")
+} else {
+  errors_Fuels1000 <- errors_Fuels1000}
+```
+
+## DUFF LITTER (DL)
+
+This code conducts quality control checks on duff litter (DL) surface fuels data within the "Surface Fuels - Duff_Litter" data set.
+
+[Problem:]{.underline} Extra or missing data points in FMH plots. There should be 4 transects with 10 sample points per transect. Or data includes symbols which will cause issues later on.
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- FuelsDuffLitt_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(FuelsDuffLitt_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Fuel DL Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_FuelsDuffLitt_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Commas = FALSE
+
+```{r}
+
+```
+
+-   Check that columns match expected
+
+```{r}
+
+```
+
+-   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits = 40
+
+```{r}
+# Filter NA values. Add number of hits and store in new column
+data_temp1 <- FuelsDuffLitt_data %>%
+  filter(!is.na(LittDep)) %>%
+  filter(!is.na(DuffDep)) %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise("sum_hits" = n())
+
+data_temp2 <- FuelsDuffLitt_header %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise()
+
+data_temp <- merge(data_temp1, data_temp2, by = c("MacroPlot.Name","Date"), all = TRUE)
+data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
+remove(data_temp1, data_temp2)
+
+# Set parameters 
+data <- merge(FuelsDuffLitt_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Fuel DL Complete" 
+query_message <- "Complete Sample Locations"
+values_data <- data$sum_hits
+values_valid <- 40
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_FuelsDuffLitt_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Fuels Duff Litter Errors {.hidden}
+
+```{r}
+# Combine
+errors_FuelsDuffLitt <- unique(rbind(errors_FuelsDuffLitt_Quotes))
+
+remove()
+
+if(nrow(errors_FuelsDuffLitt) > 1) {
+  errors_FuelsDuffLitt <- errors_FuelsDuffLitt %>%
+    filter(Error != "No Error")
+} else {
+  errors_FuelsDuffLitt <- errors_FuelsDuffLitt}
+```
+
+## FINE FUELS (FWD)
+
+This code conducts quality control checks on fine woody debris (FWD) surface fuels data within the "Surface Fuels - Fine" data set.
+
+[Problem:]{.underline} Extra or missing data points in FMH plots. There should be 4 transects with 1 sample point per transect. Or data includes symbols which will cause issues later on.
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- FuelsFine_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(FuelsFine_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Fuel Fine Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_FuelsFine_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Commas = FALSE
+
+```{r}
+
+```
+
+-   Check that columns match expected
+
+```{r}
+
+```
+
+-   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits = 4
+
+```{r}
+# Filter NA values. Add number of hits and store in new column
+data_temp1 <- FuelsFine_data %>%
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarize("sum_hits" = n())
+
+data_temp2 <- FuelsFine_header %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise()
+
+data_temp <- merge(data_temp1, data_temp2, by = c("MacroPlot.Name","Date"), all = TRUE)
+data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
+remove(data_temp1, data_temp2)
+
+# Set parameters 
+data <- merge(FuelsFine_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Fuel Fine Complete" 
+query_message <- "Complete Transects" 
+values_data <- data$sum_hits
+values_valid <- 4
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_FuelsFine_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Fuels Fine Errors {.hidden}
+
+```{r}
+# Combine
+errors_FuelsFine <- unique(rbind())
+
+remove()
+
+if(nrow(errors_FuelsFine) > 1) {
+  errors_FuelsFine <- errors_FuelsFine %>%
+    filter(Error != "No Error")
+} else {
+  errors_FuelsFine <- errors_FuelsFine}
+```
+
+# PROTOCOL - POST BURN
+
+This code conducts quality control checks on post burn data within the "Post Burn Severity" data set.
+
+[Problem:]{.underline} Extra or missing data points in FMH plots. There should be 4 transects with 10 sample points per transect. Or data includes symbols which will cause issues later on.
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- PostBurn_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(PostBurn_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "PBSev Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_PostBurn_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Commas = FALSE
+
+```{r}
+
+```
+
+-   Check that columns match expected
+
+```{r}
+
+```
+
+-   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits = 40
+
+```{r}
+# Filter NA values. Add number of hits and store in new column
+data_temp1 <- PostBurn_data %>%
+  filter(!is.na(Veg)) %>%
+  filter(!is.na(Sub)) %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise("sum_hits" = n())
+
+data_temp2 <- PostBurn_header %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise()
+
+data_temp <- merge(data_temp1, data_temp2, by = c("MacroPlot.Name","Date"), all = TRUE)
+data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
+remove(data_temp1, data_temp2)
+
+# Set parameters 
+data <- merge(PostBurn_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "PBSev Complete" 
+query_message <- "Complete Sample Locations"
+values_data <- data$sum_hits
+values_valid <- 40
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_PostBurn_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Post Burn Errors {.hidden}
+
+```{r}
+# Combine
+errors_PostBurn <- unique(rbind())
+
+remove()
+
+if(nrow(errors_PostBurn) > 1) {
+  errors_PostBurn <- errors_PostBurn %>%
+    filter(Error != "No Error")
+} else {
+  errors_PostBurn <- errors_PostBurn}
+```
+
+# PROTOCOL - TREES
+
+This code conducts quality control checks on tree data within the "Trees - Individuals (metric)" data set.
+
+[Problem:]{.underline} Missing data points in FMH plots. Plots with no trees should be verified. Or data includes symbols which will cause issues later on.
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- Trees_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(Trees_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Trees Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Trees_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Commas = FALSE
+
+```{r}
+
+```
+
+-   Check that columns match expected
+
+```{r}
+
+```
+
+-   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits \> 0
+
+```{r}
+# Filter NA values. Add number of hits and store in new column
+data_temp1 <- Trees_data %>%
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarize("sum_hits" = n())
+
+data_temp2 <- Trees_header %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise()
+
+data_temp <- merge(data_temp1, data_temp2, by = c("MacroPlot.Name","Date"), all = TRUE)
+data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
+remove(data_temp1, data_temp2)
+
+# Set parameters 
+data <- merge(Trees_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Trees Complete" 
+query_message <- "Trees" 
+values_data <- data$sum_hits
+values_valid <- 0
+values_check <- values_data > values_valid
+
+# Identify errors
+errors_Trees_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Trees Errors {.hidden}
+
+```{r}
+# Combine
+errors_Trees <- unique(rbind())
+
+remove()
+
+if(nrow(errors_Trees) > 1) {
+  errors_Trees <- errors_Trees_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_Trees <- errors_Trees}
+```
+
+# PROTOCOL - SEEDLINGS
+
+This code conducts quality control checks on seedling data within the "Density - Quadrats (metric)" data set.
+
+[Problem:]{.underline} Missing data points in FMH plots. Plots with no seedlings should be verified. Or data includes symbols which will cause issues later on.
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- Seedlings_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(Seedlings_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Dens Quad Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Seedlings_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Commas = FALSE
+
+```{r}
+
+```
+
+-   Check that columns match expected
+
+```{r}
+
+```
+
+-   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits \> 0
+
+```{r}
+# Filter NA values. Add number of hits and store in new column
+data_temp1 <- Seedlings_data %>%
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarize("sum_hits" = n())
+
+data_temp2 <- Seedlings_header %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise()
+
+data_temp <- merge(data_temp1, data_temp2, by = c("MacroPlot.Name","Date"), all = TRUE)
+data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
+remove(data_temp1, data_temp2)
+
+# Set parameters 
+data <- merge(Seedlings_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Dens Quad Complete" 
+query_message <- "Seedlings" 
+values_data <- data$sum_hits
+values_valid <- 0
+values_check <- values_data > values_valid
+
+# Identify errors
+errors_Seedlings_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Seedlings Errors {.hidden}
+
+```{r}
+# Combine
+errors_Seedlings <- unique(rbind())
+
+remove()
+
+if(nrow(errors_Seedlings) > 1) {
+  errors_Seedlings <- errors_Seedlings %>%
+    filter(Error != "No Error")
+} else {
+  errors_Seedlings <- errors_Seedlings}
+```
+
+# PROTOCOL - SHRUBS
+
+This code conducts quality control checks on shrub data within the "Density - Belts (metric)" data set.
+
+[Problem:]{.underline} Missing data points in FMH plots. Plots with no shrubs should be verified. Or data includes symbols which will cause issues later on.
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- Shrubs_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(Shrubs_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Dens Belts Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Shrubs_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Commas = FALSE
+
+```{r}
+
+```
+
+-   Check that columns match expected
+
+```{r}
+
+```
+
+-   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits \> 0
+
+```{r}
+# Filter NA values. Add number of hits and store in new column
+data_temp1 <- Shrubs_data %>%
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarize("sum_hits" = n())
+
+data_temp2 <- Shrubs_header %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise()
+
+data_temp <- merge(data_temp1, data_temp2, by = c("MacroPlot.Name","Date"), all = TRUE)
+data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
+remove(data_temp1, data_temp2)
+
+# Set parameters 
+data <- merge(Shrubs_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Dens Belts Complete" 
+query_message <- "Shrubs" 
+values_data <- data$sum_hits
+values_valid <- 0
+values_check <- values_data > values_valid
+
+# Identify errors
+errors_Shrubs_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Shrubs Errors {.hidden}
+
+```{r}
+# Combine
+errors_Shrubs <- unique(rbind())
+
+remove()
+
+if(nrow(errors_Shrubs) > 1) {
+  errors_Shrubs <- errors_Shrubs %>%
+    filter(Error != "No Error")
+} else {
+  errors_Shrubs <- errors_Shrubs}
+```
+
+# PROTOCOL - HERBS SPECIES COMP
+
+This code conducts quality control checks on observed herbaceous data within the "Cover - Species Composition (metric)" data set.
+
+[Problem:]{.underline} Missing data points in FMH plots. Plots with no observed herbs should be verified. Or data includes symbols which will cause issues later on.
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- HerbsSpComp_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(HerbsSpComp_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Cvr SpComp Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsSpComp_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Commas = FALSE
+
+```{r}
+
+```
+
+-   Check that columns match expected
+
+```{r}
+
+```
+
+-   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits \> 0
+
+```{r}
+# Filter NA values. Add number of hits and store in new column
+data_temp1 <- HerbsSpComp_data %>%
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarize("sum_hits" = n())
+
+data_temp2 <- HerbsSpComp_header %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise()
+
+data_temp <- merge(data_temp1, data_temp2, by = c("MacroPlot.Name","Date"), all = TRUE)
+data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
+remove(data_temp1, data_temp2)
+
+# Set parameters 
+data <- merge(HerbsSpComp_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Cvr SpComp Complete" 
+query_message <- "Species" 
+values_data <- data$sum_hits
+values_valid <- 0
+values_check <- values_data > values_valid
+
+# Identify errors
+errors_HerbsSpComp_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Herbs Species Comp Errors {.hidden}
+
+```{r}
+# Combine
+errors_HerbsSpComp<- unique(rbind())
+
+remove()
+
+if(nrow(errors_HerbsSpComp) > 1) {
+  errors_HerbsSpComp <- errors_HerbsSpComp %>%
+    filter(Error != "No Error")
+} else {
+  errors_HerbsSpComp <- errors_HerbsSpComp}
+```
+
+# PROTOCOL - HERBS POINTS
+
+This code conducts quality control checks on point line intercept herbaceous data within the "Cover - Points (metric)" data set.
+
+[Problem:]{.underline} Extra of missing data points in FMH plots. There should be 166 rows with Order = 1 for each transect. Or data includes symbols which will cause issues later on.
+
+[Procedure:]{.underline}
+
+-   Check that Quotes = FALSE
+
+```{r}
+# Set parameters 
+data <- HerbsPoints_all %>% 
+  mutate(Quotes = pmap_lgl(as.list(HerbsPoints_all), 
+    ~ any(str_detect(c(...), '["]')))) %>% 
+  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
+query <- "Cvr Pts Complete"
+query_message <- "Quotes"
+values_data <- data$Quotes
+values_valid <- FALSE
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsPoints_Quotes <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Commas = FALSE
+
+```{r}
+
+```
+
+-   Check that columns match expected
+
+```{r}
+
+```
+
+-   Filter by Order = 1. Group by Macroplot, Date, and Transect. Calculate number of hits per plot. Check that sum_hits = 166
+
+```{r}
+# Filter NA values. Add number of hits and store in new column
+data_temp1 <- HerbsPoints_data %>%
+  filter(Order == 1) %>% 
+  group_by(MacroPlot.Name, Date, Transect) %>% 
+  dplyr::summarize("sum_hits" = n())
+
+data_temp2 <- HerbsPoints_header %>% 
+  group_by(MacroPlot.Name, Date) %>% 
+  dplyr::summarise()
+
+data_temp_transects <- as.data.frame(1:2)
+colnames(data_temp_transects) <- "Transect"
+data_temp2 <- merge(data_temp2, data_temp_transects) %>% 
+  arrange(MacroPlot.Name, Date, Transect)
+
+data_temp <- merge(data_temp1, data_temp2, by = c("MacroPlot.Name","Date", "Transect"), all = TRUE)
+data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
+remove(data_temp1, data_temp2, data_temp_transects)
+
+# Set parameters 
+data <- merge(HerbsPoints_data, data_temp, by = c("MacroPlot.Name", "Date", "Transect"), all = T)
+query <- "Cvr Pts Complete" 
+query_message <- paste0("Transect = ", data$Transect, ". ", "Total Points") 
+values_data <- data$sum_hits
+values_valid <- 166
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsPoints_NoData <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Herbs Points Errors {.hidden}
+
+```{r}
+# Combine
+errors_HerbsPoints <- unique(rbind())
+
+remove()
+
+if(nrow(errors_HerbsPoints) > 1) {
+  errors_HerbsPoints <- errors_HerbsPoints %>%
+    filter(Error != "No Error")
+} else {
+  errors_HerbsPoints <- errors_HerbsPoints}
+```
+
+# ALL ERRORS
+
+```{r}
+# Create protocol separators
+errors_blank_Fuels1000 <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - FUEL 1000")
+
+errors_blank_FuelsDuffLitt <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - FUEL DUFF LITTER")
+
+errors_blank_FuelsFine <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - FUEL FINE")
+
+errors_blank_PostBurn <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - POST BURN")
+
+errors_blank_Trees <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - TREES")
+
+errors_blank_Seedlings <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - SEEDLINGS")
+
+errors_blank_Shrubs <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - SHRUBS")
+
+errors_blank_HerbsSpComp <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - HERBS OBSERVED")
+
+errors_blank_HerbsPoints <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - HERBS POINTS")
+```
+
+```{r}
+# Save to master error list 
+errors_all <- rbind(errors_blank_Fuels1000, errors_blank, errors_Fuels1000, errors_blank, errors_blank_FuelsDuffLitt, errors_blank, errors_FuelsDuffLitt, errors_blank, errors_blank_FuelsFine, errors_blank, errors_FuelsFine, errors_blank, errors_blank_PostBurn, errors_blank, errors_PostBurn, errors_blank, errors_blank_Trees, errors_blank, errors_Trees, errors_blank, errors_blank_Seedlings, errors_blank, errors_Seedlings, errors_blank, errors_blank_Shrubs, errors_blank, errors_Shrubs, errors_blank, errors_blank_HerbsSpComp, errors_blank, errors_HerbsSpComp, errors_blank, errors_blank_HerbsPoints, errors_blank, errors_HerbsPoints)
+```
+
+```{r}
+# Create conditional formatting rules
+data_temp <- as.data.frame(grepl("PBSev", errors_all$SavedQuery, fixed = TRUE) | grepl(" Post", errors_all$SavedQuery, fixed = TRUE))
+colnames(data_temp) <- c("Color")
+errors_all_cf <- cbind(errors_all, data_temp)
+
+errors_all_cf <- errors_all_cf %>% 
+  mutate(Color = ifelse(SavedQuery == "", NA, Color)) %>% 
+  mutate(Color = ifelse((grepl("PROTOCOL", errors_all_cf$SavedQuery) == TRUE), "Protocol", Color)) %>% 
+  mutate(Color = ifelse(Color == FALSE, "Standard", Color)) %>% 
+  mutate(Color = ifelse(Color == TRUE, "Post", Color))
+
+# Add conditional formating to ouput
+errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:9]) %>%
+  rule_fill_discrete(columns = 1:8,
+                     expression = (errors_all_cf$Color),
+                     colours = c("Standard"="#C6E0B4",
+                                 "Post"="#FFC000",
+                                 "Protocol" = "#969696"),
+                     na.value = "#FFFFFF") %>% 
+  select(!(Color))
+```
+
+```{r}
+# Table of results for quick check
+#kable(errors_all, "pipe")
+
+# Save as CSV or XLSX 
+#condformat2excel(errors_all, paste0(path_errors, target_park, "_errors_data_FMH.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+```

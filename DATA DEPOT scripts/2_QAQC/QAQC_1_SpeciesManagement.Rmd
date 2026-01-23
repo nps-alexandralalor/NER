@@ -1,0 +1,469 @@
+---
+title: "QAQC MetaData"
+author: "Alexandra Lalor"
+output:
+  html_document:
+    theme: readable
+    highlight: 
+    toc: yes
+    toc_depth: 1
+    toc_float:
+      smooth_scroll: yes
+    code_download: true
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+# Before Starting
+
+This code is intended to quality check species metadata, including the Local Species Report. This report can be downloaded via the Species menu on the Species Management tab on the FFI Remote App Server.
+
+### Setup {.hidden}
+
+```{r setup, include=FALSE}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r install packages, include=FALSE}
+## Install packages (if needed)
+
+# install.packages("tidyverse")
+# install.packages("Rtools")
+# install.packages("janitor")
+# install.packages("condformat")
+# install.packages("knitr")
+# install.packages("here")
+```
+
+```{r load packages, include=FALSE}
+## Load Packages
+
+# tidyverse and dplyr have lots of useful functions for data cleaning
+library(tidyverse)
+library(dplyr)
+library(plyr)
+# janitor has functions to find duplicates
+library(janitor)
+# writexl is used to create excel output files
+library(writexl)
+# condformat is used to format excel output files
+library(condformat)
+# knitr is used to create output files from R Markdown
+library(knitr)
+```
+
+### Create Function {.hidden}
+
+```{r}
+# Create blank data frame as error log template
+errors_blank <- data.frame("SavedQuery" = "", "ReportType" = "", "LocalSpecies_Symbol" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+
+# Create error group. Duplicate errors will be grouped by these columns.
+errors_group <- c("SavedQuery", "LocalSpecies_Symbol", "Error")
+
+############################################################################################
+## Source Code
+#Pull in source code that creates QAQC functions and builds an empty error table.
+#source("C:/Users/allie/OneDrive/Desktop/R Projects/NER/scripts/1_QAQC/qaqc_function.R")
+
+
+# QAQC function
+qaqc <- function(data, query, query_message, values_check) {
+
+  # Check if there is data to QAQC
+  if(nrow(data) == 0) {
+  # If there is no data, default to "No Error" data frame
+  errors <- errors_blank %>%
+    mutate("SavedQuery" = query,
+           "Error" = "No Error")
+  # If there is data, perform error check
+} else {
+
+  # Use relevant dataset to look for errors
+  errors <- data %>%
+    # Add columns relevant to error checking
+           # Populate the "SavedQuery" column with the query name
+    mutate("SavedQuery" = query,
+           # Populate the "Error" column with the query message and relevant data
+           "Error" = paste(query_message, "=", values_data),
+           # Create a blank "Fixed" column
+           "Fixed" = "",
+           # Create a blank "Explanation" column
+           "Explanation" = "",
+           # Create a blank "Queryers" column
+           "Queryers" = "") %>%
+    # Filter for data which is "false" (data does not match valid conditions)
+    # NA values are treated as "false" (missing data is not valid)
+    filter(!(values_check %>% replace_na(FALSE))) %>%
+    # Select relevant columns to view errors
+    select(colnames(errors_blank))
+
+  # Next, check if there are duplicate errors
+  errors_temp <- errors %>%
+    get_dupes(errors_group)
+  # Merge duplicate errors
+  errors <- unique(merge(errors, errors_temp, all = T))
+  # If duplicate errors exist, add number of duplicates to error message
+  errors <- errors %>%
+    mutate(Error = ifelse(is.na(dupe_count), Error, paste0("(x", dupe_count, ") ", Error))) %>%
+    select(!"dupe_count")
+}
+
+  # Check if there are no errors
+  if (nrow(errors) == 0) {
+    # If there are no errors, default to "No Error" data frame
+    errors <- errors_blank %>%
+      mutate(SavedQuery = query,
+             Error = "No Error")
+    # If there are errors, keep error log you just created
+  } else {
+    errors <- errors
+  }
+}
+```
+
+### Target Park {.hidden}
+
+```{r}
+# designate target park(s)
+target_park <- "ALL"
+```
+
+### Adjust File Paths {.hidden}
+
+```{r import data, include=FALSE}
+# adjust file paths
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
+path_errors <- paste0(path_main, "QAQC/", target_park, "/")
+path_errors_name <- paste0(target_park, " Species QAQC Errors")
+```
+
+### Load Data {.hidden}
+
+```{r load data, include=FALSE}
+## Load Data
+SpeciesReport <- read.csv(paste0(path_data, "SpeciesReport.csv"))
+```
+
+### Define Codes {.hidden}
+
+```{r}
+unknowns_genus <- c("ACALY","ACALYP","ACASPP","ACER","ACHILLEA","AGESPP","AGROS","AGRSPP","ALLIUM","ALLSPP","AMELA","AMESPP","ANDRO","ANDROP","ANDSPP","ANEMO","ANESPP","ANTEN","ANTENN","ANTSPP","APOCY","APOCYNUM","ARABIS","ARALI","ARISPP","ARIST","ASCLE","ASCLEPIAS","ASCSPP","ASPSPP","ASTER","ASTERACEAE","ASTEspp","BETULA","BIDENS","BOTRY","BOTRYCH","BOTSPP","BRASSICACE","BRASPP","BRASS2","BROMU","bromus","BROMUS","BROSPP","CALAM","CALYSTEGIA","CARDA","CAREX","CAREX2","CARSPP","CARSP1","CARSPP2","CARSP2","CARSP3","CARYA","CASSPP","CENTAUREA","CHIMA","CIRCAE","CIRSI","CIRSPP","CLISPP","CONVO","CONVOL","CONVOLVULU","CONVULVULA","CORNspp","CORSPP","CORNU","CORNUS","CRASPP","CRATA","CRATAEGUS","CUSCU","CUSCUTA","CUSSPP","CYPER","CYPSPP","DANSPP","DATSP","DDTREE","DESMO","DESMODIUM","DESSPP","DICHAN","DICHANTHEL","DICSPP","DICSP1","DICSPP1","DICSP2","DICSPP2","DICSPP3","DICSP5","DIGITA","DIGSPP1","DIGSPP","DIOSC","DIOSPP","ELEOCHARIS","ELESPP","ELYMUS","EPILOBIUM","EPISPP","EPISP1","ERAGR","ERASPP","ERAGROSTIS","ERIGE2","ERIGERON","ERISP","ERISPP","EUPATOR","EUPATORIUM","EUPSPP","EURSPP","EURYB","FABSPP","FABA","FESTUC","FESTUCA","FIMBRI","FRASPP","FRAXINUS","FRAXspp","GALIU","GALIUM","GALSP","GALSPP","GENTI","GEUM","GLYCERIA","GNASPP","HELIAN","HEPAT","HIERA","HIERAC","HIERACIUM","HIESPP","HOUSTO","HYPER","HYPERICUM","HYPPER","HYPSPP","IMPATIENS","IPOMO","IPOMOE","IPOMOEA","IPOSPP","IRIS","JUNCUS","JUNIspp","JUNSPP","KRIGI","LACSPP","LACTU","LAMSPP","LESPE","LESSPP","LIASPP","LIATR","LINSPP","LINUM","LITHO3","LONIC","LONICE","LONICERA","LONSPP","LOTUS","LYCHN","LYCOPODIUM","LYCOPUS","LYSIM","LYSSSP","MAGNOLIA","MALUS","MEDICAGO","MELILOTUS","MONARDA","MONSPP","MUHLE","MUHLEN","MUHSPP","MYRIO","OSMOR","OSMSPP","OXALI","OXALIS","OXASPP","PACKER","PACKERA","PACSPP","PANIC","PANICUM","PANSPP","PASPAL","PASSPP","PASSP1","PENSSP","PERSPP","PHLEU","PHYSPP","PINSPP","PINUS","POA","POACEAE","POLYG2","POLYG4","POLYGO","POLYGONUM","POPSPP","POPULUS","POTENT","POTENTILLA","PRESPP","PRUNE","PRUNU","PRUNUS","PRUSPP","PYCNA","PYCNANTHEM","PYRUS","QUERC","QUERCUS","QUESPP","RANSPP","RANUNCULUS","RHAMNUS","RHEXI","RHODO","RIBES","ROSA","ROSSPP","ROSA5","RUBIACEAE","RUBSPP","RUBUS","RUDBECKIA","RUMEX","RUMSPP","SALIX","SAMBU","SANICULA","SANSPP","SCIRP","SCIRPUS","SCLSPP","SCUSPP","SCUTELLARI","SETARIA","SETSPP","SISSPP","SISYR","SMILAX","SMISPP","SOLID","SOLIDAGO","SOLSPP","SOLSP1","SPIRA","SPIRA2","SPIRAE","SPIRAN","STELL","STELLARIA","STIPA","SYMPHY","Symphy2","SYMPHYOTRI","SYMSPP","SYMSP1","SYMSPP1","TARAX","TARSPP","THALICTRUM","TRIFOL","TRIFOLIUM","TRILL","TRILLIUM","TRISPP","ULMSPP","ULMUS","VACCI","VACCIN","VACCINIUM","VACSPP","VERBA","VERBENA","VERON","VERONICA","VIBURN","VIBURNUM","VICIA","VICSPP","VIOLA","VIOSPP","VIOSPP1","VITIS","VITSPP","YPINE")
+
+unknowns_generic <- c("ASTER","FERN","FUNGI","GRASS","GRSSPP","GRASSSP","GRASSSP1","GRASP1","GRASSP1","GRSSP1","GRSPP1","GRSPP2","2GL","GRASS_LIG","GRASS_THIN","UNKSPP","UNKSNAG","UNK_001","UNK_002","UNKN_98","UNKSP1","UNSKP1","UNKSP2","UNKN_FORB","UNKN_SHRUB","UNKN_WOODY","2AB","2FERN","2FORB","2FORBD","2FORBM","2GRAM","2LICH","2PLANT","2SHRUBD","2TDBD","2TREE","2VINEHERB","2VINEWOOD","NOSP","NODATA")
+
+unknowns <- unique(c(unknowns_genus, unknowns_generic))
+
+substrates <- c("BARE","BOLE","2BOLE", "DUFF","FUNG","FUNGUS","HAY","LICH","LICHEN","LITT","LITTER","2LTR","MOSS","ROCK","ROOT","SCAT","SOIL","WATER","WOOD","DDTREE")
+```
+
+# Park(s): [`r target_park`]{style="color:red"}
+
+# Species Report
+
+### Local Species
+
+[Problem:]{.underline} Species Report is missing information related to Local Species columns (excluding substrates and unknowns)
+
+[Procedure:]{.underline}
+
+-   Check that LocalSpecies_CommonName is not blank
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "LocalSpecies_CommonName"
+query_message <- paste0("Common Name")
+values_data <- data$LocalSpecies_CommonName
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_SpeciesReport_CommonName <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that LocalSpecies_LifeCycle = Perennial, Biennial, or Annual
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "LocalSpecies_LifeCycle"
+query_message <- paste0("Life Cycle")
+values_data <- data$LocalSpecies_LifeCycle
+values_valid <- c("Perennial", "Biennial", "Annual")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_LifeCycle <- qaqc(data, query, query_message, values_check)
+```
+
+-   Sort by Native = True. Check that Invasive = False
+
+```{r}
+# Set parameters
+data <- SpeciesReport %>% 
+  filter(LocalSpecies_Nativity == "True")
+query <- "LocalSpecies_Nativity"
+query_message <- paste0("Native = True. Invasive")
+values_data <- data$LocalSpecies_Invasive
+values_valid <- c("False")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_Native <- qaqc(data, query, query_message, values_check)
+```
+
+-   Sort by Native = False. Check that Invasive = True
+
+```{r}
+# Set parameters
+data <- SpeciesReport %>% 
+  filter(LocalSpecies_Nativity == "False",
+         !LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "LocalSpecies_Invasive"
+query_message <- paste0("Native = False. Invasive")
+values_data <- data$LocalSpecies_Invasive
+values_valid <- c("True")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_NonNative <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that LocalSpecies_Cultural = True or False
+
+```{r}
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "LocalSpecies_Cultural"
+query_message <- paste0("Cultural")
+values_data <- data$LocalSpecies_Cultural
+values_valid <- c("True", "False")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_Cultural <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that LocalSpecies_Concern = True or False
+
+```{r}
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "LocalSpecies_Concern"
+query_message <- paste0("Concern")
+values_data <- data$LocalSpecies_Concern
+values_valid <- c("True", "False")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_Concern <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that LocalSpecies_Retired = True or False
+
+```{r}
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "LocalSpecies_Retired"
+query_message <- paste0("Retired")
+values_data <- data$LocalSpecies_Retired
+values_valid <- c("True", "False")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_Retired <- qaqc(data, query, query_message, values_check)
+```
+
+-   Filter for Graminoids. Check that LocalSpecies_UV1 = cool or warm
+
+```{r}
+# data <- SpeciesReport %>% 
+#   filter(LocalSpecies_PreferedLifeForm == "Graminoid",
+#          !LocalSpecies_Symbol %in% unknowns)
+# query <- "LocalSpecies_UV1"
+# query_message <- paste0("UV1")
+# values_data <- data$LocalSpecies_UV1
+# values_valid <- c("cool", "warm")
+# values_check <- values_data %in% values_valid
+# 
+# # Identify errors
+# errors_SpeciesReport_UV1 <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that LocalSpecies_PreferedLifeForm = Nonvascular, Lichenous, Graminoid, Grass-like, Fern, Forb/herb, Vine, Shrub, Subshrub, or Tree
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "LocalSpecies_PreferedLifeForm"
+query_message <- paste0("Life Form")
+values_data <- data$LocalSpecies_PreferedLifeForm
+values_valid <- c("Nonvascular", "Lichenous", "Graminoid", "Grass-like", "Fern", "Forb/herb", "Vine", "Shrub", "Subshrub", "Tree")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_LifeForm <- qaqc(data, query, query_message, values_check)
+```
+
+### Master Species
+
+[Problem:]{.underline} Species Report is missing information related to Master Species columns (excluding substrates and unknowns)
+
+[Procedure:]{.underline}
+
+-   Check that MasterSpecies_ScientificName is not blank
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "MasterSpecies_ScientificName"
+query_message <- paste0("Scientific Name") 
+values_data <- data$MasterSpecies_ScientificName
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_SpeciesReport_ScientificName <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that MasterSpecies_ITIS_TSN is not blank
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "MasterSpecies_ITIS_TSN"
+query_message <- paste0("TSN") 
+values_data <- data$MasterSpecies_ITIS_TSN
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_SpeciesReport_TSN <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that MasterSpecies_Genus is not blank
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "MasterSpecies_Genus"
+query_message <- paste0("Genus") 
+values_data <- data$MasterSpecies_Genus
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_SpeciesReport_Genus <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that MasterSpecies_Family is not blank
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates,
+         !LocalSpecies_Symbol %in% unknowns)
+query <- "MasterSpecies_Family"
+query_message <- paste0("Family") 
+values_data <- data$MasterSpecies_Family
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_SpeciesReport_Family <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that MasterSpecies_NotBiological = False
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!LocalSpecies_Symbol %in% substrates)
+query <- "MasterSpecies_NotBiological"
+query_message <- paste0("Not Biological") 
+values_data <- data$MasterSpecies_NotBiolgoical
+values_valid <- "False"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_NotBiological_F <- qaqc(data, query, query_message, values_check)
+```
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(LocalSpecies_Symbol %in% substrates)
+query <- "MasterSpecies_NotBiological"
+query_message <- paste0("Substrate. Not Biological") 
+values_data <- data$MasterSpecies_NotBiolgoical
+values_valid <- "True"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_NotBiological_T <- qaqc(data, query, query_message, values_check)
+```
+
+# ALL ERRORS
+
+```{r}
+errors_SpeciesReport <- rbind(errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_Native, errors_SpeciesReport_NonNative, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired) %>% 
+  arrange(LocalSpecies_Symbol)
+
+remove(errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_Family, errors_SpeciesReport_TSN, errors_SpeciesReport_NotBiological_T, errors_SpeciesReport_NotBiological_F, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_Native, errors_SpeciesReport_NonNative, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired)
+
+if(nrow(errors_SpeciesReport) > 1) {
+  errors_SpeciesReport <- errors_SpeciesReport %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport <- errors_SpeciesReport}
+```
+
+```{r}
+# Formatting
+
+# Add blank rows between each tag number
+errors_SpeciesReport_blanks <- errors_SpeciesReport[1, ]
+for (i in 2:nrow(errors_SpeciesReport)) {
+  if (errors_SpeciesReport[i, "LocalSpecies_Symbol"] != errors_SpeciesReport[i - 1, "LocalSpecies_Symbol"]) {
+    errors_SpeciesReport_blanks <- rbind(errors_SpeciesReport_blanks, errors_blank, errors_SpeciesReport[i, ])
+  } else {
+    errors_SpeciesReport_blanks <- rbind(errors_SpeciesReport_blanks, errors_SpeciesReport[i, ])
+  }
+}
+
+# Add conditional formating to ouput
+errors_all <- condformat(errors_SpeciesReport_blanks[1:(nrow(errors_SpeciesReport_blanks)), 1:6]) %>%
+  rule_fill_discrete(columns = 1:6,
+                     expression = SavedQuery != "",
+                     colours = c("TRUE" = "#C6E0B4"),
+                     na.value = "#FFFFFF")
+```
+
+```{r}
+# Table of results for quick check
+kable(errors_all, "pipe")
+
+# Save as CSV or XLSX
+condformat2excel(errors_all, paste0(path_errors, target_park, "_errors_species.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+```
