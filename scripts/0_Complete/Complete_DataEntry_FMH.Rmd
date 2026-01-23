@@ -556,7 +556,7 @@ data <- FuelsDuffLitt_all %>%
   mutate(Quotes = pmap_lgl(as.list(FuelsDuffLitt_all), 
     ~ any(str_detect(c(...), '["]')))) %>% 
   mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "Fuel DL Complete"
+query <- "Fuel DL"
 query_message <- "Quotes"
 values_data <- data$Quotes
 values_valid <- FALSE
@@ -569,13 +569,44 @@ errors_FuelsDuffLitt_Quotes <- qaqc(data, query, query_message, values_check)
 -   Check that Commas = FALSE
 
 ```{r}
+# Set parameters 
+data <- FuelsDuffLitt_all %>% 
+  mutate(Commas = pmap_lgl(as.list(FuelsDuffLitt_all), 
+    ~ any(str_detect(c(...), '[,]')))) %>% 
+  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
+query <- "Fuel DL"
+query_message <- "Commas"
+values_data <- data$Commas
+values_valid <- FALSE
+values_check <- values_data == values_valid
 
+# Identify errors
+errors_FuelsDuffLitt_Commas <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that columns match expected
 
 ```{r}
+# Set parameters 
+data <- FuelsDuffLitt_all
+values_data <- names(data)
+values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","SampLoc","OffSet","LittDep","DuffDep","FuelbedDep","DLFuConSt","Comment","UV1","UV2","UV3","NumTran","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Visited")
+MissingColumn <- setdiff(values_data, values_valid)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
 
+data$MissingColumn <- MissingColumn
+query <- "Fuel DL"
+query_message <- "Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_FuelsDuffLitt_Columns <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits = 40
@@ -598,8 +629,8 @@ remove(data_temp1, data_temp2)
 
 # Set parameters 
 data <- merge(FuelsDuffLitt_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
-query <- "Fuel DL Complete" 
-query_message <- "Complete Sample Locations"
+query <- "Fuel DL" 
+query_message <- paste0(data$MacroPlot.Name, ". Date = ",data$Date, ". Sample Event Comment = ", data$SaComment, ". Complete Sample Locations")
 values_data <- data$sum_hits
 values_valid <- 40
 values_check <- values_data == values_valid
@@ -612,9 +643,9 @@ errors_FuelsDuffLitt_NoData <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Combine
-errors_FuelsDuffLitt <- unique(rbind(errors_FuelsDuffLitt_Quotes))
+errors_FuelsDuffLitt <- unique(rbind(errors_FuelsDuffLitt_Quotes, errors_FuelsDuffLitt_Commas, errors_FuelsDuffLitt_Columns, errors_FuelsDuffLitt_NoData))
 
-remove()
+remove(errors_FuelsDuffLitt_Quotes, errors_FuelsDuffLitt_Commas, errors_FuelsDuffLitt_Columns, errors_FuelsDuffLitt_NoData)
 
 if(nrow(errors_FuelsDuffLitt) > 1) {
   errors_FuelsDuffLitt <- errors_FuelsDuffLitt %>%
@@ -639,7 +670,7 @@ data <- FuelsFine_all %>%
   mutate(Quotes = pmap_lgl(as.list(FuelsFine_all), 
     ~ any(str_detect(c(...), '["]')))) %>% 
   mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "Fuel Fine Complete"
+query <- "Fuel Fine"
 query_message <- "Quotes"
 values_data <- data$Quotes
 values_valid <- FALSE
@@ -652,13 +683,44 @@ errors_FuelsFine_Quotes <- qaqc(data, query, query_message, values_check)
 -   Check that Commas = FALSE
 
 ```{r}
+# Set parameters 
+data <- FuelsFine_all %>% 
+  mutate(Commas = pmap_lgl(as.list(FuelsFine_all), 
+    ~ any(str_detect(c(...), '[,]')))) %>% 
+  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
+query <- "Fuel Fine"
+query_message <- "Commas"
+values_data <- data$Commas
+values_valid <- FALSE
+values_check <- values_data == values_valid
 
+# Identify errors
+errors_FuelsFine_Commas <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that columns match expected
 
 ```{r}
+# Set parameters 
+data <- FuelsFine_all
+values_data <- names(data)
+values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Azimuth","Slope","OneHr","TenHr","HunHr","FWDFuConSt","Comment","UV1","UV2","UV3","NumTran","OneHrTranLen","TenHrTranLen","HunHrTranLen","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Visited")
+MissingColumn <- setdiff(values_data, values_valid)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
 
+data$MissingColumn <- MissingColumn
+query <- "Fuel Fine"
+query_message <- "Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_FuelsFine_Columns <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits = 4
@@ -678,9 +740,9 @@ data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
 remove(data_temp1, data_temp2)
 
 # Set parameters 
-data <- merge(FuelsFine_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
-query <- "Fuel Fine Complete" 
-query_message <- "Complete Transects" 
+data <- merge(FuelsFine_header, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Fuel Fine" 
+query_message <- paste0(data$MacroPlot.Name, ". Date = ",data$Date, ". Sample Event Comment = ", data$SaComment, ". Complete Transects")
 values_data <- data$sum_hits
 values_valid <- 4
 values_check <- values_data == values_valid
@@ -693,9 +755,9 @@ errors_FuelsFine_NoData <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Combine
-errors_FuelsFine <- unique(rbind())
+errors_FuelsFine <- unique(rbind(errors_FuelsFine_Quotes, errors_FuelsFine_Commas, errors_FuelsFine_Columns, errors_FuelsFine_NoData))
 
-remove()
+remove(errors_FuelsFine_Quotes, errors_FuelsFine_Commas, errors_FuelsFine_Columns, errors_FuelsFine_NoData)
 
 if(nrow(errors_FuelsFine) > 1) {
   errors_FuelsFine <- errors_FuelsFine %>%
@@ -720,7 +782,7 @@ data <- PostBurn_all %>%
   mutate(Quotes = pmap_lgl(as.list(PostBurn_all), 
     ~ any(str_detect(c(...), '["]')))) %>% 
   mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "PBSev Complete"
+query <- "PBSev"
 query_message <- "Quotes"
 values_data <- data$Quotes
 values_valid <- FALSE
@@ -733,13 +795,44 @@ errors_PostBurn_Quotes <- qaqc(data, query, query_message, values_check)
 -   Check that Commas = FALSE
 
 ```{r}
+# Set parameters 
+data <- PostBurn_all %>% 
+  mutate(Commas = pmap_lgl(as.list(PostBurn_all), 
+    ~ any(str_detect(c(...), '[,]')))) %>% 
+  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
+query <- "PBSev"
+query_message <- "Commas"
+values_data <- data$Commas
+values_valid <- FALSE
+values_check <- values_data == values_valid
 
+# Identify errors
+errors_PostBurn_Commas <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that columns match expected
 
 ```{r}
+# Set parameters 
+data <- PostBurn_all
+values_data <- names(data)
+values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Point","TapeDist","Veg","Sub","Comment","UV1","UV2","UV3","NumTran","TranLen","NumPtsTran","PlotType","PtArea","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Visited")
+MissingColumn <- setdiff(values_data, values_valid)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
 
+data$MissingColumn <- MissingColumn
+query <- "PBSev"
+query_message <- "Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_PostBurn_Columns <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits = 40
@@ -761,9 +854,9 @@ data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
 remove(data_temp1, data_temp2)
 
 # Set parameters 
-data <- merge(PostBurn_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
-query <- "PBSev Complete" 
-query_message <- "Complete Sample Locations"
+data <- merge(PostBurn_header, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "PBSev" 
+query_message <- paste0(data$MacroPlot.Name, ". Date = ",data$Date, ". Sample Event Comment = ", data$SaComment, ". Complete Sample Locations")
 values_data <- data$sum_hits
 values_valid <- 40
 values_check <- values_data == values_valid
@@ -776,9 +869,9 @@ errors_PostBurn_NoData <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Combine
-errors_PostBurn <- unique(rbind())
+errors_PostBurn <- unique(rbind(errors_PostBurn_Quotes, errors_PostBurn_Commas, errors_PostBurn_Columns, errors_PostBurn_NoData))
 
-remove()
+remove(errors_PostBurn_Quotes, errors_PostBurn_Commas, errors_PostBurn_Columns, errors_PostBurn_NoData)
 
 if(nrow(errors_PostBurn) > 1) {
   errors_PostBurn <- errors_PostBurn %>%
@@ -803,7 +896,7 @@ data <- Trees_all %>%
   mutate(Quotes = pmap_lgl(as.list(Trees_all), 
     ~ any(str_detect(c(...), '["]')))) %>% 
   mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "Trees Complete"
+query <- "Trees"
 query_message <- "Quotes"
 values_data <- data$Quotes
 values_valid <- FALSE
@@ -816,13 +909,44 @@ errors_Trees_Quotes <- qaqc(data, query, query_message, values_check)
 -   Check that Commas = FALSE
 
 ```{r}
+# Set parameters 
+data <- Trees_all %>% 
+  mutate(Commas = pmap_lgl(as.list(Trees_all), 
+    ~ any(str_detect(c(...), '[,]')))) %>% 
+  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
+query <- "Trees"
+query_message <- "Commas"
+values_data <- data$Commas
+values_valid <- FALSE
+values_check <- values_data == values_valid
 
+# Identify errors
+errors_Trees_Commas <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that columns match expected
 
 ```{r}
+# Set parameters 
+data <- Trees_all
+values_data <- names(data)
+values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","IsVerified","QTR","SubFrac","TagNo","Status","DBH","Ht","CrwnRto","CrwnCl","LiCrBHt","CrFuBHt","CrwnRad","Age","GrwthRt","Mort","DecayCl","LaddBaseHt","LaddMaxHt","DRC","NuLiStems","NuDeStems","EqDia","XCoord","YCoord","CKR","CharHt","ScorchHt","CrScPct","DamCd1","DamSev1","DamCd2","DamSev2","DamCd3","DamSev3","DamCd4","DamSev4","DamCd5","DamSev5","Comment","UV1","UV2","UV3","MacroPlotSize","SnagPlotSize","BrkPntDia","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Species.Symbol","Lifecycle","NotBiological","Preferred_Lifeform","Family","Genus","ScientificName","Native.Species","Invasive.Species","Visited")
+MissingColumn <- setdiff(values_data, values_valid)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
 
+data$MissingColumn <- MissingColumn
+query <- "Trees"
+query_message <- "Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Trees_Columns <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits \> 0
@@ -842,9 +966,9 @@ data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
 remove(data_temp1, data_temp2)
 
 # Set parameters 
-data <- merge(Trees_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
-query <- "Trees Complete" 
-query_message <- "Trees" 
+data <- merge(Trees_header, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Trees" 
+query_message <- paste0(data$MacroPlot.Name, ". Date = ",data$Date, ". Sample Event Comment = ", data$SaComment, ". Trees")
 values_data <- data$sum_hits
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -857,12 +981,12 @@ errors_Trees_NoData <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Combine
-errors_Trees <- unique(rbind())
+errors_Trees <- unique(rbind(errors_Trees_Quotes, errors_Trees_Commas, errors_Trees_Columns, errors_Trees_NoData))
 
-remove()
+remove(errors_Trees_Quotes, errors_Trees_Commas, errors_Trees_Columns, errors_Trees_NoData)
 
 if(nrow(errors_Trees) > 1) {
-  errors_Trees <- errors_Trees_Complete %>%
+  errors_Trees <- errors_Trees %>%
     filter(Error != "No Error")
 } else {
   errors_Trees <- errors_Trees}
@@ -884,7 +1008,7 @@ data <- Seedlings_all %>%
   mutate(Quotes = pmap_lgl(as.list(Seedlings_all), 
     ~ any(str_detect(c(...), '["]')))) %>% 
   mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "Dens Quad Complete"
+query <- "Dens Quad"
 query_message <- "Quotes"
 values_data <- data$Quotes
 values_valid <- FALSE
@@ -897,13 +1021,44 @@ errors_Seedlings_Quotes <- qaqc(data, query, query_message, values_check)
 -   Check that Commas = FALSE
 
 ```{r}
+# Set parameters 
+data <- Seedlings_all %>% 
+  mutate(Commas = pmap_lgl(as.list(Seedlings_all), 
+    ~ any(str_detect(c(...), '[,]')))) %>% 
+  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
+query <- "Dens Quad"
+query_message <- "Commas"
+values_data <- data$Commas
+values_valid <- FALSE
+values_check <- values_data == values_valid
 
+# Identify errors
+errors_Seedlings_Commas <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that columns match expected
 
 ```{r}
+# Set parameters 
+data <- Seedlings_all
+values_data <- names(data)
+values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Quadrat","Status","SizeCl","AgeCl","Count","Height","SubFrac","Comment","UV1","UV2","UV3","NumTran","NumQuadTran","QuadLen","QuadWid","Area","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Species.Symbol","Lifecycle","NotBiological","Preferred_Lifeform","Family","Genus","ScientificName","Native.Species","Invasive.Species","Visited")
+MissingColumn <- setdiff(values_data, values_valid)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
 
+data$MissingColumn <- MissingColumn
+query <- "Dens Quad"
+query_message <- "Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Seedlings_Columns <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits \> 0
@@ -923,9 +1078,9 @@ data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
 remove(data_temp1, data_temp2)
 
 # Set parameters 
-data <- merge(Seedlings_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
-query <- "Dens Quad Complete" 
-query_message <- "Seedlings" 
+data <- merge(Seedlings_header, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Dens Quad" 
+query_message <- paste0(data$MacroPlot.Name, ". Date = ",data$Date, ". Sample Event Comment = ", data$SaComment, ". Sample Event UV1 = ", data$UV1Desc, ". Seedlings")
 values_data <- data$sum_hits
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -938,9 +1093,9 @@ errors_Seedlings_NoData <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Combine
-errors_Seedlings <- unique(rbind())
+errors_Seedlings <- unique(rbind(errors_Seedlings_Quotes, errors_Seedlings_Commas, errors_Seedlings_Columns, errors_Seedlings_NoData))
 
-remove()
+remove(errors_Seedlings_Quotes, errors_Seedlings_Commas, errors_Seedlings_Columns, errors_Seedlings_NoData)
 
 if(nrow(errors_Seedlings) > 1) {
   errors_Seedlings <- errors_Seedlings %>%
@@ -965,7 +1120,7 @@ data <- Shrubs_all %>%
   mutate(Quotes = pmap_lgl(as.list(Shrubs_all), 
     ~ any(str_detect(c(...), '["]')))) %>% 
   mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "Dens Belts Complete"
+query <- "Dens Belts"
 query_message <- "Quotes"
 values_data <- data$Quotes
 values_valid <- FALSE
@@ -978,13 +1133,44 @@ errors_Shrubs_Quotes <- qaqc(data, query, query_message, values_check)
 -   Check that Commas = FALSE
 
 ```{r}
+# Set parameters 
+data <- Shrubs_all %>% 
+  mutate(Commas = pmap_lgl(as.list(Shrubs_all), 
+    ~ any(str_detect(c(...), '[,]')))) %>% 
+  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
+query <- "Dens Belts"
+query_message <- "Commas"
+values_data <- data$Commas
+values_valid <- FALSE
+values_check <- values_data == values_valid
 
+# Identify errors
+errors_Shrubs_Commas <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that columns match expected
 
 ```{r}
+# Set parameters 
+data <- Shrubs_all
+values_data <- names(data)
+values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Subbelt","Status","SizeCl","AgeCl","Count","Height","SubFrac","Comment","UV1","UV2","UV3","NumTran","NumSubbelt","TranLen","TranWid","Area","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Species.Symbol","Lifecycle","NotBiological","Preferred_Lifeform","Family","Genus","ScientificName","Native.Species","Invasive.Species","Visited")
+MissingColumn <- setdiff(values_data, values_valid)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
 
+data$MissingColumn <- MissingColumn
+query <- "Dens Belts"
+query_message <- "Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Shrubs_Columns <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits \> 0
@@ -1004,9 +1190,9 @@ data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
 remove(data_temp1, data_temp2)
 
 # Set parameters 
-data <- merge(Shrubs_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
-query <- "Dens Belts Complete" 
-query_message <- "Shrubs" 
+data <- merge(Shrubs_header, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Dens Belts" 
+query_message <- paste0(data$MacroPlot.Name, ". Date = ",data$Date, ". Sample Event Comment = ", data$SaComment, ". Shrubs")
 values_data <- data$sum_hits
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -1019,9 +1205,9 @@ errors_Shrubs_NoData <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Combine
-errors_Shrubs <- unique(rbind())
+errors_Shrubs <- unique(rbind(errors_Shrubs_Quotes, errors_Shrubs_Commas, errors_Shrubs_Columns, errors_Shrubs_NoData))
 
-remove()
+remove(errors_Shrubs_Quotes, errors_Shrubs_Commas, errors_Shrubs_Columns, errors_Shrubs_NoData)
 
 if(nrow(errors_Shrubs) > 1) {
   errors_Shrubs <- errors_Shrubs %>%
@@ -1046,7 +1232,7 @@ data <- HerbsSpComp_all %>%
   mutate(Quotes = pmap_lgl(as.list(HerbsSpComp_all), 
     ~ any(str_detect(c(...), '["]')))) %>% 
   mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "Cvr SpComp Complete"
+query <- "Cvr SpComp"
 query_message <- "Quotes"
 values_data <- data$Quotes
 values_valid <- FALSE
@@ -1059,13 +1245,44 @@ errors_HerbsSpComp_Quotes <- qaqc(data, query, query_message, values_check)
 -   Check that Commas = FALSE
 
 ```{r}
+# Set parameters 
+data <- HerbsSpComp_all %>% 
+  mutate(Commas = pmap_lgl(as.list(HerbsSpComp_all), 
+    ~ any(str_detect(c(...), '[,]')))) %>% 
+  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
+query <- "Cvr SpComp"
+query_message <- "Commas"
+values_data <- data$Commas
+values_valid <- FALSE
+values_check <- values_data == values_valid
 
+# Identify errors
+errors_HerbsSpComp_Commas <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that columns match expected
 
 ```{r}
+# Set parameters 
+data <- HerbsSpComp_all
+values_data <- names(data)
+values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Status","SizeCl","AgeCl","Cover","Height","Comment","UV1","UV2","UV3","MinCovLevel","Area","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Species.Symbol","Lifecycle","NotBiological","Preferred_Lifeform","Family","Genus","ScientificName","Native.Species","Invasive.Species","Visited")
+MissingColumn <- setdiff(values_data, values_valid)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
 
+data$MissingColumn <- MissingColumn
+query <- "Cvr SpComp"
+query_message <- "Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsSpComp_Columns <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Group by Macroplot and Date. Calculate number of hits per plot. Check that sum_hits \> 0
@@ -1085,9 +1302,9 @@ data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
 remove(data_temp1, data_temp2)
 
 # Set parameters 
-data <- merge(HerbsSpComp_data, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
-query <- "Cvr SpComp Complete" 
-query_message <- "Species" 
+data <- merge(HerbsSpComp_header, data_temp, by = c("MacroPlot.Name", "Date"), all = T)
+query <- "Cvr SpComp" 
+query_message <- paste0(data$MacroPlot.Name, ". Date = ",data$Date, ". Sample Event Comment = ", data$SaComment, ". Species")
 values_data <- data$sum_hits
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -1100,9 +1317,9 @@ errors_HerbsSpComp_NoData <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Combine
-errors_HerbsSpComp<- unique(rbind())
+errors_HerbsSpComp<- unique(rbind(errors_HerbsSpComp_Quotes, errors_HerbsSpComp_Commas, errors_HerbsSpComp_Columns, errors_HerbsSpComp_NoData))
 
-remove()
+remove(errors_HerbsSpComp_Quotes, errors_HerbsSpComp_Commas, errors_HerbsSpComp_Columns, errors_HerbsSpComp_NoData)
 
 if(nrow(errors_HerbsSpComp) > 1) {
   errors_HerbsSpComp <- errors_HerbsSpComp %>%
@@ -1127,7 +1344,7 @@ data <- HerbsPoints_all %>%
   mutate(Quotes = pmap_lgl(as.list(HerbsPoints_all), 
     ~ any(str_detect(c(...), '["]')))) %>% 
   mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "Cvr Pts Complete"
+query <- "Cvr Pts"
 query_message <- "Quotes"
 values_data <- data$Quotes
 values_valid <- FALSE
@@ -1140,13 +1357,44 @@ errors_HerbsPoints_Quotes <- qaqc(data, query, query_message, values_check)
 -   Check that Commas = FALSE
 
 ```{r}
+# Set parameters 
+data <- HerbsPoints_all %>% 
+  mutate(Commas = pmap_lgl(as.list(HerbsPoints_all), 
+    ~ any(str_detect(c(...), '[,]')))) %>% 
+  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
+query <- "Cvr Pts"
+query_message <- "Commas"
+values_data <- data$Commas
+values_valid <- FALSE
+values_check <- values_data == values_valid
 
+# Identify errors
+errors_HerbsPoints_Commas <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that columns match expected
 
 ```{r}
+# Set parameters 
+data <- HerbsPoints_all
+values_data <- names(data)
+values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Point","Tape","Order","Height","CanopyLayer","Status","Comment","UV1","UV2","UV3","NumTran","TranLen","NumPtsTran","Offset","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Species.Symbol","Lifecycle","NotBiological","Preferred_Lifeform","Family","Genus","ScientificName","Native.Species","Invasive.Species","Visited")
+MissingColumn <- setdiff(values_data, values_valid)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
 
+data$MissingColumn <- MissingColumn
+query <- "Cvr Pts"
+query_message <- "Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsPoints_Columns <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Filter by Order = 1. Group by Macroplot, Date, and Transect. Calculate number of hits per plot. Check that sum_hits = 166
@@ -1172,9 +1420,9 @@ data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
 remove(data_temp1, data_temp2, data_temp_transects)
 
 # Set parameters 
-data <- merge(HerbsPoints_data, data_temp, by = c("MacroPlot.Name", "Date", "Transect"), all = T)
-query <- "Cvr Pts Complete" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Total Points") 
+data <- merge(HerbsPoints_header, data_temp, by = c("MacroPlot.Name", "Date", "Transect"), all = T)
+query <- "Cvr Pts" 
+query_message <- paste0(data$MacroPlot.Name, ". Date = ",data$Date, ". Sample Event Comment = ", data$SaComment, ". Transect = ", data$Transect, ". Total Points") 
 values_data <- data$sum_hits
 values_valid <- 166
 values_check <- values_data == values_valid
@@ -1236,26 +1484,26 @@ errors_all <- rbind(errors_blank_Fuels1000, errors_blank, errors_Fuels1000, erro
 ```
 
 ```{r}
-# Create conditional formatting rules
-data_temp <- as.data.frame(grepl("PBSev", errors_all$SavedQuery, fixed = TRUE) | grepl(" Post", errors_all$SavedQuery, fixed = TRUE))
-colnames(data_temp) <- c("Color")
-errors_all_cf <- cbind(errors_all, data_temp)
-
-errors_all_cf <- errors_all_cf %>% 
-  mutate(Color = ifelse(SavedQuery == "", NA, Color)) %>% 
-  mutate(Color = ifelse((grepl("PROTOCOL", errors_all_cf$SavedQuery) == TRUE), "Protocol", Color)) %>% 
-  mutate(Color = ifelse(Color == FALSE, "Standard", Color)) %>% 
-  mutate(Color = ifelse(Color == TRUE, "Post", Color))
-
-# Add conditional formating to ouput
-errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:9]) %>%
-  rule_fill_discrete(columns = 1:8,
-                     expression = (errors_all_cf$Color),
-                     colours = c("Standard"="#C6E0B4",
-                                 "Post"="#FFC000",
-                                 "Protocol" = "#969696"),
-                     na.value = "#FFFFFF") %>% 
-  select(!(Color))
+# # Create conditional formatting rules
+# data_temp <- as.data.frame(grepl("PBSev", errors_all$SavedQuery, fixed = TRUE) | grepl(" Post", errors_all$SavedQuery, fixed = TRUE))
+# colnames(data_temp) <- c("Color")
+# errors_all_cf <- cbind(errors_all, data_temp)
+# 
+# errors_all_cf <- errors_all_cf %>% 
+#   mutate(Color = ifelse(SavedQuery == "", NA, Color)) %>% 
+#   mutate(Color = ifelse((grepl("PROTOCOL", errors_all_cf$SavedQuery) == TRUE), "Protocol", Color)) %>% 
+#   mutate(Color = ifelse(Color == FALSE, "Standard", Color)) %>% 
+#   mutate(Color = ifelse(Color == TRUE, "Post", Color))
+# 
+# # Add conditional formating to ouput
+# errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:9]) %>%
+#   rule_fill_discrete(columns = 1:8,
+#                      expression = (errors_all_cf$Color),
+#                      colours = c("Standard"="#C6E0B4",
+#                                  "Post"="#FFC000",
+#                                  "Protocol" = "#969696"),
+#                      na.value = "#FFFFFF") %>% 
+#   select(!(Color))
 ```
 
 ```{r}
