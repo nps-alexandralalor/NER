@@ -1,13 +1,7 @@
 ---
-title: "QAQC MetaData"
+title: "Complete CSVs"
 author: "Alexandra Lalor"
 output:
-  pdf_document:
-    toc: true
-    toc_depth: '3'
-  word_document:
-    toc: true
-    toc_depth: '3'
   html_document:
     theme: readable
     highlight: null
@@ -16,11 +10,19 @@ output:
     toc_float:
       smooth_scroll: true
     code_download: true
+  word_document:
+    toc: true
+    toc_depth: 1
+  pdf_document:
+    toc: true
+    toc_depth: 1
 ---
 
 # PURPOSE
 
 This code is intended to quality check [all FFI CSV exports]{.underline} for fundamental errors. If these errors are not addressed first, subsequent R scripts may not run properly.
+
+### Export all CSVs
 
 The Macroplot Report, Sample Event Report, and Project Unit Assignment Report can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
 
@@ -97,7 +99,6 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 # install.packages("condformat")
 # install.packages("knitr")
 # install.packages("here")
-install.packages("LaTeX")
 ```
 
 ```{r load packages, include=FALSE}
@@ -115,7 +116,7 @@ library(writexl)
 library(condformat)
 # knitr and LaTeX is used to create output files from R Markdown
 library(knitr)
-library(LaTeX)
+#library(LaTeX)
 ```
 
 ### Create Function {.hidden}
