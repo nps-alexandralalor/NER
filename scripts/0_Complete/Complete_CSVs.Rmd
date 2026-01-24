@@ -204,7 +204,7 @@ path_errors_name <- paste0(target_park, " CSV Errors")
 ### Load Data {.hidden}
 
 ```{r load data, include=FALSE}
-## Load Data, replace blanks and text NA as actual NA
+# load data
 MacroplotReport <- read_csv(paste0(path_data, "MacroplotReport.csv"))
 ProjectUnitReport <- read_csv(paste0(path_data, "ProjectUnitAssignmentReport.csv"))
 SampleEventReport <- read_csv(paste0(path_data, "SampleEventReport.csv"))
@@ -1075,7 +1075,7 @@ values_check <- values_data == values_valid
 errors_FuelsFine_NoData <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Fuels Fine Errors  {.hidden}
+#### Combine Fuels Fine Errors {.hidden}
 
 ```{r}
 # Combine
@@ -1752,7 +1752,7 @@ if(nrow(errors_HerbsPoints) > 1) {
   errors_HerbsPoints <- errors_HerbsPoints}
 ```
 
-## ALL ERRORS  {.hidden}
+## ALL ERRORS {.hidden}
 
 ```{r}
 # Create protocol separators
