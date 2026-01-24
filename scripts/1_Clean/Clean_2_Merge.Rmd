@@ -18,15 +18,27 @@ output:
     code_download: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+# PURPOSE
 
-# Before Starting
+This code is intended to combine FFI flat files (created using the Clean_1_All.Rmd script) across all Administration Units.
+
+-   MetadataReport.csv
+-   SpeciesReport.csv
+-   Data_Surface Fuels - 1000Hr_XPT.csv
+-   Data_Surface Fuels - Duff_Litter_XPT.csv
+-   Data_Surface Fuels - Fine_XPT.csv
+-   Data_Post Burn Severity (metric)\_XPT.csv
+-   Data_Trees - Individuals (metric)\_XPT.csv
+-   Data_Density - Quadrats (metric)\_XPT.csv
+-   Data_Density - Belts (metric)\_XPT.csv
+-   Data_Cover - Species Composition (metric)\_XPT.csv
+-   Data_Cover - Points (metric)\_XPT.csv
+
+## BEFORE STARTING  {.hidden}
 
 ### Setup {.hidden}
 
-```{r}
+```{r setup, include=FALSE}
 ## Markdown Options
 knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
 ```
