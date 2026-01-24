@@ -159,8 +159,8 @@ Make sure to update file paths to be specific for your data.
 
 ```{r}
 # adjust file paths
-#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " FMH Data QAQC Errors")
