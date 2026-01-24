@@ -15,19 +15,15 @@ output:
     toc_depth: '3'
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-```
-
-# BEFORE STARTING
+# PURPOSE
 
 This code is intended to combine FFI files into flat files to be used with subsequent R scripts.
 
 The Sample Event Report and Macroplot Report can be downloaded via the Utilities menu on the Project Management tab on the FFI Remote App Server.
 
--   SampleEventReport.csv
-
 -   MacroplotReport.csv
+
+-   SampleEventReport.csv
 
 The Local Species Report can be downloaded via the Species menu on the Species Management tab on the FFI Remote App Server.
 
@@ -53,7 +49,14 @@ The Protocol data can be downloaded via Query tab on the FFI Remote App Server b
 
 -   Cover - Points (metric)\_XPT.csv
 
-### Install Packages (if needed) {.hidden}
+## BEFORE STARTING  {.hidden}
+
+### Setup {.hidden}
+
+```{r setup, include=FALSE}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
 
 ```{r}
 # install.packages("tidyverse")
@@ -64,8 +67,6 @@ The Protocol data can be downloaded via Query tab on the FFI Remote App Server b
 # install.packages("here")
 # install.packages("EnvStats")
 ```
-
-### Load Packages {.hidden}
 
 ```{r}
 # tidyverse and dplyr have lots of useful functions for data cleaning
@@ -86,15 +87,13 @@ library(knitr)
 
 ### Adjust File Paths {.hidden}
 
-Make sure to update file paths to be specific for your data.
-
 ```{r}
 # adjust file paths
 #path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 ```
 
-### Parks
+### Parks  {.hidden}
 
 ```{r}
 parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
