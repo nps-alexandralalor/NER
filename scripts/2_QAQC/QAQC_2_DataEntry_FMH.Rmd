@@ -21,7 +21,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 # BEFORE STARTING
 
-This code is intended to quality check plot data for protocols listed below. This data can be downloaded via Query tab on the FFI Remote App Server by selecting each protocol/method and exporting the file.
+This code is intended to quality check plot data for protocols listed below. These protocols been cleaned using the Clean_1_All.Rmd script.
 
 -   Surface Fuels - 1000Hr
 

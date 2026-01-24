@@ -6,13 +6,13 @@ output:
     theme: readable
     highlight: 
     toc: yes
-    toc_depth: 3
+    toc_depth: 1
     toc_float:
       smooth_scroll: yes
     code_download: true
   pdf_document:
     toc: yes
-    toc_depth: '3'
+    toc_depth: 1
 ---
 
 # PURPOSE
@@ -49,7 +49,7 @@ The Protocol data can be downloaded via Query tab on the FFI Remote App Server b
 
 -   Cover - Points (metric)\_XPT.csv
 
-## BEFORE STARTING  {.hidden}
+## BEFORE STARTING {.hidden}
 
 ### Setup {.hidden}
 
@@ -93,7 +93,7 @@ library(knitr)
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 ```
 
-### Parks  {.hidden}
+### Parks {.hidden}
 
 ```{r}
 parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")

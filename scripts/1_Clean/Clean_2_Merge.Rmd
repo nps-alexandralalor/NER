@@ -34,7 +34,7 @@ This code is intended to combine FFI flat files (created using the Clean_1_All.R
 -   Data_Cover - Species Composition (metric)\_XPT.csv
 -   Data_Cover - Points (metric)\_XPT.csv
 
-## BEFORE STARTING  {.hidden}
+## BEFORE STARTING {.hidden}
 
 ### Setup {.hidden}
 
