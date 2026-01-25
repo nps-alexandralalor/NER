@@ -70,12 +70,6 @@ Missing Protocols
 
 -   Check that protocols exist (manual check). For code to work across all Administration Units, you must export all relevant protocols across all parks. Even if no data exists, a CSV will export with correct protocol headers. If a CSV fails to export, the protocol may be missing or broken in FFI. In this case, take a blank protocol (headers but no data) and use it as a placeholder.
 
--   Check that Quotes = FALSE. If there are quotes in the data, these must be removed before proceeding or CSVs will not load in subsequent R scripts. Solutions include changing double quotes ( " ) to single quotes ( ' ), or writing out terms instead of using shorthand (e.g. writing 6 inches instead of 6"). Changes must be made in FFI or CSV exports.
-
--   Check that Commas = FALSE. If there are commas in the data, CSVs may not load properly. Solutions include replacing commas ( , ) with semicolons ( ; ) in FFI, or using R to mass replace commas with semicolons. The script Clean_1_all.Rmd contains this code already.
-
-    For example: Fuels1000_all[] \<- lapply(Fuels1000_all, function(x) gsub(",", ";", x))
-
 -   Check that columns match expected. If columns do not match across Administration Units, CSVs cannot be combined. Solutions include manually inserting columns with the missing headers (but with no data). If CSVs contains extra columns as empty placeholders (common in CSV exports), you can manually delete these columns or use R to remove them. The script Clean_1_all.Rmd contains this code already.
 
     For example: Fuels1000_all \<- Fuels1000_all[, -ncol(Fuels1000_all)]
@@ -199,11 +193,10 @@ target_park <- "ANTI"
 # adjust file paths
 path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 #path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_zip <- paste0(path_main, "Exports Data Depot/", target_park, "/")
-path_data_english <- paste0(path_zip, "English_ffi_", target_park, "_data_export_1769085509810/")
-path_data_metric <- paste0(path_zip, "Metric_ffi_", target_park, "_data_export_1769085510263/")
-
-path_data_original <- paste0("E:/Allie/FireFX_NER/FFI Data Management/R Outputs/", target_park, "/", target_park, "_")
+path_file <- paste0(path_main, "Exports Data Depot/", target_park, "/")
+path_data_english <- paste0(path_file, "English_ffi_", target_park, "_data_export/")
+path_data_metric <- paste0(path_file, "Metric_ffi_", target_park, "_data_export/")
+path_data_original <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
 
 #path_save <- paste0(path_main, "R Outputs/", target_park, "/")
 #path_errors <- paste0(path_main, "QAQC/", target_park, "/")
@@ -217,87 +210,66 @@ path_data_original <- paste0("E:/Allie/FireFX_NER/FFI Data Management/R Outputs/
 ```{r}
 # load data
 
-# project unit report
-ProjectUnitReport <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_project_units.csv"))
+# # project unit report
+# ProjectUnitReport_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_project_units.csv"))
+# ProjectUnitReport_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_project_units.csv"))
 
 # protocols
-O_Fuels1000 <- read_csv(paste0(path_data_original, "Data_Surface Fuels - 1000Hr.csv"))
-O_FuelsDuffLitt <- read_csv(paste0(path_data_original, "Data_Surface Fuels - Duff_Litter.csv"))
-O_FuelsFine <- read_csv(paste0(path_data_original, "Data_Surface Fuels - Fine.csv"))
-O_Trees <- read_csv(paste0(path_data_original, "Data_Trees - Individuals (metric).csv"))
-O_HerbsSpComp <- read_csv(paste0(path_data_original, "Data_Cover - Species Composition (metric).csv"))
-O_HerbsPoints <- read_csv(paste0(path_data_original, "Data_Cover - Points (metric).csv"))
+Fuels1000_O <- read_csv(paste0(path_data_original, "Data_Surface Fuels - 1000Hr.csv"))
+FuelsDuffLitt_O <- read_csv(paste0(path_data_original, "Data_Surface Fuels - Duff_Litter.csv"))
+FuelsFine_O <- read_csv(paste0(path_data_original, "Data_Surface Fuels - Fine.csv"))
+Trees_O <- read_csv(paste0(path_data_original, "Data_Trees - Individuals (metric).csv"))
+CoverSpComp_O <- read_csv(paste0(path_data_original, "Data_Cover - Species Composition (metric).csv"))
+CoverPoints_O <- read_csv(paste0(path_data_original, "Data_Cover - Points (metric).csv"))
 # protocols
-E_Fuels1000 <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_thousand_hr.csv"))
-E_FuelsDuffLitt <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_duff_litter.csv"))
-E_FuelsFine <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_fine.csv"))
-E_Trees <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_trees_individuals.csv"))
-E_HerbsSpComp <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_cover_species_composition.csv"))
-E_HerbsPoints <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_cover_points.csv"))
+Fuels1000_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_thousand_hr.csv"))
+FuelsDuffLitt_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_duff_litter.csv"))
+FuelsFine_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_fine.csv"))
+Trees_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_trees_individuals.csv"))
+CoverSpComp_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_cover_species_composition.csv"))
+CoverPoints_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_cover_points.csv"))
 # protocols
-M_Fuels1000 <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_thousand_hr.csv"))
-M_FuelsDuffLitt <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_duff_litter.csv"))
-M_FuelsFine <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_fine.csv"))
-M_Trees <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_trees_individuals.csv"))
-M_HerbsSpComp <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_cover_species_composition.csv"))
-M_HerbsPoints <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_cover_points.csv"))
+Fuels1000_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_thousand_hr.csv"))
+FuelsDuffLitt_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_duff_litter.csv"))
+FuelsFine_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_fine.csv"))
+Trees_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_trees_individuals.csv"))
+CoverSpComp_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_cover_species_composition.csv"))
+CoverPoints_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_cover_points.csv"))
 
 
 # # blank protocols
-# E_FuelsDuffLittAK <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_alaska_duff_litter.csv"))
-# E_FuelsPiles <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_piles.csv"))
-# E_FuelsVeg <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_vegetation.csv"))
-# E_TreesSaplings <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_trees_saplings.csv"))
-# E_TreesSeedlings <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_trees_seedlings.csv"))
-# E_HerbsFrequency <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_cover_frequency.csv"))
-# # blank protocols
-# M_FuelsDuffLittAK <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_alaska_duff_litter.csv"))
-# M_FuelsPiles <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_piles.csv"))
-# M_FuelsVeg <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_vegetation.csv"))
-# M_TreesSaplings <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_trees_saplings.csv"))
-# M_TreesSeedlings <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_trees_seedlings.csv"))
-# M_HerbsFrequency <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_cover_frequency.csv"))
+PostBurn_O <- read.csv(paste0(path_data_original, "Data_Post Burn Severity (metric).csv"))
+Seedlings_O <- read.csv(paste0(path_data_original, "Data_Density - Quadrats (metric).csv"))
+Shrubs_O <- read.csv(paste0(path_data_original, "Data_Density - Belts (metric).csv"))
+# blank protocols
+FuelsDuffLittAK_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_alaska_duff_litter.csv"))
+FuelsPiles_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_piles.csv"))
+FuelsVeg_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_vegetation.csv"))
+TreesSaplings_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_trees_saplings.csv"))
+TreesSeedlings_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_trees_seedlings.csv"))
+CoverFrequency_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_cover_frequency.csv"))
+# blank protocols
+FuelsDuffLittAK_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_alaska_duff_litter.csv"))
+FuelsPiles_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_piles.csv"))
+FuelsVeg_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_vegetation.csv"))
+TreesSaplings_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_trees_saplings.csv"))
+TreesSeedlings_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_trees_seedlings.csv"))
+CoverFrequency_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_cover_frequency.csv"))
 ```
 
-# PROJECT UNIT ASSIGNMENT REPORT
+```{r}
+remove(PostBurn_O, Seedlings_O, Shrubs_O,
+       FuelsDuffLittAK_E, FuelsDuffLittAK_M,
+       FuelsPiles_E, FuelsPiles_M,
+       FuelsVeg_E, FuelsVeg_M,
+       TreesSaplings_E, TreesSaplings_M,
+       TreesSeedlings_E, TreesSeedlings_M,
+       CoverFrequency_E, CoverFrequency_M)
+```
+
+# PROJECT UNIT REPORT
 
 [Procedure:]{.underline}
-
--   Check that Quotes = FALSE
-
-```{r}
-# Set parameters 
-data <- ProjectUnitReport %>% 
-  mutate(Quotes = pmap_lgl(as.list(ProjectUnitReport), 
-    ~ any(str_detect(c(...), '[�]]')))) %>% 
-  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "Project Unit Report"
-query_message <- "Quotes"
-values_data <- data$Quotes
-values_valid <- FALSE
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_ProjectUnitReport_Quotes <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Commas = FALSE
-
-```{r}
-# Set parameters 
-data <- ProjectUnitReport %>% 
-  mutate(Commas = pmap_lgl(as.list(ProjectUnitReport), 
-    ~ any(str_detect(c(...), '[,]')))) %>% 
-  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
-query <- "Project Unit Report"
-query_message <- "Commas"
-values_data <- data$Commas
-values_valid <- FALSE
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_ProjectUnitReport_Commas <- qaqc(data, query, query_message, values_check)
-```
 
 -   Check that columns match expected
 
@@ -390,47 +362,16 @@ if(nrow(errors_ProjectUnitReport) > 1) {
 
 [Procedure:]{.underline}
 
--   Check that Quotes = FALSE
-
 ```{r}
-# Set parameters 
-data <- Fuels1000 %>% 
-  mutate(Quotes = pmap_lgl(as.list(Fuels1000), 
-    ~ any(str_detect(c(...), '[�]]')))) %>% 
-  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "Fuel 1000"
-query_message <- "Quotes"
-values_data <- data$Quotes
-values_valid <- FALSE
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_Fuels1000_Quotes <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Commas = FALSE
-
-```{r}
-# Set parameters 
-data <- Fuels1000 %>% 
-  mutate(Commas = pmap_lgl(as.list(Fuels1000), 
-    ~ any(str_detect(c(...), '[,]')))) %>% 
-  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
-query <- "Fuel 1000"
-query_message <- "Commas"
-values_data <- data$Commas
-values_valid <- FALSE
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_Fuels1000_Commas <- qaqc(data, query, query_message, values_check)
+test <- CoverSpComp_E %>% 
+  select(c(OrganizationId, AdminUnitId, MacroplotId, MacroPlotId, SampleEventId, sampleEventId, MethodId, MethodDataId, MethodData_id))
 ```
 
 -   Check that columns match expected
 
 ```{r}
 # Set parameters 
-data <- Fuels1000
+data <- CoverSpComp_E
 values_data <- names(data)
 values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Slope","LogNum","Dia","DecayCl","CWDFuConSt","Comment","UV1","UV2","UV3","NumTran","TranLen","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Visited")
 MissingColumn <- setdiff(values_data, values_valid)
