@@ -186,17 +186,16 @@ qaqc <- function(data, query, query_message, values_check) {
 
 ```{r}
 # designate target park(s)
-target_park <- "SHEN"
+target_park <- "VAFO"
 ```
 
 ### Adjust File Paths {.hidden}
 
 ```{r import data, include=FALSE}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-path_save <- paste0(path_main, "R Outputs/", target_park, "/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " CSV Errors")
 ```
@@ -1719,7 +1718,9 @@ data_temp2 <- HerbsPoints_header %>%
 data_temp_transects <- as.data.frame(1:2)
 colnames(data_temp_transects) <- "Transect"
 data_temp2 <- merge(data_temp2, data_temp_transects) %>% 
+  dplyr::rename("Transect" = !!names(.)[3]) %>% 
   arrange(MacroPlot.Name, Date, Transect)
+
 
 data_temp <- merge(data_temp1, data_temp2, by = c("MacroPlot.Name","Date", "Transect"), all = TRUE)
 data_temp$sum_hits[is.na(data_temp$sum_hits)] <- 0
