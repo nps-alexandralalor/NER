@@ -61,8 +61,8 @@ library(fs)
 
 ```{r}
 ## Adjust File Paths
-path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
-#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+#path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 path_data <- paste0(path_file, "ALL/ALL_")
 ```
 
@@ -281,7 +281,7 @@ MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %
 
 ## Species Report
 
-## Fuels 1000
+## Surface Fuels
 
 ```{r}
 Fuels1000_all <- merge(Fuels1000, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
@@ -296,12 +296,384 @@ Fuels1000_all <- merge(Fuels1000, MetadataReport_merge, by = c("AdministrationUn
 ```
 
 ```{r}
+FuelsDuffLitt_all <- merge(FuelsDuffLitt, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
+  # Reorganize Columns
+  relocate(Region, .before = AdministrationUnit_Name) %>% 
+  relocate(Zone, .before = AdministrationUnit_Name) %>%
+  relocate(Unit, .before = AdministrationUnit_Name) %>% 
+  relocate(Purpose_Code, .after = Purpose) %>% 
+  relocate(Plot_Type, .after = Type) %>% 
+  relocate(Macroplot_Num, .after = Macroplot) %>% 
+  relocate(Macroplot_Code, .after = Macroplot)
+```
+
+```{r}
+FuelsFine_all <- merge(FuelsFine, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
+  # Reorganize Columns
+  relocate(Region, .before = AdministrationUnit_Name) %>% 
+  relocate(Zone, .before = AdministrationUnit_Name) %>%
+  relocate(Unit, .before = AdministrationUnit_Name) %>% 
+  relocate(Purpose_Code, .after = Purpose) %>% 
+  relocate(Plot_Type, .after = Type) %>% 
+  relocate(Macroplot_Num, .after = Macroplot) %>% 
+  relocate(Macroplot_Code, .after = Macroplot)
+```
+
+#### this needs more work
+
+```{r}
+
+  # ---- Step 5A: Create full grid of expected transects per plot/year ---- #
+  all_transects <- Fuels1000_all %>%
+    group_by(Macroplot, MonStatus, SampleEventDate_Year) %>%
+    #left_join(metadata_only, by = c("MacroPlot Name", "Monitoring Status")) %>%
+    tidyr::uncount(weights = NumTran, .id = "Transect") %>%
+    mutate(Transect = suppressWarnings(as.numeric(Transect)))
+  
+  # ---- Step 5B: Summarise computed loads (only where logs existed) ---- #
+  loads_per_transect <- fuels_processed %>% 
+    group_by(`MacroPlot Name`, `Monitoring Status`, Year, Transect) %>% 
+    summarise(
+      Decay3_Load     = sum(Load[DecayCl == 3], na.rm = TRUE),
+      Decay4_Load     = sum(Load[DecayCl == 4], na.rm = TRUE),
+      Coarse_FuelLoad = sum(Load, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(Transect = suppressWarnings(as.numeric(Transect)))
+  
+  # ---- Step 5C: Bring zeros back in for missing decay classes ---- #
+  fuel_by_transect <- all_transects %>%
+    left_join(loads_per_transect,
+              by = c("MacroPlot Name", "Monitoring Status", "Year", "Transect")) %>%
+    mutate(
+      Decay3_Load     = replace_na(Decay3_Load, 0),
+      Decay4_Load     = replace_na(Decay4_Load, 0),
+      Coarse_FuelLoad = replace_na(Coarse_FuelLoad, 0)
+    )
 
 ```
 
-## Fuels Duff Litter
+```{r calculate fuel loads, include=FALSE}
+# ============================================================= #
+# ---- Brown's Planar Intercept Fuel Transect Calculations ---- #
+# ============================================================= #
 
-## Fuels Fine
+# ------------------------------------- #
+# ---- Fine Fuels (1,10,100-Hours) ---- #
+# ------------------------------------- #
+
+# ---- Function to calculate 1-100-hr fuels for any park dataset ---- #
+calculate_ffl_fuels <- function(df) {
+  
+  # ---- Step 1: Ensure Date is proper datetime format ---- #
+  df <- df %>%
+    mutate(
+      SampleEventDate = ymd(SampleEventDate)
+    )
+  
+  # ---- Step 2: Compute per-transect fuel load ---- #
+  transect_level <- df %>%
+    mutate(
+      d2_1hr = 0.0151,
+      d2_10hr = 0.289, 
+      d2_100hr = 2.76, 
+      s_1hr_10hr = 0.48,
+      s_100hr = 0.40,
+      a = 1.13,
+      c = sqrt(1 + (Slope / 100)^2),
+      OneHr_FuelLoad = (11.64 * OneHr * d2_1hr   * s_1hr_10hr * a * c) / OneHrTranLen,
+      TenHr_FuelLoad = (11.64 * TenHr * d2_10hr  * s_1hr_10hr * a * c) / TenHrTranLen,
+      HunHr_FuelLoad = (11.64 * HunHr * d2_100hr * s_100hr    * a * c) / HunHrTranLen,
+      FuelLoad = OneHr_FuelLoad + TenHr_FuelLoad + HunHr_FuelLoad
+    )
+
+  # ---- Step 3: KEEP TRANSECT-LEVEL DATA (do NOT summarise here) ---- #
+  plot_level_fine <- transect_level %>%
+    mutate(
+      Transect_ID = row_number()  # keeps unique transect within plot
+    )
+}
+
+FuelsFine_all_calcs <- calculate_ffl_fuels(FuelsFine_all)
+
+# # ---- Automatically detect all '_fuels_fine' datasets ---- #
+#   fuel_objs <- ls(pattern = "_fuels_fine$")  # find all objects ending with "_fuels_fine"
+# 
+# # ---- Create a named list of these data objects ---- #
+#   fuel_datasets <- mget(fuel_objs)
+# 
+# # ---- Apply function to each dataset and merge ---- #
+#   ffl_summary <- imap_dfr(fuel_datasets, ~ {
+#     park_code <- str_extract(.y, "^[^_]+")  # extract characters before first underscore
+#     calculate_ffl_fuels(.x) %>%
+#       mutate(Park = park_code)
+#   })
+# 
+# # ---- View merged summary ---- #
+#   ffl_summary
+
+################################################################################
+################################################################################
+################################################################################
+
+# -------------------------- #
+# ---- 1,000-Hour Fuels ---- #
+# -------------------------- #
+
+# ---- Function to calculate 1000-hr fuels for any park dataset ---- #
+calculate_coarse_fuels <- function(fuels_df, metadata_df) {
+
+  # # ---- Step 1: Remove NumTran column from observation data frame ---- #
+  # fuels_df <- fuels_df %>% select(-NumTran)
+  # 
+  # # ---- Step 2: Standardize Dates ---- #
+  # fuels_df <- fuels_df %>%
+  #   mutate(Date = mdy_hms(Date),
+  #          Year = year(Date))
+  # 
+  # metadata_df <- metadata_df %>%
+  #   mutate(Date = mdy_hms(Date),
+  #          Year = year(Date))
+  # 
+  # # ---- Step 3: Extract CLEAN metadata (NumTran per plot) ---- #
+  # metadata_only <- metadata_df %>%
+  #   filter(!is.na(NumTran)) %>%
+  #   distinct(`MacroPlot Name`, `Monitoring Status`, NumTran)
+  # 
+  # # ---- Step 3B: Extract observation rows ----- #
+  # fuels_df <- fuels_df %>%
+  #   filter(!is.na(DecayCl), !is.na(Dia), !is.na(Transect))
+  # 
+  # # ---- Step 3C: Bring NumTran into ALL fuels rows ---- #
+  # fuels_df <- fuels_df %>%
+  #   left_join(metadata_only,
+  #             by = c("MacroPlot Name", "Monitoring Status")) %>%
+  #   mutate(
+  #     NumTran = if_else(is.na(NumTran), 1L, NumTran)  # fallback to 1 transect
+  #   )
+
+  # ---- Step 3D: Ensure Transect is numeric BEFORE calculations ---- #
+  fuels_df <- fuels_df %>% 
+    mutate(
+      SampleEventDate = ymd(SampleEventDate),
+      Transect = suppressWarnings(as.numeric(Transect)),
+      DecayCl = suppressWarnings(as.numeric(DecayCl)),
+      Dia = suppressWarnings(as.numeric(Dia))
+      )
+  
+  # ---- Step 4: Compute per-log contributions ---- #
+  a <- 1.0
+  s_sound <- 0.4
+  s_rotten <- 0.3
+  conversion_factor <- 11.64
+
+  fuels_processed <- fuels_df %>%
+    filter(DecayCl %in% c(3, 4)) %>%
+    mutate(
+      D2 = Dia^2,
+      s = if_else(DecayCl == 3, s_sound, s_rotten),
+      slope_correction = sqrt(1 + (Slope / 100)^2),
+      Load = (conversion_factor * D2 * s * a * slope_correction) / TranLen,
+      Load_Adjusted = Load / NumTran
+    )
+
+  # ---- Step 5A: Create full grid of expected transects per plot/year ---- #
+  all_transects <- fuels_df %>%
+    distinct(`MacroPlot Name`, `Monitoring Status`, Year) %>%
+    left_join(metadata_only, by = c("MacroPlot Name", "Monitoring Status")) %>%
+    tidyr::uncount(weights = NumTran, .id = "Transect") %>%
+    mutate(Transect = suppressWarnings(as.numeric(Transect)))
+  
+  # ---- Step 5B: Summarise computed loads (only where logs existed) ---- #
+  loads_per_transect <- fuels_processed %>% 
+    group_by(`MacroPlot Name`, `Monitoring Status`, Year, Transect) %>% 
+    summarise(
+      Decay3_Load     = sum(Load[DecayCl == 3], na.rm = TRUE),
+      Decay4_Load     = sum(Load[DecayCl == 4], na.rm = TRUE),
+      Coarse_FuelLoad = sum(Load, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    mutate(Transect = suppressWarnings(as.numeric(Transect)))
+  
+  # ---- Step 5C: Bring zeros back in for missing decay classes ---- #
+  fuel_by_transect <- all_transects %>%
+    left_join(loads_per_transect,
+              by = c("MacroPlot Name", "Monitoring Status", "Year", "Transect")) %>%
+    mutate(
+      Decay3_Load     = replace_na(Decay3_Load, 0),
+      Decay4_Load     = replace_na(Decay4_Load, 0),
+      Coarse_FuelLoad = replace_na(Coarse_FuelLoad, 0)
+    )
+
+  return(fuel_by_transect)
+}
+
+# ---- Automatically detect all paired '_thousands' datasets ---- #
+  fuels_objs <- ls(pattern = "_fuels_thousands$")
+  metadata_objs <- ls(pattern = "_fuels_thousands_metadata$")
+
+# Identify park codes that exist in both sets
+  parks <- intersect(
+    str_extract(fuels_objs, "^[^_]+"),
+    str_extract(metadata_objs, "^[^_]+")
+  )
+
+# ---- Apply function to each park ---- #
+  coarse_summary <- map_dfr(parks, function(park) {
+    
+    fuels_df <- get(paste0(park, "_fuels_thousands"))
+    metadata_df <- get(paste0(park, "_fuels_thousands_metadata"))
+    
+    calculate_coarse_fuels(fuels_df, metadata_df) %>%
+      mutate(Park = park)
+})
+
+# ---- View merged summary ---- #
+  coarse_summary
+  
+################################################################################
+################################################################################
+################################################################################
+
+# -------------------------------------- #  
+# ---- Litter and Duff Measurements ---- #
+# -------------------------------------- #
+
+# ---- Function to calculate litter and duff fuel loads ---- #
+calculate_litterduff <- function(fuels_df, metadata_df) {
+  
+  # ---- Step 1: Remove NumTran column from observation data frame ---- # 
+  fuels_df <- fuels_df %>% select(-NumTran)
+
+  # ---- Step 2: Standardize Dates ---- #
+  fuels_df <- fuels_df %>%
+    mutate(Date = mdy_hms(Date),
+           Year = year(Date))
+
+  metadata_df <- metadata_df %>%
+    mutate(Date = mdy_hms(Date),
+           Year = year(Date))
+
+  # ---- Step 3A: Extract CLEAN metadata (NumTran per plot) ---- #
+  metadata_only <- metadata_df %>%
+    filter(!is.na(NumTran)) %>%
+    distinct(`MacroPlot Name`, `Monitoring Status`, NumTran)
+
+  # ---- Step 3B: Extract observation rows ----- #
+  fuels_df <- fuels_df %>%
+    filter(!is.na(LittDep), !is.na(DuffDep), !is.na(Transect))
+  
+  # ---- Step 3C: Bring NumTran into ALL fuels rows ---- #
+  fuels_df <- fuels_df %>%
+    left_join(metadata_only,
+              by = c("MacroPlot Name", "Monitoring Status")) %>%
+    mutate(
+      NumTran = if_else(is.na(NumTran), 1L, NumTran)  # fallback to 1 transect
+    )
+
+  # ---- Step 3D: Ensure Transect is numeric BEFORE calculations ---- #
+  fuels_df <- fuels_df %>% mutate(
+    Transect = suppressWarnings(as.numeric(Transect))
+  )
+  
+  # ================================ #
+  # ==== Bulk density constants ==== #
+  # ================================ #
+
+  litter_bd <- 2.75 * 1.815 # FFI default bulk density for litter (2.75)
+  duff_bd   <- 5.5  * 1.815 # FFI default bulk density for duff (5.5)
+  
+  # ---- Step 4: Transect-level averages ---- #
+  transect_means <- fuels_df %>%
+    group_by(`MacroPlot Name`, `Monitoring Status`, Year, Transect, NumTran) %>%
+    summarise(
+      LittDep_tran = mean(LittDep, na.rm = TRUE),
+      DuffDep_tran = mean(DuffDep, na.rm = TRUE),
+      .groups = "drop"
+    ) %>%
+    filter(Transect <= NumTran) %>%   # keep only valid transects
+    mutate(
+      Litter_Fuel_tran = LittDep_tran * litter_bd,
+      Duff_Fuel_tran   = DuffDep_tran * duff_bd,
+      Total_Fuel_tran  = Litter_Fuel_tran + Duff_Fuel_tran
+    )
+  
+  # ---- Step 5: Plot-level averages ---- #
+  plot_means <- transect_means %>%
+    group_by(`MacroPlot Name`, `Monitoring Status`, Year) %>%
+    summarise(
+      Avg_LittDep = mean(LittDep_tran, na.rm = TRUE),
+      Avg_DuffDep = mean(DuffDep_tran, na.rm = TRUE),
+  
+      # ---- plot-level fuels ---- #
+      Litter_Fuel = mean(Litter_Fuel_tran, na.rm = TRUE),
+      Duff_Fuel   = mean(Duff_Fuel_tran, na.rm = TRUE),
+      Total_Fuel  = mean(Total_Fuel_tran, na.rm = TRUE),
+  
+      # ---- KEEP TRANSECT FUEL VALUES ---- #
+      Litter_Fuel_tran = list(Litter_Fuel_tran),
+      Duff_Fuel_tran   = list(Duff_Fuel_tran),
+      Total_Fuel_tran  = list(Total_Fuel_tran),
+  
+      .groups = "drop"
+  )
+  
+  return(plot_means)
+}
+
+# ---- Automatically detect all paired '_litterduff' datasets ---- #
+  fuels_objs <- ls(pattern = "_fuels_litterduff$")
+  metadata_objs <- ls(pattern = "_fuels_litterduff_metadata$")
+
+# ---- Identify park codes that exist in both sets ---- #
+  parks <- intersect(
+    str_extract(fuels_objs, "^[^_]+"),
+    str_extract(metadata_objs, "^[^_]+")
+  )
+
+# ---- Apply function to each park ---- #
+  litterduff_summary <- map_dfr(parks, function(park) {
+    
+    fuels_df <- get(paste0(park, "_fuels_litterduff"))
+    metadata_df <- get(paste0(park, "_fuels_litterduff_metadata"))
+    
+    calculate_litterduff(fuels_df, metadata_df) %>%
+      mutate(Park = park)
+})
+
+# ---- View merged summary ---- #
+  litterduff_summary
+```
+
+```{r combine dataframes, include=FALSE}
+# ============================================================= #
+# ==== Join 1-100-hr, litter-duff, and 1,000-hr dataframes ==== #
+# ============================================================= #
+fuel_data_combined <- ffl_summary %>%
+  full_join(litterduff_summary, by = c("Park", "MacroPlot Name", "Monitoring Status", "Year")) %>%
+  full_join(coarse_summary, by = c("Park", "MacroPlot Name", "Monitoring Status", "Year", "Transect")) %>%
+  mutate(
+    Litter_Fuel = na_if(Litter_Fuel, NaN),
+    Duff_Fuel = na_if(Duff_Fuel, NaN),
+    across(
+      c(Decay3_Load, Decay4_Load, Coarse_FuelLoad),
+      ~ replace_na(., 0)
+))
+```
+
+### Fuels 1000
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+### Fuels Duff Litter
+
+### Fuels Fine
 
 ## Post Burn
 
