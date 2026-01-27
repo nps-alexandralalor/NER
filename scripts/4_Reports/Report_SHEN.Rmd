@@ -53,7 +53,6 @@ library(ggplot2)
 
 ```{r}
 target_park <- c("RICH")
-target_project <- c("Big Meadows West")
 target_type <- c("Forest")
 target_years <- c(2025)
 ```
@@ -62,9 +61,9 @@ target_years <- c(2025)
 
 ```{r}
 ## Adjust File Paths
-path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
-#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
-path_data <- paste0(path_file, "ALL/ALL_")
+#path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+path_data <- paste0(path_file, "ALL/Calculations/ALL_")
 ```
 
 ### Load Data {.hidden}
@@ -73,9 +72,10 @@ path_data <- paste0(path_file, "ALL/ALL_")
 # Load in data
 MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
 SpeciesReport <- read.csv(paste0(path_data, "SpeciesReport.csv"))
-Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
-FuelsDuffLitt <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
-FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
+Fuels <- read.csv(paste0(path_data, "Data_Surface Fuels.csv"))
+# Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
+# FuelsDuffLitt <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
+# FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
 PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
 Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
 Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
@@ -87,6 +87,15 @@ HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 ### Filter Data
 
 ```{r}
+#####
+# Fuels1000
+#####
+# Fuels1000 data
+Fuels_data <- Fuels %>%
+  filter(
+    AdministrationUnit_Name == target_park,
+    SampleEventDate_Year %in% target_years
+    )
 #####
 # Fuels1000
 #####
@@ -233,7 +242,135 @@ graph_MetadataReport %>%
 ## Surface Fuels
 
 ```{r}
+target_park <- c("RICH")
+target_project <- c("Cold Harbor")
+target_type <- c("Forest")
+target_years <- c(2025)
+```
 
+```{r}
+Fuels_graph <- Fuels %>% 
+  filter(
+    AdministrationUnit_Name == target_park,
+    MacroPlot.UV1 == target_project,
+    Type == target_type
+    ) %>% 
+  mutate(
+    #SampleEventDate_Year = as.factor(SampleEventDate_Year)
+    ) %>% 
+  group_by(AdministrationUnit_Name, Purpose, Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year) %>% 
+  dplyr::summarise(
+    #Avg_Duff_FuelLoad = mean(Avg_Duff_FuelLoad),
+    Avg_Litt_FuelLoad  = mean(Avg_Litt_FuelLoad),
+    #Avg_LittDuff_FuelLoad = mean(Avg_LittDuff_FuelLoad),
+    #OneHr_FuelLoad = mean(OneHr_FuelLoad),
+    #TenHr_FuelLoad = mean(TenHr_FuelLoad),
+    #HunHr_FuelLoad = mean(HunHr_FuelLoad),
+    Fine_FuelLoad = mean(Fine_FuelLoad),
+    #ThousHrSound_FuelLoad = mean(ThousHrSound_FuelLoad),
+    #ThousHrRott_FuelLoad = mean(ThousHrRott_FuelLoad),
+    ThousHr_FuelLoad = mean(ThousHr_FuelLoad),
+    #Total_FuelLoad = Avg_LittDuff_FuelLoad + Fine_FuelLoad + ThousHr_FuelLoad
+    ) %>% 
+    mutate(
+    Total_FuelLoad =
+      #Avg_Duff_FuelLoad +
+      Avg_Litt_FuelLoad +
+      #Avg_LittDuff_FuelLoad +
+      #OneHr_FuelLoad +
+      #TenHr_FuelLoad +
+      #HunHr_FuelLoad +
+      Fine_FuelLoad +
+      #ThousHrSound_FuelLoad +
+      #ThousHrRott_FuelLoad +
+      ThousHr_FuelLoad
+  ) %>% 
+    pivot_longer(
+    cols = c(
+      #Avg_Duff_FuelLoad,
+      Avg_Litt_FuelLoad,
+      #Avg_LittDuff_FuelLoad,
+      #OneHr_FuelLoad,
+      #TenHr_FuelLoad,
+      #HunHr_FuelLoad,
+      Fine_FuelLoad,
+      #ThousHrSound_FuelLoad,
+      #ThousHrRott_FuelLoad,
+      ThousHr_FuelLoad
+    ),
+    names_to  = "Fuel_Class",
+    values_to = "Fuel_Load"
+  ) %>% 
+    mutate(
+    Fuel_Class = recode(
+      Fuel_Class,
+      #Avg_Duff_FuelLoad       = "Duff",
+      Avg_Litt_FuelLoad       = "Litter",
+      #Avg_LittDuff_FuelLoad  = "Litter/Duff",
+      #OneHr_FuelLoad          = "1-hr",
+      #TenHr_FuelLoad          = "10-hr",
+      #HunHr_FuelLoad          = "100-hr",
+      Fine_FuelLoad          = "Fine",
+      #ThousHrSound_FuelLoad   = "1000-hr Sound",
+      #ThousHrRott_FuelLoad    = "1000-hr Rotten",
+      ThousHr_FuelLoad        = "1000-hr"
+    )
+  ) %>% 
+  mutate(
+    Fuel_Class = factor(
+      Fuel_Class,
+      levels = c(
+        "1000-hr",
+        #"1000-hr Rotten",
+        #"1000-hr Sound",
+        "Fine",
+        #"100-hr",
+        #"10-hr",
+        #"1-hr",
+        #"Litter/Duff",
+        "Litter"
+        #,"Duff"
+      )
+    )
+  )
+```
+
+```{r}
+Fuels_graph %>% 
+  ggplot(aes(x = SampleEventDate_Year, y = Fuel_Load, fill = Fuel_Class)) +
+  geom_bar(position = "stack", stat = "identity") + 
+  geom_col(width = 0.8) +
+  facet_wrap(~ MacroPlot.UV1) +
+  labs(
+    x = "Year",
+    y = "Tons / Acre",
+    fill = "Fuel Class",
+    title = paste(target_park, target_type, "Fuel Loading")
+  ) +
+  theme_minimal()
+```
+
+```{r}
+ggplot(
+  Fuels_graph,
+  aes(
+    x = SampleEventDate_Year,
+    y = Fuel_Load,
+    fill = Fuel_Class
+  )
+) +
+  geom_col(width = 0.8) +
+  facet_wrap(~ MacroPlot.UV1) +
+  labs(
+    x = "Year",
+    y = "Total Fuel Load",
+    fill = "Fuel Class",
+    title = paste(target_park, "-", target_type)
+  ) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
 ```
 
 ## Herbs Species Comp
