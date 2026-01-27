@@ -284,43 +284,6 @@ MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %
 
 ## Surface Fuels
 
-```{r}
-# Fuels1000_all <- merge(Fuels1000, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
-#   # Reorganize Columns
-#   relocate(Region, .before = AdministrationUnit_Name) %>% 
-#   relocate(Zone, .before = AdministrationUnit_Name) %>%
-#   relocate(Unit, .before = AdministrationUnit_Name) %>% 
-#   relocate(Purpose_Code, .after = Purpose) %>% 
-#   relocate(Plot_Type, .after = Type) %>% 
-#   relocate(Macroplot_Num, .after = Macroplot) %>% 
-#   relocate(Macroplot_Code, .after = Macroplot)
-# 
-# FuelsDuffLitt_all <- merge(FuelsDuffLitt, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
-#   # Reorganize Columns
-#   relocate(Region, .before = AdministrationUnit_Name) %>% 
-#   relocate(Zone, .before = AdministrationUnit_Name) %>%
-#   relocate(Unit, .before = AdministrationUnit_Name) %>% 
-#   relocate(Purpose_Code, .after = Purpose) %>% 
-#   relocate(Plot_Type, .after = Type) %>% 
-#   relocate(Macroplot_Num, .after = Macroplot) %>% 
-#   relocate(Macroplot_Code, .after = Macroplot)
-# 
-# FuelsFine_all <- merge(FuelsFine, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
-#   # Reorganize Columns
-#   relocate(Region, .before = AdministrationUnit_Name) %>% 
-#   relocate(Zone, .before = AdministrationUnit_Name) %>%
-#   relocate(Unit, .before = AdministrationUnit_Name) %>% 
-#   relocate(Purpose_Code, .after = Purpose) %>% 
-#   relocate(Plot_Type, .after = Type) %>% 
-#   relocate(Macroplot_Num, .after = Macroplot) %>% 
-#   relocate(Macroplot_Code, .after = Macroplot)
-
-Fuels1000_all <- Fuels1000 %>% 
-  select(!c(Purpose, Type, MacroPlot.UV1, MacroPlot.UV2, MacroPlot.UV3, MacroPlot.UV4, MacroPlot.UV5, MacroPlot.UV6, MacroPlot.UV7, MacroPlot.UV8, MonStatus, Status.Prefix, Status.Base, Status.Suffix, MonStatusOrd, SampleEventDate_Year, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV2Desc, UV3Desc, SaComment, Visited, Index)) %>% 
-  mutate(SampleEventDate = ymd(SampleEventDate))
-
-```
-
 ### Fuels 1000
 
 ```{r calculate fuel loads, include=FALSE}
@@ -522,19 +485,13 @@ calculate_fine_fuels <- function(fuels_df) {
 ## Combine Fuels
 
 ```{r calculate fuel loads, include=FALSE}
+Fuels1000_all <- Fuels1000 %>% 
+  select(!c(Purpose, Type, MacroPlot.UV1, MacroPlot.UV2, MacroPlot.UV3, MacroPlot.UV4, MacroPlot.UV5, MacroPlot.UV6, MacroPlot.UV7, MacroPlot.UV8, MonStatus, Status.Prefix, Status.Base, Status.Suffix, MonStatusOrd, SampleEventDate_Year, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV2Desc, UV3Desc, SaComment, Visited, Index)) %>% 
+  mutate(SampleEventDate = ymd(SampleEventDate))
+
 Fuels1000_sum <- calculate_coarse_fuels(Fuels1000_all)
 FuelsDuffLitt_sum <- calculate_litterduff(FuelsDuffLitt)
 FuelsFine_sum <- calculate_fine_fuels(FuelsFine)
-```
-
-```{r}
-
-
-
-
-
-# Fuels1000_all_calcs <- merge(Fuels1000_all, Fuels1000_sum, all = T, by = c("AdministrationUnit_Name", "SampleEvent_TreatmentUnit", "Macroplot", "SampleEventDate", "Transect")) %>% 
-#   arrange("AdministrationUnit_Name", "SampleEvent_TreatmentUnit", "Macroplot", "SampleEventDate", "Transect")
 ```
 
 ```{r combine dataframes, include=FALSE}
@@ -542,7 +499,7 @@ FuelsFine_sum <- calculate_fine_fuels(FuelsFine)
 # ==== Join 1-100-hr, litter-duff, and 1,000-hr dataframes ==== #
 # ============================================================= #
 
-fuel_data_combined <- FuelsFine_sum %>%
+Fuels <- FuelsFine_sum %>%
   full_join(FuelsDuffLitt_sum, by = c("AdministrationUnit_Name", "SampleEvent_TreatmentUnit", "Macroplot", "SampleEventDate", "Transect")) %>% 
   left_join(Fuels1000_sum, by = c("AdministrationUnit_Name", "SampleEvent_TreatmentUnit", "Macroplot", "SampleEventDate", "Transect")) %>% 
   relocate(ThousHrTranLen, .after = HunHrTranLen) %>% 
@@ -556,6 +513,10 @@ fuel_data_combined <- FuelsFine_sum %>%
       c(ThousHrSound_FuelLoad, ThousHrRott_FuelLoad, ThousHr_FuelLoad),
       ~ replace_na(., 0)
 ))
+```
+
+```{r}
+write.csv(Fuels, paste0(path_save, "Data_Surface Fuels.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Post Burn
