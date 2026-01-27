@@ -82,7 +82,7 @@ table_ProjectUnit <- MetadataReport_all %>%
                    Last_Year = max(SampleEventDate_Year),
                    Annual_Total = n_distinct(Macroplot[SampleEventDate_Year == target_year]),
                    Total_Plots_ByProject = n_distinct(Macroplot),
-                   Total_Plots_ByPark = mean(n_total_plots_ByParkPlotType),
+                   Total_Plots_ByPark = mean(n_plots_ByPlotType),
                     .groups = "drop")
 
 table_MonitoringType <- MetadataReport_all %>% 
@@ -92,7 +92,7 @@ table_MonitoringType <- MetadataReport_all %>%
                    Last_Year = max(SampleEventDate_Year),
                    Annual_Total = n_distinct(Macroplot[SampleEventDate_Year == target_year]),
                    Total_Plots_ByProject = n_distinct(Macroplot),
-                   Total_Plots_ByPark = mean(n_total_plots_ByParkPlotType),
+                   Total_Plots_ByPark = mean(n_plots_ByPlotType),
                     .groups = "drop") %>% 
   dplyr::rename(MacroPlot.UV1 = MacroPlot.UV2, MacroPlot.UV2 = MacroPlot.UV1)
 ```
