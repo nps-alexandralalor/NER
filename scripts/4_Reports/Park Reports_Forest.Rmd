@@ -89,19 +89,17 @@ Fuels <- read.csv(paste0(path_data, "Data_Surface Fuels.csv"))
 
 # Graphs
 
-## Target Values
+### Target Values
 
 ```{r}
 target_park <- c("RICH")
 target_type <- c("Forest")
 target_years <- c(2025)
-date_min <- as.Date("1997-01-01")
-date_max <- as.Date("2025-12-31")
-year_min <- 1997
-year_max <- 2025
+year_max <- as.numeric(format(Sys.Date(), "%Y"))
+date_max <- as.Date(paste0(year_max, "-12-31"))
 ```
 
-## Burn History
+### Prep Metadata
 
 ```{r}
 graph_MetadataReport <- MetadataReport %>% 
@@ -121,6 +119,13 @@ graph_sum_Disturbances <- graph_Disturbances %>%
          Macroplot_Num = "All") %>%
   arrange(desc(MonStatus))
 ```
+
+```{r}
+year_min <- as.numeric(min(graph_MetadataReport$SampleEventDate_Year))
+date_min <- as.Date(min(graph_MetadataReport$SampleEventDate))
+```
+
+## Burn History
 
 ```{r}
 p_disturbance <- 
@@ -161,17 +166,16 @@ p_disturbance
 
 ## Surface Fuels
 
-```{r}
-target_park <- c("RICH")
-target_type <- c("Forest")
-target_project <- c("Cold Harbor")
-target_years <- c(2025)
+### Target Project
 
+```{r}
 Fuels %>% 
   filter(AdministrationUnit_Name == target_park,
          Purpose == "Fire Monitoring Handbook") %>% 
   select(SampleEvent_TreatmentUnit) %>% 
   unique()
+
+target_project <- c("Cold Harbor")
 ```
 
 ```{r}
