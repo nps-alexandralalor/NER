@@ -2,12 +2,6 @@
 title: "SHEN Report"
 subtitle: Northeast Region
 output:
-  word_document:
-    toc: true
-    toc_depth: 2
-  pdf_document:
-    toc: true
-    toc_depth: 2
   html_document:
     theme: readable
     highlight: null
@@ -16,6 +10,12 @@ output:
     toc_float:
       smooth_scroll: true
     code_download: true
+  pdf_document:
+    toc: true
+    toc_depth: 2
+  word_document:
+    toc: true
+    toc_depth: 2
 ---
 
 # Annual Report
@@ -47,14 +47,7 @@ library(stringr)
 library(DT)
 library(fs)
 library(ggplot2)
-```
-
-### Target Park
-
-```{r}
-target_park <- c("RICH")
-target_type <- c("Forest")
-target_years <- c(2025)
+library(patchwork)
 ```
 
 ### Adjust File Paths
@@ -72,10 +65,10 @@ path_data <- paste0(path_file, "ALL/Calculations/ALL_")
 # Load in data
 MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
 Fuels <- read.csv(paste0(path_data, "Data_Surface Fuels.csv"))
-Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
-Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
-HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
-HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
+# Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
+# Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
+# HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
+# HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 
 
 # SpeciesReport <- read.csv(paste0(path_data, "SpeciesReport.csv"))
@@ -84,102 +77,6 @@ HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 # FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
 # PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
 # Shrubs <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
-```
-
-### Filter Data
-
-```{r}
-# #####
-# # Fuels1000
-# #####
-# # Fuels1000 data
-# Fuels_data <- Fuels %>%
-#   filter(
-#     AdministrationUnit_Name == target_park,
-#     SampleEventDate_Year %in% target_years
-#     )
-# #####
-# # Fuels1000
-# #####
-# # Fuels1000 data
-# Fuels1000_data <- Fuels1000 %>%
-#   filter(
-#     AdministrationUnit_Name == target_park,
-#     Date_Year %in% target_years
-#     )
-# 
-# #####
-# # FuelsDuffLitt
-# #####
-# # FuelsDuffLitt data
-# FuelsDuffLitt_data <- FuelsDuffLitt %>%   
-#   filter(
-#     AdministrationUnit_Name == target_park,
-#     Date_Year %in% target_years
-#     )
-# #####
-# # FuelsFine
-# #####
-# # FuelsFine data
-# FuelsFine_data <- FuelsFine %>%   
-#   filter(
-#     AdministrationUnit_Name == target_park,
-#     Date_Year %in% target_years
-#     )
-# #####
-# # PostBurn
-# #####
-# # PostBurn data
-# PostBurn_data <- PostBurn %>%
-#   filter(
-#     AdministrationUnit_Name == target_park,
-#     Date_Year %in% target_years
-#     )
-# #####
-# # Trees
-# #####
-# # Trees data
-# Trees_data <- Trees %>%   
-#   filter(
-#     AdministrationUnit_Name == target_park,
-#     Date_Year %in% target_years
-#     )
-# #####
-# # Seedlings
-# #####
-# # Seedlings data
-# Seedlings_data <- Seedlings %>%
-#   filter(
-#     AdministrationUnit_Name == target_park,
-#     Date_Year %in% target_years
-#     )
-# #####
-# # Shrubs
-# #####
-# # Shrubs data
-# Shrubs_data <- Shrubs %>%
-#   filter(
-#     AdministrationUnit_Name == target_park,
-#     Date_Year %in% target_years
-#     )
-# #####
-# # HerbsSpComp
-# #####
-# # HerbsSpComp data
-# HerbsSpComp_data <- HerbsSpComp %>%
-#   filter(
-#     AdministrationUnit_Name == target_park,
-#     Date_Year %in% target_years
-#     )
-# #####
-# # HerbsPoints
-# #####
-# # HerbsPoints data
-# HerbsPoints_data <- HerbsPoints %>%
-#   filter(
-#     AdministrationUnit_Name == target_park,
-#     Date_Year %in% target_years
-#     )
 ```
 
 # Background
@@ -192,11 +89,26 @@ HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 
 # Graphs
 
+## Target Values
+
+```{r}
+target_park <- c("RICH")
+target_type <- c("Forest")
+target_years <- c(2025)
+date_min <- as.Date("1997-01-01")
+date_max <- as.Date("2025-12-31")
+year_min <- 1997
+year_max <- 2025
+```
+
 ## Burn History
 
 ```{r}
-graph_MetadataReport <- MetadataReport_all %>% 
-  filter(AdministrationUnit_Name == target_park)
+graph_MetadataReport <- MetadataReport %>% 
+  filter(
+    AdministrationUnit_Name == target_park,
+    Type == target_type
+    )
 
 graph_Disturbances <- graph_MetadataReport %>% 
   filter(MonStatus %in% c("Burn", "Herbicide", "Mechanical", "Mow"))
@@ -211,10 +123,9 @@ graph_sum_Disturbances <- graph_Disturbances %>%
 ```
 
 ```{r}
-graph_MetadataReport %>%
+p_disturbance <- 
+  graph_MetadataReport %>%
   ggplot(aes(x = DisturbanceDate, y = Macroplot_Num)) +
-  # geom_line(aes(group = Macroplot_Num, color = Entry)) +
-  # geom_point(aes(color = Entry), size = 2) +
   geom_line(aes(group = Macroplot_Num),
             data = graph_sum_Disturbances) +
   geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
@@ -223,13 +134,17 @@ graph_MetadataReport %>%
             data = graph_sum_Disturbances) +
   geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
              data = graph_sum_Disturbances, shape = 21, size = 2.5) +
-  facet_grid(Plot_Type ~ AdministrationUnit_Name) +
+  facet_grid(~MacroPlot.UV1) +
   labs(title = "Disturbance History",
        y = "",
        x = "Year",
        fill = "") +
-  # scale_x_date(limits = c(min(graph_MetadataReport$SampleEventDate), Sys.Date()),
-  #              date_labels = "%Y", date_breaks = "1 year") +
+  scale_x_date(
+    limits = c(date_min, date_max),
+    date_breaks = "1 year",
+    date_labels = "%Y",
+    expand = expansion(mult = c(0, 0))
+  ) +
   theme_light() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
         plot.title = element_text(size = 20, face="bold", hjust = 0.5),
@@ -237,8 +152,11 @@ graph_MetadataReport %>%
         axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
         axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
         axis.text.y = element_text(size = 8),
+        #axis.text.x = element_blank(),
         axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1),
         legend.position = "top")
+
+p_disturbance
 ```
 
 ## Surface Fuels
@@ -252,7 +170,7 @@ target_years <- c(2025)
 Fuels %>% 
   filter(AdministrationUnit_Name == target_park,
          Purpose == "Fire Monitoring Handbook") %>% 
-  select(MacroPlot.UV1) %>% 
+  select(SampleEvent_TreatmentUnit) %>% 
   unique()
 ```
 
@@ -264,8 +182,8 @@ Fuels_graph <- Fuels %>%
     Type == target_type
     ) %>% 
   mutate(
-    #SampleEventDate_Year = as.factor(SampleEventDate_Year),
-    SampleEventDate = as.factor(SampleEventDate)
+    SampleEventDate_Year = as.numeric(SampleEventDate_Year)
+    #,SampleEventDate = as.factor(SampleEventDate)
     ) %>% 
   group_by(AdministrationUnit_Name, Purpose, Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year) %>% 
   dplyr::summarise(
@@ -341,58 +259,201 @@ Fuels_graph <- Fuels %>%
 ```
 
 ```{r}
-Fuels_graph %>% 
-  ggplot(aes(x = SampleEventDate_Year, y = FuelLoad, fill = FuelClass)) +
-  geom_bar(position = "stack", stat = "identity") + 
-  geom_col(width = 0.8) +
-  facet_wrap(~ MacroPlot.UV1) +
+p_fuels <- 
+  Fuels_graph %>% 
+  ggplot() +
+  geom_bar(aes(x = SampleEventDate_Year, y = FuelLoad, fill = FuelClass),
+           position = "stack", stat = "identity") + 
+  #facet_wrap(~ MacroPlot.UV1) +
   labs(
     x = "Year",
     y = "Tons / Acre",
     fill = "Fuel Class",
     title = paste(target_park, target_type, "Fuel Loading")
   ) +
-  theme_minimal()
+  scale_x_continuous(
+    limits = c(year_min, year_max),
+    breaks = seq(year_min, year_max, by = 1),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+    plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+    axis.title = element_text(size = 12, face="bold"),
+    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+    axis.text.y = element_text(size = 8),
+    panel.grid.minor = element_blank()
+    )
+
+p_fuels
 ```
 
 ```{r}
-ggplot(
-  Fuels_graph,
-  aes(
-    x = SampleEventDate_Year,
-    y = Fuel_Load,
-    fill = Fuel_Class
+p_disturbance_merge <- p_disturbance +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        #plot.title = element_blank(),
+        legend.position = "right",
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
+        )+
+  labs(
+    title = paste(target_park, target_type, "Fuel Loading"),
+    fill = "Disturbance"
+       )
+
+p_fuels_merge <- p_fuels +
+  theme(plot.title = element_blank())
+
+p_disturbance_merge / p_fuels_merge +
+  plot_layout(heights = c(0.2, 1.4))
+```
+
+### 2025 Report Replicate
+
+```{r}
+Fuels_graph_classic <- Fuels %>% 
+  filter(
+    AdministrationUnit_Name == target_park,
+    MacroPlot.UV1 == target_project,
+    Type == target_type,
+    Macroplot %in% c("Plot 01 Cold Harbor", "Plot 02 Cold Harbor")
+    ) %>% 
+  mutate(
+    SampleEventDate_Year = as.numeric(SampleEventDate_Year)
+    #,SampleEventDate = as.factor(SampleEventDate)
+    ) %>% 
+  group_by(AdministrationUnit_Name, Purpose, Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year) %>% 
+  dplyr::summarise(
+    ThousHr_FuelLoad = mean(ThousHr_FuelLoad),
+    ThousHrRott_FuelLoad = mean(ThousHrRott_FuelLoad),
+    ThousHrSound_FuelLoad = mean(ThousHrSound_FuelLoad),
+    Fine_FuelLoad = mean(Fine_FuelLoad),
+    HunHr_FuelLoad = mean(HunHr_FuelLoad),
+    TenHr_FuelLoad = mean(TenHr_FuelLoad),
+    OneHr_FuelLoad = mean(OneHr_FuelLoad),
+    Avg_LittDuff_FuelLoad = mean(Avg_LittDuff_FuelLoad),
+    Avg_Litt_FuelLoad  = mean(Avg_Litt_FuelLoad),
+    Avg_Duff_FuelLoad = mean(Avg_Duff_FuelLoad)
+    ) %>% 
+    mutate(
+    Total_FuelLoad =
+      #ThousHrRott_FuelLoad
+      #+ ThousHrSound_FuelLoad
+      HunHr_FuelLoad
+      + TenHr_FuelLoad
+      + OneHr_FuelLoad
+      #+ Avg_Litt_FuelLoad
+      #+ Avg_Duff_FuelLoad
+  ) %>% 
+    pivot_longer(
+    cols = c(
+      #ThousHr_FuelLoad
+      #,ThousHrRott_FuelLoad
+      #,ThousHrSound_FuelLoad
+      Fine_FuelLoad
+      #,HunHr_FuelLoad
+      #,TenHr_FuelLoad
+      #,OneHr_FuelLoad
+      #,Avg_LittDuff_FuelLoad
+      #,Avg_Litt_FuelLoad
+      #,Avg_Duff_FuelLoad
+    ),
+    names_to  = "FuelClass",
+    values_to = "FuelLoad"
+  ) %>% 
+    mutate(
+    FuelClass = factor(
+      FuelClass,
+      levels = c(
+        #"ThousHr_FuelLoad"
+        #,"ThousHrRott_FuelLoad"
+        #,"ThousHrSound_FuelLoad"
+        "Fine_FuelLoad"
+        #,"HunHr_FuelLoad"
+        #,"TenHr_FuelLoad"
+        #,"OneHr_FuelLoad"
+        #,"Avg_LittDuff_FuelLoad"
+        #,"Avg_Litt_FuelLoad"
+        #,"Avg_Duff_FuelLoad"
+      )
+    )
+  ) %>%
+    mutate(
+    FuelClass = recode(
+      FuelClass,
+      #ThousHr_FuelLoad        = "1000-hr"
+      #,ThousHrRott_FuelLoad    = "1000-hr Rotten"
+      #,ThousHrSound_FuelLoad   = "1000-hr Sound"
+      Fine_FuelLoad           = "Fine"
+      #,HunHr_FuelLoad          = "100-hr"
+      #,TenHr_FuelLoad          = "10-hr"
+      #,OneHr_FuelLoad          = "1-hr"
+      #,Avg_LittDuff_FuelLoad   = "Litter/Duff"
+      #,Avg_Litt_FuelLoad       = "Litter"
+      #,Avg_Duff_FuelLoad      = "Duff"
+    )
   )
-) +
-  geom_col(width = 0.8) +
-  facet_wrap(~ MacroPlot.UV1) +
+```
+
+```{r}
+p_fuels_classic <- 
+  Fuels_graph_classic %>% 
+  # geom_line(aes(group = Macroplot_Num),
+  #           data = graph_sum_Disturbances) +
+  # geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+  #            data = graph_sum_Disturbances, shape = 21) +
+  ggplot(aes(x = SampleEventDate_Year, y = FuelLoad, fill = FuelClass)) +
+  geom_line() +
+  geom_point() +
+  # geom_bar(aes(x = SampleEventDate_Year, y = FuelLoad, fill = FuelClass),
+  #          position = "stack", stat = "identity") + 
   labs(
     x = "Year",
-    y = "Total Fuel Load",
+    y = "Tons / Acre",
     fill = "Fuel Class",
-    title = paste(target_park, "-", target_type)
+    title = paste(target_park, target_type, "Fuel Loading"),
+    subtitle = "Plots 1 & 2"
   ) +
-  theme_bw() +
+  scale_x_continuous(
+    limits = c(year_min, year_max),
+    breaks = seq(year_min, year_max, by = 1),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  ylim(0, 3) +
+  theme_minimal() +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
+    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+    plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+    axis.title = element_text(size = 12, face="bold"),
+    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+    axis.text.y = element_text(size = 8),
+    panel.grid.minor = element_blank()
+    )
+
+p_fuels_classic
 ```
 
 ## Herbs Species Comp
 
 ```{r}
-HerbsSpComp_graph <- HerbsSpComp_all %>% 
-  filter(AdministrationUnit_Name == target_park,
-         Type == target_type) %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year, Nativity) %>% 
-  dplyr::summarise(n_species_ByNativity = n_distinct(Species.Symbol),
-                   .groups = "drop")
+# HerbsSpComp_graph <- HerbsSpComp_all %>% 
+#   filter(AdministrationUnit_Name == target_park,
+#          Type == target_type) %>% 
+#   group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year, Nativity) %>% 
+#   dplyr::summarise(n_species_ByNativity = n_distinct(Species.Symbol),
+#                    .groups = "drop")
 ```
 
 ```{r}
-HerbsSpComp_graph %>%
-  ggplot(aes(x = SampleEventDate_Year, y = n_species_ByNativity, fill = Nativity)) +
-  geom_bar(position = "stack", stat = "identity")
+# HerbsSpComp_graph %>%
+#   ggplot(aes(x = SampleEventDate_Year, y = n_species_ByNativity, fill = Nativity)) +
+#   geom_bar(position = "stack", stat = "identity")
 ```
 
 # Discussion
