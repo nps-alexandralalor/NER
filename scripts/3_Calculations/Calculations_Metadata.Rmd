@@ -168,16 +168,16 @@ MetadataReport_all <- MetadataReport_all %>%
 ### Merge
 
 ```{r}
-MetadataReport_merge <- MetadataReport_all %>% 
-  select(c(Region, Zone, Unit, AdministrationUnit_Name, 
-           Purpose, Purpose_Code, Type, Plot_Type,
-           Macroplot, Macroplot_Code, Macroplot_Num,
-           MacroPlot.UV1, MacroPlot.UV2, MacroPlot.UV3, MacroPlot.UV4, 
-           MacroPlot.UV5, MacroPlot.UV6, MacroPlot.UV7, MacroPlot.UV8,
-           MonStatus, 
-           SampleEventDate, SampleEventDate_Year,
-           n_plots_ByPlotType, n_plots_ByProjectUnit, n_plots_ByMonitoringType)) %>% 
-  unique()
+# MetadataReport_merge <- MetadataReport_all %>% 
+#   select(c(Region, Zone, Unit, AdministrationUnit_Name, 
+#            Purpose, Purpose_Code, Type, Plot_Type,
+#            Macroplot, Macroplot_Code, Macroplot_Num,
+#            MacroPlot.UV1, MacroPlot.UV2, MacroPlot.UV3, MacroPlot.UV4, 
+#            MacroPlot.UV5, MacroPlot.UV6, MacroPlot.UV7, MacroPlot.UV8,
+#            MonStatus, 
+#            SampleEventDate, SampleEventDate_Year,
+#            n_plots_ByPlotType, n_plots_ByProjectUnit, n_plots_ByMonitoringType)) %>% 
+#   unique()
 ```
 
 ### Split MetadataReport
@@ -268,6 +268,12 @@ MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %
   arrange(AdministrationUnit_Name, Macroplot, SampleEventDate)
 ```
 
+#### Save
+
+```{r}
+write.csv(MetadataReport_all, paste0(path_save, "MetadataReport.csv"), quote = FALSE, row.names = FALSE)
+```
+
 ### Other
 
 -   Disturbance_Entry (to match with MonStatus)
@@ -281,4 +287,3 @@ MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %
 -   FuelType (PIPO, PIED, etc.)
 
 ## Species Report
-
