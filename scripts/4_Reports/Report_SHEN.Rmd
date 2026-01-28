@@ -71,113 +71,115 @@ path_data <- paste0(path_file, "ALL/Calculations/ALL_")
 ```{r}
 # Load in data
 MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
-SpeciesReport <- read.csv(paste0(path_data, "SpeciesReport.csv"))
 Fuels <- read.csv(paste0(path_data, "Data_Surface Fuels.csv"))
+Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
+Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
+HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
+HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
+
+
+# SpeciesReport <- read.csv(paste0(path_data, "SpeciesReport.csv"))
 # Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
 # FuelsDuffLitt <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
 # FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
-PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
-Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
-Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
-Shrubs <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
-HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
-HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
+# PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
+# Shrubs <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
 ```
 
 ### Filter Data
 
 ```{r}
-#####
-# Fuels1000
-#####
-# Fuels1000 data
-Fuels_data <- Fuels %>%
-  filter(
-    AdministrationUnit_Name == target_park,
-    SampleEventDate_Year %in% target_years
-    )
-#####
-# Fuels1000
-#####
-# Fuels1000 data
-Fuels1000_data <- Fuels1000 %>%
-  filter(
-    AdministrationUnit_Name == target_park,
-    Date_Year %in% target_years
-    )
-
-#####
-# FuelsDuffLitt
-#####
-# FuelsDuffLitt data
-FuelsDuffLitt_data <- FuelsDuffLitt %>%   
-  filter(
-    AdministrationUnit_Name == target_park,
-    Date_Year %in% target_years
-    )
-#####
-# FuelsFine
-#####
-# FuelsFine data
-FuelsFine_data <- FuelsFine %>%   
-  filter(
-    AdministrationUnit_Name == target_park,
-    Date_Year %in% target_years
-    )
-#####
-# PostBurn
-#####
-# PostBurn data
-PostBurn_data <- PostBurn %>%
-  filter(
-    AdministrationUnit_Name == target_park,
-    Date_Year %in% target_years
-    )
-#####
-# Trees
-#####
-# Trees data
-Trees_data <- Trees %>%   
-  filter(
-    AdministrationUnit_Name == target_park,
-    Date_Year %in% target_years
-    )
-#####
-# Seedlings
-#####
-# Seedlings data
-Seedlings_data <- Seedlings %>%
-  filter(
-    AdministrationUnit_Name == target_park,
-    Date_Year %in% target_years
-    )
-#####
-# Shrubs
-#####
-# Shrubs data
-Shrubs_data <- Shrubs %>%
-  filter(
-    AdministrationUnit_Name == target_park,
-    Date_Year %in% target_years
-    )
-#####
-# HerbsSpComp
-#####
-# HerbsSpComp data
-HerbsSpComp_data <- HerbsSpComp %>%
-  filter(
-    AdministrationUnit_Name == target_park,
-    Date_Year %in% target_years
-    )
-#####
-# HerbsPoints
-#####
-# HerbsPoints data
-HerbsPoints_data <- HerbsPoints %>%
-  filter(
-    AdministrationUnit_Name == target_park,
-    Date_Year %in% target_years
-    )
+# #####
+# # Fuels1000
+# #####
+# # Fuels1000 data
+# Fuels_data <- Fuels %>%
+#   filter(
+#     AdministrationUnit_Name == target_park,
+#     SampleEventDate_Year %in% target_years
+#     )
+# #####
+# # Fuels1000
+# #####
+# # Fuels1000 data
+# Fuels1000_data <- Fuels1000 %>%
+#   filter(
+#     AdministrationUnit_Name == target_park,
+#     Date_Year %in% target_years
+#     )
+# 
+# #####
+# # FuelsDuffLitt
+# #####
+# # FuelsDuffLitt data
+# FuelsDuffLitt_data <- FuelsDuffLitt %>%   
+#   filter(
+#     AdministrationUnit_Name == target_park,
+#     Date_Year %in% target_years
+#     )
+# #####
+# # FuelsFine
+# #####
+# # FuelsFine data
+# FuelsFine_data <- FuelsFine %>%   
+#   filter(
+#     AdministrationUnit_Name == target_park,
+#     Date_Year %in% target_years
+#     )
+# #####
+# # PostBurn
+# #####
+# # PostBurn data
+# PostBurn_data <- PostBurn %>%
+#   filter(
+#     AdministrationUnit_Name == target_park,
+#     Date_Year %in% target_years
+#     )
+# #####
+# # Trees
+# #####
+# # Trees data
+# Trees_data <- Trees %>%   
+#   filter(
+#     AdministrationUnit_Name == target_park,
+#     Date_Year %in% target_years
+#     )
+# #####
+# # Seedlings
+# #####
+# # Seedlings data
+# Seedlings_data <- Seedlings %>%
+#   filter(
+#     AdministrationUnit_Name == target_park,
+#     Date_Year %in% target_years
+#     )
+# #####
+# # Shrubs
+# #####
+# # Shrubs data
+# Shrubs_data <- Shrubs %>%
+#   filter(
+#     AdministrationUnit_Name == target_park,
+#     Date_Year %in% target_years
+#     )
+# #####
+# # HerbsSpComp
+# #####
+# # HerbsSpComp data
+# HerbsSpComp_data <- HerbsSpComp %>%
+#   filter(
+#     AdministrationUnit_Name == target_park,
+#     Date_Year %in% target_years
+#     )
+# #####
+# # HerbsPoints
+# #####
+# # HerbsPoints data
+# HerbsPoints_data <- HerbsPoints %>%
+#   filter(
+#     AdministrationUnit_Name == target_park,
+#     Date_Year %in% target_years
+#     )
 ```
 
 # Background
@@ -243,9 +245,15 @@ graph_MetadataReport %>%
 
 ```{r}
 target_park <- c("RICH")
-target_project <- c("Cold Harbor")
 target_type <- c("Forest")
+target_project <- c("Cold Harbor")
 target_years <- c(2025)
+
+Fuels %>% 
+  filter(AdministrationUnit_Name == target_park,
+         Purpose == "Fire Monitoring Handbook") %>% 
+  select(MacroPlot.UV1) %>% 
+  unique()
 ```
 
 ```{r}
@@ -256,88 +264,85 @@ Fuels_graph <- Fuels %>%
     Type == target_type
     ) %>% 
   mutate(
-    #SampleEventDate_Year = as.factor(SampleEventDate_Year)
+    #SampleEventDate_Year = as.factor(SampleEventDate_Year),
+    SampleEventDate = as.factor(SampleEventDate)
     ) %>% 
   group_by(AdministrationUnit_Name, Purpose, Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year) %>% 
   dplyr::summarise(
-    #Avg_Duff_FuelLoad = mean(Avg_Duff_FuelLoad),
-    Avg_Litt_FuelLoad  = mean(Avg_Litt_FuelLoad),
-    #Avg_LittDuff_FuelLoad = mean(Avg_LittDuff_FuelLoad),
-    #OneHr_FuelLoad = mean(OneHr_FuelLoad),
-    #TenHr_FuelLoad = mean(TenHr_FuelLoad),
-    #HunHr_FuelLoad = mean(HunHr_FuelLoad),
-    Fine_FuelLoad = mean(Fine_FuelLoad),
-    #ThousHrSound_FuelLoad = mean(ThousHrSound_FuelLoad),
-    #ThousHrRott_FuelLoad = mean(ThousHrRott_FuelLoad),
     ThousHr_FuelLoad = mean(ThousHr_FuelLoad),
-    #Total_FuelLoad = Avg_LittDuff_FuelLoad + Fine_FuelLoad + ThousHr_FuelLoad
+    ThousHrRott_FuelLoad = mean(ThousHrRott_FuelLoad),
+    ThousHrSound_FuelLoad = mean(ThousHrSound_FuelLoad),
+    Fine_FuelLoad = mean(Fine_FuelLoad),
+    HunHr_FuelLoad = mean(HunHr_FuelLoad),
+    TenHr_FuelLoad = mean(TenHr_FuelLoad),
+    OneHr_FuelLoad = mean(OneHr_FuelLoad),
+    Avg_LittDuff_FuelLoad = mean(Avg_LittDuff_FuelLoad),
+    Avg_Litt_FuelLoad  = mean(Avg_Litt_FuelLoad),
+    Avg_Duff_FuelLoad = mean(Avg_Duff_FuelLoad)
     ) %>% 
     mutate(
     Total_FuelLoad =
-      #Avg_Duff_FuelLoad +
-      Avg_Litt_FuelLoad +
-      #Avg_LittDuff_FuelLoad +
-      #OneHr_FuelLoad +
-      #TenHr_FuelLoad +
-      #HunHr_FuelLoad +
-      Fine_FuelLoad +
-      #ThousHrSound_FuelLoad +
-      #ThousHrRott_FuelLoad +
-      ThousHr_FuelLoad
+      ThousHrRott_FuelLoad
+      + ThousHrSound_FuelLoad
+      + HunHr_FuelLoad
+      + TenHr_FuelLoad
+      + OneHr_FuelLoad
+      + Avg_Litt_FuelLoad
+      + Avg_Duff_FuelLoad
   ) %>% 
     pivot_longer(
     cols = c(
-      #Avg_Duff_FuelLoad,
-      Avg_Litt_FuelLoad,
-      #Avg_LittDuff_FuelLoad,
-      #OneHr_FuelLoad,
-      #TenHr_FuelLoad,
-      #HunHr_FuelLoad,
-      Fine_FuelLoad,
-      #ThousHrSound_FuelLoad,
-      #ThousHrRott_FuelLoad,
       ThousHr_FuelLoad
+      #,ThousHrRott_FuelLoad
+      #,ThousHrSound_FuelLoad
+      #,Fine_FuelLoad
+      ,HunHr_FuelLoad
+      ,TenHr_FuelLoad
+      ,OneHr_FuelLoad
+      #,Avg_LittDuff_FuelLoad
+      ,Avg_Litt_FuelLoad
+      ,Avg_Duff_FuelLoad
     ),
-    names_to  = "Fuel_Class",
-    values_to = "Fuel_Load"
+    names_to  = "FuelClass",
+    values_to = "FuelLoad"
   ) %>% 
     mutate(
-    Fuel_Class = recode(
-      Fuel_Class,
-      #Avg_Duff_FuelLoad       = "Duff",
-      Avg_Litt_FuelLoad       = "Litter",
-      #Avg_LittDuff_FuelLoad  = "Litter/Duff",
-      #OneHr_FuelLoad          = "1-hr",
-      #TenHr_FuelLoad          = "10-hr",
-      #HunHr_FuelLoad          = "100-hr",
-      Fine_FuelLoad          = "Fine",
-      #ThousHrSound_FuelLoad   = "1000-hr Sound",
-      #ThousHrRott_FuelLoad    = "1000-hr Rotten",
-      ThousHr_FuelLoad        = "1000-hr"
-    )
-  ) %>% 
-  mutate(
-    Fuel_Class = factor(
-      Fuel_Class,
+    FuelClass = factor(
+      FuelClass,
       levels = c(
-        "1000-hr",
-        #"1000-hr Rotten",
-        #"1000-hr Sound",
-        "Fine",
-        #"100-hr",
-        #"10-hr",
-        #"1-hr",
-        #"Litter/Duff",
-        "Litter"
-        #,"Duff"
+        "ThousHr_FuelLoad"
+        #,"ThousHrRott_FuelLoad"
+        #,"ThousHrSound_FuelLoad"
+        #,"Fine_FuelLoad"
+        ,"HunHr_FuelLoad"
+        ,"TenHr_FuelLoad"
+        ,"OneHr_FuelLoad"
+        #,"Avg_LittDuff_FuelLoad"
+        ,"Avg_Litt_FuelLoad"
+        ,"Avg_Duff_FuelLoad"
       )
+    )
+  ) %>%
+    mutate(
+    FuelClass = recode(
+      FuelClass,
+      ThousHr_FuelLoad        = "1000-hr"
+      #,ThousHrRott_FuelLoad    = "1000-hr Rotten"
+      #,ThousHrSound_FuelLoad   = "1000-hr Sound"
+      #,Fine_FuelLoad           = "Fine"
+      ,HunHr_FuelLoad          = "100-hr"
+      ,TenHr_FuelLoad          = "10-hr"
+      ,OneHr_FuelLoad          = "1-hr"
+      #,Avg_LittDuff_FuelLoad   = "Litter/Duff"
+      ,Avg_Litt_FuelLoad       = "Litter"
+      ,Avg_Duff_FuelLoad      = "Duff"
     )
   )
 ```
 
 ```{r}
 Fuels_graph %>% 
-  ggplot(aes(x = SampleEventDate_Year, y = Fuel_Load, fill = Fuel_Class)) +
+  ggplot(aes(x = SampleEventDate_Year, y = FuelLoad, fill = FuelClass)) +
   geom_bar(position = "stack", stat = "identity") + 
   geom_col(width = 0.8) +
   facet_wrap(~ MacroPlot.UV1) +
