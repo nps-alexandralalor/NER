@@ -18,7 +18,7 @@ output:
     code_download: true
 ---
 
-# Metadata Clean
+# BEFORE STARTING
 
 ### Setup {.hidden}
 
@@ -71,22 +71,23 @@ path_save <- paste0(path_file, "ALL/Calculations/ALL_")
 
 ```{r}
 # Load in data
-# MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
-# SpeciesReport <- read.csv(paste0(path_data, "SpeciesReport.csv"))
-Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
-FuelsDuffLitt <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
-FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
-PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
-Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
+# Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
+# FuelsDuffLitt <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
+# FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
+
+# Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
 Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
-Shrubs <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
+
 HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
 HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
+
+# PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
+# Shrubs <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
 ```
 
-## Surface Fuels
+# Surface Fuels
 
-### Fuels 1000
+## Fuels 1000
 
 ```{r calculate fuel loads, include=FALSE}
 # -------------------------- #
@@ -130,13 +131,13 @@ calculate_coarse_fuels <- function(fuels_df) {
   loads_per_transect <- fuels_processed %>% 
    group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, SampleEventDate, Transect) %>% 
     summarise(
-      ThousHrTranLen      = TranLen,
-      ThousHrSound        = sum((DecayCl == 3), na.rm = TRUE),
-      ThousHrRott        = sum((DecayCl == 4), na.rm = TRUE),
-      ThousHr        = sum((DecayCl %in% c(3,4)), na.rm = TRUE),
-      ThousHrSound_FuelLoad     = sum(Load[DecayCl == 3], na.rm = TRUE),
+      ThousHrTranLen           = TranLen,
+      ThousHrSound             = sum((DecayCl == 3), na.rm = TRUE),
+      ThousHrRott              = sum((DecayCl == 4), na.rm = TRUE),
+      ThousHr                  = sum((DecayCl %in% c(3,4)), na.rm = TRUE),
+      ThousHrSound_FuelLoad    = sum(Load[DecayCl == 3], na.rm = TRUE),
       ThousHrRott_FuelLoad     = sum(Load[DecayCl == 4], na.rm = TRUE),
-      ThousHr_FuelLoad = sum(Load, na.rm = TRUE),
+      ThousHr_FuelLoad         = sum(Load, na.rm = TRUE),
       .groups = "drop"
     ) %>%
     mutate(Transect = suppressWarnings(as.numeric(Transect)))
@@ -172,7 +173,7 @@ calculate_coarse_fuels <- function(fuels_df) {
 }
 ```
 
-### Fuels Duff Litter Function
+## Fuels Duff Litter
 
 ```{r calculate fuel loads, include=FALSE}
 # -------------------------------------- #  
@@ -244,7 +245,7 @@ calculate_litterduff <- function(fuels_df) {
 }
 ```
 
-### Fuels Fine
+## Fuels Fine
 
 ```{r calculate fuel loads, include=FALSE}
 # ------------------------------------- #
@@ -321,40 +322,203 @@ Fuels <- FuelsFine_sum %>%
 write.csv(Fuels, paste0(path_save, "Data_Surface Fuels.csv"), quote = FALSE, row.names = FALSE)
 ```
 
-## Post Burn
+# Trees
 
-## Trees
-
-## Seedlings
-
-## Shrubs
-
-## Herbs Species Comp
+# Seedlings
 
 ```{r}
-HerbsSpComp_all <- merge(HerbsSpComp, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
-  # Reorganize Columns
-  relocate(Region, .before = AdministrationUnit_Name) %>% 
-  relocate(Zone, .before = AdministrationUnit_Name) %>%
-  relocate(Unit, .before = AdministrationUnit_Name) %>% 
-  relocate(Purpose_Code, .after = Purpose) %>% 
-  relocate(Plot_Type, .after = Type) %>% 
-  relocate(Macroplot_Num, .after = Macroplot) %>% 
-  relocate(Macroplot_Code, .after = Macroplot) %>% 
-  # Protocol Specific Columns
-  mutate(Nativity = ifelse(Native.Species == "True", "Native",
-                           ifelse(Invasive.Species == "True", "Invasive", "Unknown"))) 
+# ------------------------------------- #
+# ----           Seedlings         ---- #
+# ------------------------------------- #
+#seedlings_df <- Seedlings
+# ---- Function to calculate 1-100-hr fuels for any park dataset ---- #
+calculate_seedlings_dens <- function(seedlings_df) {
+  
+  # ---- Step 1: Ensure Date is proper datetime format ---- #
+  seedlings_df <- seedlings_df %>%
+    mutate(
+      SampleEventDate = ymd(SampleEventDate)
+    )
+  
+  # ---- Step 2: Compute per-transect fuel load ---- #
+  plot_level <- seedlings_df %>%
+    mutate(
+      SizeCl = if_else(Height <= 4, "< 1m", "> 1m"),
+      Area = QuadLen * QuadWid,
+      Hectar = Area / 10000,
+      Acre = Hectar * 2.47105,
+      SizeClGenus_SeedDens_ha = round(Count / Hectar),
+      SizeClGenus_SeedDens_ac = round(Count / Acre)
+    ) %>% 
+    relocate(Count, .after = Acre) %>% 
+    relocate(Genus, .after = Acre) %>% 
+    relocate(SizeCl, .after = Acre)
+
+  # ---- Step 3: Plot-level summaries ---- #
+  plot_level_SizeCl <- plot_level %>%
+    group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, SampleEventDate, SizeCl) %>% 
+    summarise(SizeCl_Count = sum(Count),
+              SizeCl_SeedDens_ha = round(SizeCl_Count / Hectar),
+              SizeCl_SeedDens_ac = round(SizeCl_Count / Acre),
+              .groups = "drop") %>% 
+    unique()
+  
+  
+  plot_level_Genus <- plot_level %>%
+    group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, SampleEventDate, Genus) %>% 
+    summarise(Genus_Count = sum(Count),
+              Genus_SeedDens_ha = round(Genus_Count / Hectar),
+              Genus_SeedDens_ac = round(Genus_Count / Acre),
+              .groups = "drop") %>% 
+    unique()
+  
+  plot_level_Total <- plot_level %>% 
+    group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, SampleEventDate) %>% 
+    summarise(Total_Count = sum(Count),
+              Total_SeedDens_ha = round(Total_Count / Hectar),
+              Total_SeedDens_ac = round(Total_Count / Acre),
+              .groups = "drop") %>% 
+    unique()
+    
+  # ---- Step 4: COMBINE ---- #
+  plot_level_merge <- plot_level %>% 
+    full_join(plot_level_Total, by = c("AdministrationUnit_Name", "SampleEvent_TreatmentUnit", "Macroplot", "SampleEventDate")) %>% 
+    full_join(plot_level_SizeCl, by = c("AdministrationUnit_Name", "SampleEvent_TreatmentUnit", "Macroplot", "SampleEventDate", "SizeCl")) %>% 
+    full_join(plot_level_Genus, by = c("AdministrationUnit_Name", "SampleEvent_TreatmentUnit", "Macroplot", "SampleEventDate", "Genus"))
+  
+}
+
+# trees <- c(
+#   "Acer", "Ailanthus", "Albizia", "Amelanchier", "Aralia", "Asimina", 
+#   "Betula", "Carpinus", "Carya", "Castanea", "Catalpa", "Celtis", 
+#   "Cercis", "Cornus", "Crataegus", "Diospyros", "Fagus", "Fraxinus", 
+#   "Gleditsia", "Hamamelis", "Juglans", "Juniperus", "Kalmia", "Ligustrum", 
+#   "Liquidambar", "Liriodendron", "Magnolia", "Malus", "Morella", "Morus", 
+#   "Nyssa", "Ostrya", "Oxydendrum", "Paulownia", "Pinus", "Platanus", 
+#   "Populus", "Prunus", "Pyrus", "Quercus", "Rhus", "Robinia", "Salix", 
+#   "Sassafras", "Staphylea", "Taxus", "Tilia", "Tsuga", "Ulmus", "Viburnum"
+# )
 ```
 
 ```{r}
-HerbsSpComp_all <- HerbsSpComp_all %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, Macroplot, SampleEventDate) %>%
-  dplyr::mutate(n_species_ByPlotDate = n_distinct(Species.Symbol)) %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1, SampleEventDate) %>% 
-  dplyr::mutate(n_species_ByDate = n_distinct(Species.Symbol)) %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1, SampleEventDate, Nativity) %>% 
-  dplyr::mutate(n_species_ByNativity = n_distinct(Species.Symbol)) %>% 
-  ungroup()
+Seedlings_sum <- calculate_seedlings_dens(Seedlings)
 ```
 
-## Herbs Points
+```{r}
+write.csv(Seedlings_sum, paste0(path_save, "Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE)
+```
+
+# Herbs Species Comp
+
+```{r}
+# HerbsSpComp_all <- merge(HerbsSpComp, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
+#   # Reorganize Columns
+#   relocate(Region, .before = AdministrationUnit_Name) %>% 
+#   relocate(Zone, .before = AdministrationUnit_Name) %>%
+#   relocate(Unit, .before = AdministrationUnit_Name) %>% 
+#   relocate(Purpose_Code, .after = Purpose) %>% 
+#   relocate(Plot_Type, .after = Type) %>% 
+#   relocate(Macroplot_Num, .after = Macroplot) %>% 
+#   relocate(Macroplot_Code, .after = Macroplot) %>% 
+#   # Protocol Specific Columns
+#   mutate(Nativity = ifelse(Native.Species == "True", "Native",
+#                            ifelse(Invasive.Species == "True", "Invasive", "Unknown"))) 
+```
+
+```{r}
+# ------------------------------------- #
+# ---- Cover Species Composition   ---- #
+# ------------------------------------- #
+#cover_df <- HerbsSpComp
+# ---- Function to calculate 1-100-hr fuels for any park dataset ---- #
+calculate_SpComp_cover <- function(cover_df) {
+  
+  # ---- Step 1: Ensure Date is proper datetime format ---- #
+  cover_df <- cover_df %>%
+    mutate(
+      SampleEventDate = ymd(SampleEventDate)
+    )
+  
+  # ---- Step 3: KEEP TRANSECT-LEVEL DATA (do NOT summarise here) ---- #
+  plot_level <- cover_df %>%
+    mutate(
+      Nativity = ifelse(Native.Species == "True", "Native",
+                           ifelse(Invasive.Species == "True", "Invasive", "Unknown"))
+      ) %>% 
+    # ---- KEEP PLOT-LEVEL DATA (do NOT summarise here) ---- #
+    group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, MonStatus, SampleEventDate_Year) %>%
+    dplyr::mutate(
+      n_species_ByPlot = n_distinct(Species.Symbol)) %>% 
+    group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, MonStatus, SampleEventDate_Year, Nativity) %>%
+    dplyr::mutate(
+      n_species_ByPlotNativity = n_distinct(Species.Symbol)) %>%
+    group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, MonStatus, SampleEventDate_Year, Preferred_Lifeform) %>%
+    dplyr::mutate(
+      n_species_ByPlotLifeform = n_distinct(Species.Symbol)) %>%
+    # ---- KEEP BURN UNIT-LEVEL DATA (do NOT summarise here) ---- #
+    group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, MonStatus, SampleEventDate_Year, Nativity) %>%
+    dplyr::mutate(
+      n_species_ByNativity = n_distinct(Species.Symbol)) %>% 
+      group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, MonStatus, SampleEventDate_Year, Nativity) %>%
+    dplyr::mutate(
+      n_species_ByLifeform = n_distinct(Species.Symbol)) %>% 
+    # ---- KEEP BURN UNIT-LEVEL DATA (do NOT summarise here) ---- #
+    ungroup()
+}
+```
+
+```{r}
+HerbsSpComp_sum <- calculate_SpComp_cover(HerbsSpComp)
+```
+
+```{r}
+write.csv(HerbsSpComp_sum, paste0(path_save, "Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE)
+```
+
+# Herbs Points
+
+```{r}
+# ------------------------------------- #
+# ---- Cover Points                ---- #
+# ------------------------------------- #
+# cover_df <- HerbsPoints
+# # ---- Function to calculate 1-100-hr fuels for any park dataset ---- #
+# calculate_Points_cover <- function(cover_df) {
+#   
+#   # ---- Step 1: Ensure Date is proper datetime format ---- #
+#   cover_df <- cover_df %>%
+#     mutate(
+#       SampleEventDate = ymd(SampleEventDate)
+#     )
+#   
+#   # ---- Step 3: KEEP TRANSECT-LEVEL DATA (do NOT summarise here) ---- #
+#   plot_level <- cover_df %>%
+#     mutate(
+#       Nativity = ifelse(Native.Species == "True", "Native",
+#                            ifelse(Invasive.Species == "True", "Invasive", "Unknown"))
+#       ) %>% 
+#     # ---- KEEP PLOT-LEVEL DATA (do NOT summarise here) ---- #
+    # group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, MonStatus, SampleEventDate_Year) %>%
+    # dplyr::mutate(
+    #   n_species_ByPlot = n_distinct(Species.Symbol)) %>% 
+    # group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, MonStatus, SampleEventDate_Year, Nativity) %>%
+    # dplyr::mutate(
+    #   n_species_ByPlotNativity = n_distinct(Species.Symbol)) %>%
+    # group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, MonStatus, SampleEventDate_Year, Preferred_Lifeform) %>%
+    # dplyr::mutate(
+    #   n_species_ByPlotLifeform = n_distinct(Species.Symbol)) %>%
+    # # ---- KEEP BURN UNIT-LEVEL DATA (do NOT summarise here) ---- #
+    # group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, MonStatus, SampleEventDate_Year, Nativity) %>%
+    # dplyr::mutate(
+    #   n_species_ByNativity = n_distinct(Species.Symbol)) %>% 
+    #   group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, MonStatus, SampleEventDate_Year, Nativity) %>%
+    # dplyr::mutate(
+    #   n_species_ByLifeform = n_distinct(Species.Symbol)) %>% 
+    # # ---- KEEP BURN UNIT-LEVEL DATA (do NOT summarise here) ---- #
+    # ungroup()
+}
+```
+
+```{r}
+#HerbsPoints_sum <- calculate_Points_cover(HerbsPoints)
+```

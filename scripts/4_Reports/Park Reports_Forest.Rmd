@@ -67,7 +67,7 @@ MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
 Fuels <- read.csv(paste0(path_data, "Data_Surface Fuels.csv"))
 # Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
 # Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
-# HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
+HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
 # HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 
 
@@ -443,21 +443,100 @@ p_fuels_classic <-
 p_fuels_classic
 ```
 
-## Herbs Species Comp
+## Seedlings
 
 ```{r}
-# HerbsSpComp_graph <- HerbsSpComp_all %>% 
+# Seedlings_Genus_graph <- Seedlings_sum %>% 
 #   filter(AdministrationUnit_Name == target_park,
-#          Type == target_type) %>% 
-#   group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year, Nativity) %>% 
-#   dplyr::summarise(n_species_ByNativity = n_distinct(Species.Symbol),
-#                    .groups = "drop")
+#          Type == target_type) %>%
+#   group_by(AdministrationUnit_Name, Purpose, Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year) %>% 
+#   summarise(
+#     Genus = Genus,
+#     Total_SeedDens_ha = round(mean(Total_SeedDens_ha)),
+#     Total_SeedDens_ac = mean(Total_SeedDens_ac)
+#   )
+
+# Seedlings_SizeCl_graph <- Seedlings_sum %>% 
+#   filter(AdministrationUnit_Name == target_park,
+#          Type == target_type) %>%
+#   group_by(AdministrationUnit_Name, Purpose, Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year, SizeCl) %>% 
+#   summarise(
+#     Total_SeedDens_ha = sum(SizeCl_SeedDens_ha, na.rm = TRUE),
+#     Total_SeedDens_ac = sum(SizeCl_SeedDens_ac, na.rm = TRUE)
+#   )
 ```
 
 ```{r}
-# HerbsSpComp_graph %>%
-#   ggplot(aes(x = SampleEventDate_Year, y = n_species_ByNativity, fill = Nativity)) +
-#   geom_bar(position = "stack", stat = "identity")
+# Seedlings_Genus_graph %>% 
+#   ggplot() +
+#   geom_bar(aes(x = SampleEventDate_Year, y = Total_SeedDens_ac, fill = Genus),
+#            position = "stack", stat = "identity") + 
+#   facet_wrap(~ MacroPlot.UV1) +
+#   labs(
+#     x = "Year",
+#     y = "Seedlings / Acre",
+#     fill = "Genus",
+#     title = paste(target_park, target_type, "Seedling Density")
+#   ) +
+#   scale_x_continuous(
+#     limits = c(year_min, year_max),
+#     breaks = seq(year_min, year_max, by = 1),
+#     expand = expansion(mult = c(0, 0))
+#   ) +
+#   theme_minimal() +
+#   theme(
+#     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+#     plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+#     axis.title = element_text(size = 12, face="bold"),
+#     axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+#     axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+#     axis.text.y = element_text(size = 8),
+#     panel.grid.minor = element_blank())
+```
+
+```{r}
+# Seedlings_SizeCl_graph %>% 
+#   ggplot() +
+#   geom_bar(aes(x = SampleEventDate_Year, y = Total_SeedDens_ac, fill = SizeCl),
+#            position = "stack", stat = "identity") + 
+#   facet_wrap(~ MacroPlot.UV1) +
+#   labs(
+#     x = "Year",
+#     y = "Seedlings / Acre",
+#     fill = "Size Class",
+#     title = paste(target_park, target_type, "Seedling Density")
+#   ) +
+#   scale_x_continuous(
+#     limits = c(year_min, year_max),
+#     breaks = seq(year_min, year_max, by = 1),
+#     expand = expansion(mult = c(0, 0))
+#   ) +
+#   theme_minimal() +
+#   theme(
+#     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+#     plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+#     axis.title = element_text(size = 12, face="bold"),
+#     axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+#     axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+#     axis.text.y = element_text(size = 8),
+#     panel.grid.minor = element_blank())
+```
+
+## Herbs Species Comp
+
+```{r}
+HerbsSpComp_graph <- HerbsSpComp_sum %>%
+  filter(AdministrationUnit_Name == target_park,
+         Type == target_type) %>%
+  # group_by(AdministrationUnit_Name, Purpose, Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year, Nativity) %>%
+  dplyr::summarise(n_species_ByNativity = mean(n_species_ByNativity),
+                   .groups = "drop")
+```
+
+```{r}
+HerbsSpComp_graph %>%
+  ggplot(aes(x = SampleEventDate_Year, y = n_species_ByNativity, fill = Nativity)) +
+  geom_bar(position = "stack", stat = "identity")
 ```
 
 # Discussion
