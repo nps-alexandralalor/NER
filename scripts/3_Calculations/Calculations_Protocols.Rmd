@@ -71,9 +71,9 @@ path_save <- paste0(path_file, "ALL/Calculations/ALL_")
 
 ```{r}
 # Load in data
-# Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
-# FuelsDuffLitt <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
-# FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
+Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
+FuelsDuffLitt <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
+FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
 
 # Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
 Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
@@ -130,7 +130,7 @@ calculate_coarse_fuels <- function(fuels_df) {
   # ---- Step 3A: Summarise computed loads (only where logs existed) ---- #
   loads_per_transect <- fuels_processed %>% 
    group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, SampleEventDate, Transect) %>% 
-    summarise(
+    dplyr::summarise(
       ThousHrTranLen           = TranLen,
       ThousHrSound             = sum((DecayCl == 3), na.rm = TRUE),
       ThousHrRott              = sum((DecayCl == 4), na.rm = TRUE),
@@ -202,7 +202,7 @@ calculate_litterduff <- function(fuels_df) {
   # ---- Step 2: Transect-level averages ---- #
   transect_means <- fuels_df %>%
     group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, SampleEventDate, Transect, NumTran) %>% 
-    summarise(
+    dplyr::summarise(
       Tran_LittDep = mean(LittDep, na.rm = TRUE),
       Tran_DuffDep = mean(DuffDep, na.rm = TRUE),
       .groups = "drop"
@@ -219,7 +219,7 @@ calculate_litterduff <- function(fuels_df) {
   # ---- Step 3: Plot-level averages ---- #
   plot_means <- transect_means %>%
     group_by(AdministrationUnit_Name, SampleEvent_TreatmentUnit, Macroplot, SampleEventDate) %>%
-    summarise(
+    dplyr::summarise(
       Transect = Transect,
       
       # ---- KEEP TRANSECT FUEL VALUES ---- #
@@ -279,7 +279,7 @@ calculate_fine_fuels <- function(fuels_df) {
 
   # ---- Step 3: KEEP TRANSECT-LEVEL DATA (do NOT summarise here) ---- #
   plot_level_fine <- transect_level %>%
-    mutate(
+    dplyr::mutate(
       Transect_ID = row_number()  # keeps unique transect within plot
     )
 }
