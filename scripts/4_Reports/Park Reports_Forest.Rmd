@@ -214,9 +214,9 @@ Fuels_graph <- Fuels %>%
   ) %>% 
     pivot_longer(
     cols = c(
-      ThousHr_FuelLoad
-      #,ThousHrRott_FuelLoad
-      #,ThousHrSound_FuelLoad
+      #ThousHr_FuelLoad
+      ThousHrRott_FuelLoad
+      ,ThousHrSound_FuelLoad
       #,Fine_FuelLoad
       ,HunHr_FuelLoad
       ,TenHr_FuelLoad
@@ -232,9 +232,9 @@ Fuels_graph <- Fuels %>%
     FuelClass = factor(
       FuelClass,
       levels = c(
-        "ThousHr_FuelLoad"
-        #,"ThousHrRott_FuelLoad"
-        #,"ThousHrSound_FuelLoad"
+        #"ThousHr_FuelLoad"
+        "ThousHrRott_FuelLoad"
+        ,"ThousHrSound_FuelLoad"
         #,"Fine_FuelLoad"
         ,"HunHr_FuelLoad"
         ,"TenHr_FuelLoad"
@@ -248,9 +248,9 @@ Fuels_graph <- Fuels %>%
     mutate(
     FuelClass = recode(
       FuelClass,
-      ThousHr_FuelLoad        = "1000-hr"
-      #,ThousHrRott_FuelLoad    = "1000-hr Rotten"
-      #,ThousHrSound_FuelLoad   = "1000-hr Sound"
+      #ThousHr_FuelLoad        = "1000-hr"
+      ThousHrRott_FuelLoad    = "1000-hr Rotten"
+      ,ThousHrSound_FuelLoad   = "1000-hr Sound"
       #,Fine_FuelLoad           = "Fine"
       ,HunHr_FuelLoad          = "100-hr"
       ,TenHr_FuelLoad          = "10-hr"
@@ -525,7 +525,7 @@ p_fuels_classic
 ## Herbs Species Comp
 
 ```{r}
-HerbsSpComp_graph <- HerbsSpComp_sum %>%
+HerbsSpComp_graph <- HerbsSpComp %>%
   filter(AdministrationUnit_Name == target_park,
          Type == target_type) %>%
   # group_by(AdministrationUnit_Name, Purpose, Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year, Nativity) %>%
