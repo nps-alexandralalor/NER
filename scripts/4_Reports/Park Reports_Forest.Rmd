@@ -65,9 +65,11 @@ path_data <- paste0(path_file, "ALL/Calculations/ALL_")
 # Load in data
 MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
 Fuels <- read.csv(paste0(path_data, "Data_Surface Fuels.csv"))
+Trees <- read.csv(paste0(path_data, "Data_Trees-Seedlings.csv"))
+
 # Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
 # Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
-HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
+#HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
 # HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 
 
@@ -172,7 +174,7 @@ p_disturbance
 Fuels %>% 
   filter(AdministrationUnit_Name == target_park,
          Purpose == "Fire Monitoring Handbook") %>% 
-  select(SampleEvent_TreatmentUnit) %>% 
+  select(MacroPlot.UV1) %>% 
   unique()
 
 target_project <- c("Cold Harbor")
@@ -189,21 +191,20 @@ Fuels_graph <- Fuels %>%
     SampleEventDate_Year = as.numeric(SampleEventDate_Year)
     #,SampleEventDate = as.factor(SampleEventDate)
     ) %>% 
-  group_by(AdministrationUnit_Name, Purpose, Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year) %>% 
+  group_by(AdministrationUnit_Name, Purpose, Type, SampleEvent_TreatmentUnit, MonStatus, SampleEventDate_Year) %>% 
   dplyr::summarise(
-    ThousHr_FuelLoad = mean(ThousHr_FuelLoad),
-    ThousHrRott_FuelLoad = mean(ThousHrRott_FuelLoad),
-    ThousHrSound_FuelLoad = mean(ThousHrSound_FuelLoad),
-    Fine_FuelLoad = mean(Fine_FuelLoad),
-    HunHr_FuelLoad = mean(HunHr_FuelLoad),
-    TenHr_FuelLoad = mean(TenHr_FuelLoad),
-    OneHr_FuelLoad = mean(OneHr_FuelLoad),
-    Avg_LittDuff_FuelLoad = mean(Avg_LittDuff_FuelLoad),
-    Avg_Litt_FuelLoad  = mean(Avg_Litt_FuelLoad),
-    Avg_Duff_FuelLoad = mean(Avg_Duff_FuelLoad)
+    ThousHr_FuelLoad = mean(ThousHr_FuelLoad, na.rm = TRUE),
+    ThousHrRott_FuelLoad = mean(ThousHrRott_FuelLoad, na.rm = TRUE),
+    ThousHrSound_FuelLoad = mean(ThousHrSound_FuelLoad, na.rm = TRUE),
+    Fine_FuelLoad = mean(Fine_FuelLoad, na.rm = TRUE),
+    HunHr_FuelLoad = mean(HunHr_FuelLoad, na.rm = TRUE),
+    TenHr_FuelLoad = mean(TenHr_FuelLoad, na.rm = TRUE),
+    OneHr_FuelLoad = mean(OneHr_FuelLoad, na.rm = TRUE),
+    Avg_LittDuff_FuelLoad = mean(Avg_LittDuff_FuelLoad, na.rm = TRUE),
+    Avg_Litt_FuelLoad  = mean(Avg_Litt_FuelLoad, na.rm = TRUE),
+    Avg_Duff_FuelLoad = mean(Avg_Duff_FuelLoad, na.rm = TRUE)
     ) %>% 
-    mutate(
-    Total_FuelLoad =
+  mutate(Total_FuelLoad =
       ThousHrRott_FuelLoad
       + ThousHrSound_FuelLoad
       + HunHr_FuelLoad
@@ -211,17 +212,17 @@ Fuels_graph <- Fuels %>%
       + OneHr_FuelLoad
       + Avg_Litt_FuelLoad
       + Avg_Duff_FuelLoad
-  ) %>% 
-    pivot_longer(
+    ) %>% 
+  pivot_longer(
     cols = c(
-      #ThousHr_FuelLoad
-      ThousHrRott_FuelLoad
+      ThousHr_FuelLoad
+      ,ThousHrRott_FuelLoad
       ,ThousHrSound_FuelLoad
-      #,Fine_FuelLoad
+      ,Fine_FuelLoad
       ,HunHr_FuelLoad
       ,TenHr_FuelLoad
       ,OneHr_FuelLoad
-      #,Avg_LittDuff_FuelLoad
+      ,Avg_LittDuff_FuelLoad
       ,Avg_Litt_FuelLoad
       ,Avg_Duff_FuelLoad
     ),
@@ -232,14 +233,14 @@ Fuels_graph <- Fuels %>%
     FuelClass = factor(
       FuelClass,
       levels = c(
-        #"ThousHr_FuelLoad"
-        "ThousHrRott_FuelLoad"
+        "ThousHr_FuelLoad"
+        ,"ThousHrRott_FuelLoad"
         ,"ThousHrSound_FuelLoad"
-        #,"Fine_FuelLoad"
+        ,"Fine_FuelLoad"
         ,"HunHr_FuelLoad"
         ,"TenHr_FuelLoad"
         ,"OneHr_FuelLoad"
-        #,"Avg_LittDuff_FuelLoad"
+        ,"Avg_LittDuff_FuelLoad"
         ,"Avg_Litt_FuelLoad"
         ,"Avg_Duff_FuelLoad"
       )
@@ -248,14 +249,14 @@ Fuels_graph <- Fuels %>%
     mutate(
     FuelClass = recode(
       FuelClass,
-      #ThousHr_FuelLoad        = "1000-hr"
-      ThousHrRott_FuelLoad    = "1000-hr Rotten"
+      ThousHr_FuelLoad        = "1000-hr"
+      ,ThousHrRott_FuelLoad    = "1000-hr Rotten"
       ,ThousHrSound_FuelLoad   = "1000-hr Sound"
-      #,Fine_FuelLoad           = "Fine"
+      ,Fine_FuelLoad           = "Fine"
       ,HunHr_FuelLoad          = "100-hr"
       ,TenHr_FuelLoad          = "10-hr"
       ,OneHr_FuelLoad          = "1-hr"
-      #,Avg_LittDuff_FuelLoad   = "Litter/Duff"
+      ,Avg_LittDuff_FuelLoad   = "Litter/Duff"
       ,Avg_Litt_FuelLoad       = "Litter"
       ,Avg_Duff_FuelLoad      = "Duff"
     )
@@ -265,10 +266,11 @@ Fuels_graph <- Fuels %>%
 ```{r}
 p_fuels <- 
   Fuels_graph %>% 
+  filter(SampleEvent_TreatmentUnit == "Cold Harbor I") %>% 
   ggplot() +
   geom_bar(aes(x = SampleEventDate_Year, y = FuelLoad, fill = FuelClass),
            position = "stack", stat = "identity") + 
-  #facet_wrap(~ MacroPlot.UV1) +
+  #facet_wrap(~ SampleEvent_TreatmentUnit) +
   labs(
     x = "Year",
     y = "Tons / Acre",
