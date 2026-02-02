@@ -72,15 +72,6 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 # tidyverse and dplyr have lots of useful functions for data cleaning
 library(tidyverse)
 library(dplyr)
-library(plyr)
-# janitor has functions to find duplicates
-library(janitor)
-# EnvStats is needed for the rosnerTest() function
-library(EnvStats)
-# writexl is used to create excel output files
-library(writexl)
-# condformat is used to format excel output files
-library(condformat)
 # knitr is used to create output files from R Markdown
 library(knitr)
 ```
