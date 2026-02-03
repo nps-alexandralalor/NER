@@ -66,6 +66,7 @@ path_data <- paste0(path_file, "ALL/Calculations/ALL_")
 MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
 Fuels <- read.csv(paste0(path_data, "Data_Surface Fuels.csv"))
 Trees <- read.csv(paste0(path_data, "Data_Trees-Seedlings.csv"))
+Cover <- read.csv(paste0(path_data, "Data_Cover.csv"))
 
 # Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
 # Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
@@ -80,16 +81,6 @@ Trees <- read.csv(paste0(path_data, "Data_Trees-Seedlings.csv"))
 # PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
 # Shrubs <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
 ```
-
-# Background
-
-# Methods
-
-# Monitoring Objective Table
-
-# Results Summary
-
-# Graphs
 
 ### Target Values {.hidden}
 
@@ -116,6 +107,16 @@ date_min <- as.Date(min(MetadataReport_graph$SampleEventDate))
 
 target_project <- c("Cold Harbor")
 ```
+
+# Background
+
+# Methods
+
+# Monitoring Objective Table
+
+# Results Summary
+
+# Graphs
 
 ## Disturbance History
 
@@ -785,6 +786,76 @@ p_trees_all
 ```
 
 ## Herbaceous
+
+### Prep
+
+```{r}
+Cover_graph <- Cover %>%
+  filter(
+    AdministrationUnit_Name == target_park,
+    MacroPlot.UV1 == target_project,
+    Type == target_type
+  ) %>% 
+  mutate(
+    SampleEventDate_Year = as.numeric(SampleEventDate_Year)
+    #,SampleEventDate = as.factor(SampleEventDate)
+    ) %>% 
+  group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Preferred_Lifeform, Genus, Species.Symbol, Nativity) %>%
+  dplyr::summarise(
+    n_plots = n_distinct(Macroplot),
+    #.groups = "drop"
+  )
+```
+
+```{r}
+Trees_graph <- Trees %>% 
+  filter(
+    AdministrationUnit_Name == target_park,
+    MacroPlot.UV1 == target_project,
+    Type == target_type
+  ) %>% 
+  mutate(
+    SampleEventDate_Year = as.numeric(SampleEventDate_Year)
+    #,SampleEventDate = as.factor(SampleEventDate)
+    ) %>% 
+  group_by(AdministrationUnit_Name, Purpose, Type, SampleEvent_TreatmentUnit, MonStatus, SampleEventDate_Year, Genus, Status) %>%
+  dplyr::summarise(
+    n_plots = n_distinct(Macroplot),
+    
+    Seedling_Count  = sum(Seedling_Count),
+    Seedling_Density_ac = round(mean(Seedling_Dens_ac, na.rm = TRUE)),
+    #Seedling_Density_ha = round(mean(Seedling_Dens_ha, na.rm = TRUE)),
+    
+    Sapling_Count = sum(Sapling_Count),
+    Sapling_Density_ac = round(mean(Sapling_Dens_ac, na.rm = TRUE)),
+    #Sapling_Density_ha = round(mean(Sapling_Dens_ha, na.rm = TRUE)),
+    
+    Pole_Count = sum(Pole_Count),
+    Pole_Density_ac = round(mean(Pole_Dens_ac, na.rm = TRUE)),
+    #Pole_Density_ha = round(mean(Pole_Dens_ha, na.rm = TRUE)),
+    
+    Overstory_Count = sum(Overstory_Count),
+    Overstory_Density_ac = round(mean(Overstory_Dens_ac, na.rm = TRUE)),
+    #Overstory_Density_ha = round(mean(Overstory_Dens_ha, na.rm = TRUE)),
+    
+    .groups = "drop"
+  ) %>% 
+  pivot_longer(
+    cols = matches("Seedling|Sapling|Pole|Overstory"),
+    names_to = c("SizeClass", ".value"),
+    names_pattern = "(Seedling|Sapling|Pole|Overstory)_(Count|Density)"
+  ) %>% 
+  mutate(
+    SizeClass = factor(
+      SizeClass,
+      levels = c(
+        "Overstory",
+        "Pole",
+        "Sapling",
+        "Seedling"
+      )
+    ))
+```
 
 ### Herbs Species Comp
 
