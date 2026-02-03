@@ -333,7 +333,7 @@ write.csv(Fuels, paste0(path_save, "Data_Surface Fuels.csv"), quote = FALSE, row
 # ------           Trees         ------ #
 # ------------------------------------- #
 #trees_df <- Trees
-# ---- Function to calculate 1-100-hr fuels for any park dataset ---- #
+# ---- Function to calculate tree density for any park dataset ---- #
 calculate_trees_dens <- function(trees_df) {
   
   # ---- Step 1: Ensure Date is proper datetime format ---- #
@@ -346,7 +346,6 @@ calculate_trees_dens <- function(trees_df) {
   plot_level <- trees_df %>%
     mutate(
       Area = ifelse(SubFrac == 0.25, 250, 1000),
-      Area = QuadLen * QuadWid,
       Hectar = Area / 10000,
       Acre = Hectar * 2.47105,
       SizeCl = if_else(DBH < 15.0, "Pole", "Overstory"),
@@ -355,10 +354,9 @@ calculate_trees_dens <- function(trees_df) {
       
   # ---- Step 3: Plot-level summaries ---- #
   ## ------------ Pole-Sized ------------ ##
-  ### ------------- Total -------------- ###
   plot_level_pole <- plot_level %>% 
     filter(SizeCl == "Pole") %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus) %>% 
+    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus, Status) %>% 
     dplyr::summarise(
       Avg_Pole_Ht_m = round(mean(Ht), 1),
       Avg_Pole_Ht_ft = round((Avg_Pole_Ht_m * 3.28084), 1),
@@ -369,42 +367,10 @@ calculate_trees_dens <- function(trees_df) {
       .groups = "drop"
     ) %>% 
     unique()
-  ### ------------- Live -------------- ###
-  plot_level_pole_L <- plot_level %>% 
-    filter(SizeCl == "Pole", Status == "L") %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus) %>% 
-    dplyr::summarise(
-      L_Pole_Count = n_distinct(TagNo),
-      L_Pole_Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
-      L_Pole_Dens_ha = round(L_Pole_Count / Hectar),
-      L_Pole_Dens_ac = round(L_Pole_Count / Acre),
-      .groups = "drop"
-    ) %>% 
-    unique()
-  ### ------------- Dead -------------- ###
-  plot_level_pole_D <- plot_level %>% 
-    filter(SizeCl == "Pole", Status == "D") %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus) %>% 
-    dplyr::summarise(
-      D_Pole_Count = n_distinct(TagNo),
-      D_Pole_Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
-      D_Pole_Dens_ha = round(D_Pole_Count / Hectar),
-      D_Pole_Dens_ac = round(D_Pole_Count / Acre),
-      .groups = "drop"
-    ) %>% 
-    unique()
-  ### ------------- Merge -------------- ###
-  plot_level_pole_merge <- plot_level_pole %>% 
-    full_join(plot_level_pole_L, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus")) %>% 
-    full_join(plot_level_pole_D, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus"))
-  
-  
-  
   ## ------------- Overstory ------------- ##
-  ### ------------- Total -------------- ###
   plot_level_overstory <- plot_level %>% 
     filter(SizeCl == "Overstory") %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus) %>% 
+    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus, Status) %>% 
     dplyr::summarise(
       Overstory_Count = n_distinct(TagNo),
       Overstory_Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
@@ -413,65 +379,23 @@ calculate_trees_dens <- function(trees_df) {
       .groups = "drop"
     ) %>% 
     unique()
-  ### ------------- Live -------------- ###
-  plot_level_overstory_L <- plot_level %>% 
-    filter(SizeCl == "Overstory", Status == "L") %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus) %>% 
-    dplyr::summarise(
-      L_Overstory_CrwnCl = paste(na.omit(unique(CrwnCl)), collapse = "; "),
-      L_Overstory_Count = n_distinct(TagNo),
-      L_Overstory_Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
-      L_Overstory_Dens_ha = round(L_Overstory_Count / Hectar),
-      L_Overstory_Dens_ac = round(L_Overstory_Count / Acre),
-      .groups = "drop"
-    ) %>% 
-    unique()
-  ### ------------- Dead -------------- ###
-  plot_level_overstory_D <- plot_level %>% 
-    filter(SizeCl == "Overstory", Status == "D") %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus) %>% 
-    dplyr::summarise(
-      D_Overstory_CrwnCl = paste(na.omit(unique(CrwnCl)), collapse = "; "),
-      D_Overstory_Count = n_distinct(TagNo),
-      D_Overstory_Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
-      D_Overstory_Dens_ha = round(D_Overstory_Count / Hectar),
-      D_Overstory_Dens_ac = round(D_Overstory_Count / Acre),
-      .groups = "drop"
-    ) %>% 
-    unique()
-  ### ------------- Merge -------------- ###
-  plot_level_overstory_merge <- plot_level_overstory %>% 
-    full_join(plot_level_overstory_L, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus")) %>% 
-    full_join(plot_level_overstory_D, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus"))
-  
+
   
   # ---- Step 4: COMBINE ---- #
   plot_level_merge <- plot_level %>% 
-    select(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus) %>% 
+    select(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus, Status) %>% 
     unique()
   
   plot_level_sum <- plot_level_merge %>% 
-    full_join(plot_level_pole_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus")) %>% 
-    full_join(plot_level_overstory_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus")) %>% 
+    full_join(plot_level_pole, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus", "Status")) %>% 
+    full_join(plot_level_overstory, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus", "Status")) %>% 
     mutate(
       Pole_Count     = replace_na(Pole_Count, 0),
       Pole_Dens_ha   = replace_na(Pole_Dens_ha, 0),
       Pole_Dens_ac   = replace_na(Pole_Dens_ac, 0),
-      L_Pole_Count     = replace_na(L_Pole_Count, 0),
-      L_Pole_Dens_ha   = replace_na(L_Pole_Dens_ha, 0),
-      L_Pole_Dens_ac   = replace_na(L_Pole_Dens_ac, 0),
-      D_Pole_Count     = replace_na(D_Pole_Count, 0),
-      D_Pole_Dens_ha   = replace_na(D_Pole_Dens_ha, 0),
-      D_Pole_Dens_ac   = replace_na(D_Pole_Dens_ac, 0),
       Overstory_Count      = replace_na(Overstory_Count, 0),
       Overstory_Dens_ha    = replace_na(Overstory_Dens_ha, 0),
-      Overstory_Dens_ac    = replace_na(Overstory_Dens_ac, 0),
-      L_Overstory_Count      = replace_na(L_Overstory_Count, 0),
-      L_Overstory_Dens_ha    = replace_na(L_Overstory_Dens_ha, 0),
-      L_Overstory_Dens_ac    = replace_na(L_Overstory_Dens_ac, 0),
-      D_Overstory_Count      = replace_na(D_Overstory_Count, 0),
-      D_Overstory_Dens_ha    = replace_na(D_Overstory_Dens_ha, 0),
-      D_Overstory_Dens_ac    = replace_na(D_Overstory_Dens_ac, 0)
+      Overstory_Dens_ac    = replace_na(Overstory_Dens_ac, 0)
     )
 }
 ```
@@ -483,7 +407,7 @@ calculate_trees_dens <- function(trees_df) {
 # ----           Seedlings         ---- #
 # ------------------------------------- #
 #seedlings_df <- Seedlings
-# ---- Function to calculate 1-100-hr fuels for any park dataset ---- #
+# ---- Function to calculate seedling density for any park dataset ---- #
 calculate_seedlings_dens <- function(seedlings_df) {
   
   # ---- Step 1: Ensure Date is proper datetime format ---- #
@@ -509,7 +433,7 @@ calculate_seedlings_dens <- function(seedlings_df) {
   ## ------------- Seedlings ------------ ##
   plot_level_seedling <- plot_level %>% 
     filter(SizeCl == "Seedling (< 1m ht)") %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus) %>% 
+    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus, Status) %>% 
     dplyr::summarise(
       Seedling_Count = sum(Count),
       Seedling_Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
@@ -521,7 +445,7 @@ calculate_seedlings_dens <- function(seedlings_df) {
   ## ------------- Saplings ------------- ##
   plot_level_sapling <- plot_level %>% 
     filter(SizeCl == "Sapling (> 1m ht)") %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus) %>% 
+    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus, Status) %>% 
     dplyr::summarise(
       Sapling_Count = sum(Count),
       Sapling_Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
@@ -530,27 +454,16 @@ calculate_seedlings_dens <- function(seedlings_df) {
       .groups = "drop"
     ) %>% 
     unique()
-  ## --------------- Total -------------- ##
-  plot_level_total <- plot_level %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus) %>% 
-    dplyr::summarise(
-      Total_SeedCount = sum(Count),
-      Total_SeedDens_ha = round(Total_SeedCount / Hectar),
-      Total_SeedDens_ac = round(Total_SeedCount / Acre),
-      .groups = "drop") %>% 
-    unique()
-    
-  
+
   
   # ---- Step 4: COMBINE ---- #
   plot_level_merge <- plot_level %>% 
-    select(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus) %>% 
+    select(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus, Status) %>% 
     unique()
   
   plot_level_sum <- plot_level_merge %>% 
-    full_join(plot_level_total, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus")) %>% 
-    full_join(plot_level_seedling, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus")) %>% 
-    full_join(plot_level_sapling, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus")) %>% 
+    full_join(plot_level_seedling, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus", "Status")) %>% 
+    full_join(plot_level_sapling, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus", "Status")) %>% 
     mutate(
       Seedling_Count     = replace_na(Seedling_Count, 0),
       Seedling_Dens_ha   = replace_na(Seedling_Dens_ha, 0),
@@ -559,7 +472,6 @@ calculate_seedlings_dens <- function(seedlings_df) {
       Sapling_Dens_ha    = replace_na(Sapling_Dens_ha, 0),
       Sapling_Dens_ac    = replace_na(Sapling_Dens_ac, 0)
     )
-  
 }
 ```
 
@@ -567,19 +479,25 @@ calculate_seedlings_dens <- function(seedlings_df) {
 
 ```{r}
 Trees_meta <- Trees %>% 
-  select(1:20, Genus) %>% 
+  select(1:20, Genus, Status) %>% 
   unique()
-```
 
-```{r}
 Trees_sum <- calculate_trees_dens(Trees)
 Seedlings_sum <- calculate_seedlings_dens(Seedlings)
 ```
 
 ```{r}
 Trees_Seedlings <- Trees_meta %>% 
-  dplyr::full_join(Trees_sum, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus")) %>% 
-  dplyr::full_join(Seedlings_sum, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus")) %>% 
+  dplyr::full_join(Seedlings_sum, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus", "Status")) %>% 
+  dplyr::full_join(Trees_sum, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus", "Status")) %>% 
+  mutate(
+      Seedling_Count     = replace_na(Seedling_Count, 0),
+      Seedling_Dens_ha   = replace_na(Seedling_Dens_ha, 0),
+      Seedling_Dens_ac   = replace_na(Seedling_Dens_ac, 0),
+      Sapling_Count      = replace_na(Sapling_Count, 0),
+      Sapling_Dens_ha    = replace_na(Sapling_Dens_ha, 0),
+      Sapling_Dens_ac    = replace_na(Sapling_Dens_ac, 0)
+    ) %>% 
   unique()
 ```
 
