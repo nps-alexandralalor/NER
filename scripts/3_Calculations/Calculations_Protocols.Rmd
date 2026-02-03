@@ -48,15 +48,6 @@ library(DT)
 library(fs)
 ```
 
-### Target Park
-
-```{r}
-# target_park <- c("RICH")
-# target_project <- c("Big Meadows West")
-# target_type <- c("Forest")
-# target_years <- c(2025)
-```
-
 ### Adjust File Paths
 
 ```{r}
@@ -506,7 +497,7 @@ Trees_Seedlings <- Trees_meta %>%
 write.csv(Trees_Seedlings, paste0(path_save, "Data_Trees-Seedlings.csv"), quote = FALSE, row.names = FALSE)
 ```
 
-# Herbs
+# Cover
 
 ## Herbs Points
 
@@ -514,90 +505,42 @@ write.csv(Trees_Seedlings, paste0(path_save, "Data_Trees-Seedlings.csv"), quote 
 # ------------------------------------- #
 # ------           Herbs         ------ #
 # ------------------------------------- #
-herbs_df <- HerbsPoints
+cover_df <- HerbsPoints
 # ---- Function to calculate herbaceous cover for any park dataset ---- #
-calculate_cover <- function(herbs_df) {
+calculate_Points_cover <- function(cover_df) {
   
   # ---- Step 1: Ensure Date is proper datetime format ---- #
-  plot_lelv <- herbs_df %>%
+  cover_df <- cover_df %>%
     mutate(
       SampleEventDate = ymd(SampleEventDate)
     )
   
-  # ---- Step 2: Compute per-transect fuel load ---- #
-  # plot_level <- herbs_df %>%
-  #   mutate(
-  #     Area = ifelse(SubFrac == 0.25, 250, 1000),
-  #     Hectar = Area / 10000,
-  #     Acre = Hectar * 2.47105,
-  #     SizeCl = if_else(DBH < 15.0, "Pole", "Overstory"),
-  #   )
+  # ---- Step 2: Add useful columns ---- #
+  plot_level <- cover_df %>%
+    mutate(
+      Nativity = ifelse(Native.Species == "True", "Native",
+                           ifelse(Invasive.Species == "True", "Invasive", "Unknown"))
+      )
 
       
   # ---- Step 3: Plot-level summaries ---- #
-  ## ------------ Pole-Sized ------------ ##
-  plot_level_pole <- plot_level %>% 
-    filter(SizeCl == "Pole") %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus, Status) %>% 
+  plot_level <- plot_level %>% 
+    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Preferred_Lifeform, Genus, Species.Symbol, Nativity) %>% 
     dplyr::summarise(
-      Avg_Pole_Ht_m = round(mean(Ht), 1),
-      Avg_Pole_Ht_ft = round((Avg_Pole_Ht_m * 3.28084), 1),
-      Pole_Count = n_distinct(TagNo),
-      Pole_Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
-      Pole_Dens_ha = round(Pole_Count / Hectar),
-      Pole_Dens_ac = round(Pole_Count / Acre),
-      .groups = "drop"
-    ) %>% 
+      NumTran = NumTran,
+      NumPtsTran = NumPtsTran,
+      #Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
+      Avg_Ht_m = round(mean(Height), 1),
+      Avg_Ht_ft = round((Avg_Ht_m * 3.28084), 1),
+      Hits = n(),
+      PctCover = round(((Hits / (NumPtsTran * NumTran)) * 100), 1),
+      .groups = "drop",
+      ) %>% 
     unique()
-  ## ------------- Overstory ------------- ##
-  plot_level_overstory <- plot_level %>% 
-    filter(SizeCl == "Overstory") %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus, Status) %>% 
-    dplyr::summarise(
-      Overstory_Count = n_distinct(TagNo),
-      Overstory_Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
-      Overstory_Dens_ha = round(Overstory_Count / Hectar),
-      Overstory_Dens_ac = round(Overstory_Count / Acre),
-      .groups = "drop"
-    ) %>% 
-    unique()
-
-  
-  # ---- Step 4: COMBINE ---- #
-  plot_level_merge <- plot_level %>% 
-    select(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Genus, Status) %>% 
-    unique()
-  
-  plot_level_sum <- plot_level_merge %>% 
-    full_join(plot_level_pole, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus", "Status")) %>% 
-    full_join(plot_level_overstory, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Genus", "Status")) %>% 
-    mutate(
-      Pole_Count     = replace_na(Pole_Count, 0),
-      Pole_Dens_ha   = replace_na(Pole_Dens_ha, 0),
-      Pole_Dens_ac   = replace_na(Pole_Dens_ac, 0),
-      Overstory_Count      = replace_na(Overstory_Count, 0),
-      Overstory_Dens_ha    = replace_na(Overstory_Dens_ha, 0),
-      Overstory_Dens_ac    = replace_na(Overstory_Dens_ac, 0)
-    )
 }
 ```
 
 ## Herbs Species Comp
-
-```{r}
-# HerbsSpComp_all <- merge(HerbsSpComp, MetadataReport_merge, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MacroPlot.UV1", "MacroPlot.UV2", "MacroPlot.UV3", "MacroPlot.UV4", "MacroPlot.UV5", "MacroPlot.UV6", "MacroPlot.UV7", "MacroPlot.UV8", "MonStatus", "SampleEventDate", "SampleEventDate_Year"), all.x = T) %>% 
-#   # Reorganize Columns
-#   relocate(Region, .before = AdministrationUnit_Name) %>% 
-#   relocate(Zone, .before = AdministrationUnit_Name) %>%
-#   relocate(Unit, .before = AdministrationUnit_Name) %>% 
-#   relocate(Purpose_Code, .after = Purpose) %>% 
-#   relocate(Plot_Type, .after = Type) %>% 
-#   relocate(Macroplot_Num, .after = Macroplot) %>% 
-#   relocate(Macroplot_Code, .after = Macroplot) %>% 
-#   # Protocol Specific Columns
-#   mutate(Nativity = ifelse(Native.Species == "True", "Native",
-#                            ifelse(Invasive.Species == "True", "Invasive", "Unknown"))) 
-```
 
 ```{r}
 # ------------------------------------- #
@@ -613,41 +556,33 @@ calculate_SpComp_cover <- function(cover_df) {
       SampleEventDate = ymd(SampleEventDate)
     )
   
-  # ---- Step 3: KEEP TRANSECT-LEVEL DATA (do NOT summarise here) ---- #
+  # ---- Step 3: Add useful columns ---- #
   plot_level <- cover_df %>%
     mutate(
       Nativity = ifelse(Native.Species == "True", "Native",
                            ifelse(Invasive.Species == "True", "Invasive", "Unknown"))
       ) %>% 
-    # ---- KEEP PLOT-LEVEL DATA (do NOT summarise here) ---- #
     group_by(AdministrationUnit_Name, Macroplot, MonStatus, SampleEventDate_Year) %>%
     dplyr::mutate(
-      n_species_ByPlot = n_distinct(Species.Symbol)) %>% 
-    group_by(AdministrationUnit_Name, Macroplot, MonStatus, SampleEventDate_Year, Nativity) %>%
-    dplyr::mutate(
-      n_species_ByPlotNativity = n_distinct(Species.Symbol)) %>%
-    group_by(AdministrationUnit_Name, Macroplot, MonStatus, SampleEventDate_Year, Preferred_Lifeform) %>%
-    dplyr::mutate(
-      n_species_ByPlotLifeform = n_distinct(Species.Symbol)) %>%
-    # ---- KEEP BURN UNIT-LEVEL DATA (do NOT summarise here) ---- #
-    group_by(AdministrationUnit_Name, MonStatus, SampleEventDate_Year, Nativity) %>%
-    dplyr::mutate(
-      n_species_ByNativity = n_distinct(Species.Symbol)) %>% 
-      group_by(AdministrationUnit_Name, MonStatus, SampleEventDate_Year, Nativity) %>%
-    dplyr::mutate(
-      n_species_ByLifeform = n_distinct(Species.Symbol)) %>% 
-    # ---- KEEP BURN UNIT-LEVEL DATA (do NOT summarise here) ---- #
-    ungroup()
+      n_species = n_distinct(Species.Symbol),
+      .groups = "drop"
+    )
 }
 ```
 
 ### Combine Herbs
 
 ```{r}
-#HerbsPoints_sum <- calculate_Points_cover(HerbsPoints)
-#HerbsSpComp_sum <- calculate_SpComp_cover(HerbsSpComp)
+HerbsPoints_sum <- calculate_Points_cover(HerbsPoints)
+HerbsSpComp_sum <- calculate_SpComp_cover(HerbsSpComp)
 ```
 
 ```{r}
-#write.csv(HerbsSpComp_sum, paste0(path_save, "Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE)
+Cover <- HerbsSpComp_sum %>% 
+  dplyr::full_join(HerbsPoints_sum, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Preferred_Lifeform", "Genus", "Species.Symbol", "Nativity")) %>% 
+  mutate(PctCover = ifelse(is.na(PctCover), 0.01, PctCover))
+```
+
+```{r}
+write.csv(Cover, paste0(path_save, "Data_Cover.csv"), quote = FALSE, row.names = FALSE)
 ```
