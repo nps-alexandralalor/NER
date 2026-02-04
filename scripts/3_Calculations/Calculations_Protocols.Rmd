@@ -334,13 +334,13 @@ calculate_trees_dens <- function(trees_df) {
       SampleEventDate = ymd(SampleEventDate)
     )
   
-  # ---- Step 2: Compute per-transect fuel load ---- #
+  # ---- Step 2: Compute useful values ---- #
   plot_level <- trees_df %>%
     mutate(
       Area = ifelse(SubFrac == 0.25, 250, 1000),
       Hectar = Area / 10000,
       Acre = Hectar * 2.47105,
-      SizeCl = if_else(DBH < 15.0, "Pole", "Overstory"),
+      SizeCl = if_else(DBH < 15.0, "Pole", "Overstory")
     )
 
       
@@ -505,38 +505,54 @@ write.csv(Trees_Seedlings, paste0(path_save, "Data_Trees-Seedlings.csv"), quote 
 # ------------------------------------- #
 # ------           Herbs         ------ #
 # ------------------------------------- #
-cover_df <- HerbsPoints
+#cover_df <- HerbsPoints
 # ---- Function to calculate herbaceous cover for any park dataset ---- #
 calculate_Points_cover <- function(cover_df) {
   
   # ---- Step 1: Ensure Date is proper datetime format ---- #
   cover_df <- cover_df %>%
     mutate(
-      SampleEventDate = ymd(SampleEventDate)
+      SampleEventDate = ymd(SampleEventDate),
+      Nativity = ifelse(Native.Species == "True", "Native",
+                           ifelse(Invasive.Species == "True", "Invasive", 
+                                  ifelse(Preferred_Lifeform != "Undefined", 
+                                         "Non-Native", "Unknown")))
     )
   
-  # ---- Step 2: Add useful columns ---- #
+  # ---- Step 2: Plot-level summaries ---- #
+  ## ------------- Total Plot ------------ ##
   plot_level <- cover_df %>%
-    mutate(
-      Nativity = ifelse(Native.Species == "True", "Native",
-                           ifelse(Invasive.Species == "True", "Invasive", "Unknown"))
-      )
-
-      
-  # ---- Step 3: Plot-level summaries ---- #
-  plot_level <- plot_level %>% 
-    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Preferred_Lifeform, Genus, Species.Symbol, Nativity) %>% 
+    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus) %>% 
     dplyr::summarise(
-      NumTran = NumTran,
-      NumPtsTran = NumPtsTran,
-      #Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
-      Avg_Ht_m = round(mean(Height), 1),
+      n_species_plot = n_distinct(Species.Symbol),
+      Avg_Ht_m = round(mean(Height, na.rm = TRUE), 2),
       Avg_Ht_ft = round((Avg_Ht_m * 3.28084), 1),
-      Hits = n(),
-      PctCover = round(((Hits / (NumPtsTran * NumTran)) * 100), 1),
-      .groups = "drop",
+      .groups = "drop"
       ) %>% 
     unique()
+  ## ------------- By Species ------------ ##
+  plot_level_species <- cover_df %>% 
+    mutate(NumPtsTran = ifelse(NumPtsTran == 0, 100, NumPtsTran)) %>% 
+    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Preferred_Lifeform, Genus, Nativity, Species.Symbol) %>% 
+    dplyr::summarise(
+      #Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
+      Hits = n(),
+      PctCover = round(((Hits / (NumPtsTran * NumTran)) * 100), 1),
+      .groups = "drop"
+      ) %>% 
+    unique()
+  
+  
+  
+  # ---- Step 4: COMBINE ---- #
+  plot_level_merge <- cover_df %>%
+    select(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Preferred_Lifeform, Genus, Nativity, Species.Symbol) %>%
+    unique()
+  
+  plot_level_sum <- plot_level_merge %>% 
+    full_join(plot_level, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus")) %>% 
+    full_join(plot_level_species, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Preferred_Lifeform", "Genus", "Nativity", "Species.Symbol"))
+  
 }
 ```
 
@@ -553,24 +569,43 @@ calculate_SpComp_cover <- function(cover_df) {
   # ---- Step 1: Ensure Date is proper datetime format ---- #
   cover_df <- cover_df %>%
     mutate(
-      SampleEventDate = ymd(SampleEventDate)
+      SampleEventDate = ymd(SampleEventDate),
+      Nativity = ifelse(Native.Species == "True", "Native",
+                           ifelse(Invasive.Species == "True", "Invasive", 
+                                  ifelse(Preferred_Lifeform != "Undefined", 
+                                         "Non-Native", "Unknown")))
     )
   
   # ---- Step 3: Add useful columns ---- #
   plot_level <- cover_df %>%
-    mutate(
-      Nativity = ifelse(Native.Species == "True", "Native",
-                           ifelse(Invasive.Species == "True", "Invasive", "Unknown"))
-      ) %>% 
-    group_by(AdministrationUnit_Name, Macroplot, MonStatus, SampleEventDate_Year) %>%
-    dplyr::mutate(
-      n_species = n_distinct(Species.Symbol),
-      .groups = "drop"
+    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus) %>%
+    dplyr::summarize(
+      n_species_plot = n_distinct(Species.Symbol)
     )
+  
+  plot_level_species <- cover_df %>% 
+    group_by(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Preferred_Lifeform, Genus, Nativity, Species.Symbol) %>% 
+    dplyr::summarize(
+      #Species = paste(na.omit(unique(Species.Symbol)), collapse = "; "),
+      n_species = n_distinct(Species.Symbol)
+    )
+  
+  
+  
+    # ---- Step 4: COMBINE ---- #
+  plot_level_merge <- cover_df %>%
+    select(AdministrationUnit_Name, Purpose, Type, Macroplot, MonStatus, Preferred_Lifeform, Genus, Nativity, Species.Symbol) %>%
+    unique()
+  
+  plot_level_sum <- plot_level_merge %>% 
+    full_join(plot_level, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus")) %>% 
+    full_join(plot_level_species, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Preferred_Lifeform", "Genus", "Nativity", "Species.Symbol"))
+  
 }
+
 ```
 
-### Combine Herbs
+## Combine Herbs
 
 ```{r}
 HerbsPoints_sum <- calculate_Points_cover(HerbsPoints)
@@ -578,11 +613,34 @@ HerbsSpComp_sum <- calculate_SpComp_cover(HerbsSpComp)
 ```
 
 ```{r}
-Cover <- HerbsSpComp_sum %>% 
-  dplyr::full_join(HerbsPoints_sum, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Preferred_Lifeform", "Genus", "Species.Symbol", "Nativity")) %>% 
-  mutate(PctCover = ifelse(is.na(PctCover), 0.01, PctCover))
+Cover_Points_meta <- HerbsPoints %>% 
+  mutate(
+    Nativity = ifelse(Native.Species == "True", "Native",
+                      ifelse(Invasive.Species == "True", "Invasive",
+                             ifelse(Preferred_Lifeform != "Undefined",
+                                    "Non-Native", "Unknown")))) %>%
+  select(1:20, Preferred_Lifeform, Genus, Nativity, Species.Symbol) %>%
+  unique()
+
+Cover_SpComp_meta <- HerbsSpComp %>% 
+  mutate(
+    Nativity = ifelse(Native.Species == "True", "Native",
+                      ifelse(Invasive.Species == "True", "Invasive",
+                             ifelse(Preferred_Lifeform != "Undefined",
+                                    "Non-Native", "Unknown")))) %>%
+  select(1:20, Preferred_Lifeform, Genus, Nativity, Species.Symbol) %>%
+  unique()
 ```
 
 ```{r}
-write.csv(Cover, paste0(path_save, "Data_Cover.csv"), quote = FALSE, row.names = FALSE)
+Cover_Points <- Cover_Points_meta %>%
+  dplyr::full_join(HerbsPoints_sum, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Preferred_Lifeform", "Genus", "Nativity", "Species.Symbol"))
+
+Cover_SpComp <- Cover_SpComp_meta %>%
+  dplyr::full_join(HerbsSpComp_sum, by = c("AdministrationUnit_Name", "Purpose", "Type", "Macroplot", "MonStatus", "Preferred_Lifeform", "Genus", "Nativity", "Species.Symbol"))
+```
+
+```{r}
+write.csv(Cover_Points, paste0(path_save, "Data_Cover_Points.csv"), quote = FALSE, row.names = FALSE)
+write.csv(Cover_SpComp, paste0(path_save, "Data_Cover_SpComp.csv"), quote = FALSE, row.names = FALSE)
 ```
