@@ -63,12 +63,12 @@ path_save <- paste0(path_file, "ALL/Calculations/ALL_")
 ```{r}
 # Load in data
 
-# Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
-# FuelsDuffLitt <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
-# FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
+Fuels1000 <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
+FuelsDuffLitt <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
+FuelsFine <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
 
-# Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
-# Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
+Trees <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
+Seedlings <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
 
 HerbsPoints <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
 HerbsSpComp <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
@@ -290,7 +290,7 @@ calculate_fine_fuels <- function(fuels_df) {
 
 ```{r calculate fuel loads, include=FALSE}
 Fuels1000_all <- Fuels1000 %>% 
-  select(!c(MacroPlot.UV1, MacroPlot.UV2, MacroPlot.UV3, MacroPlot.UV4, MacroPlot.UV5, MacroPlot.UV6, MacroPlot.UV7, MacroPlot.UV8, Status.Prefix, Status.Base, Status.Suffix, MonStatusOrd, SampleEventDate_Year, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV2Desc, UV3Desc, SaComment, Visited, Index)) %>% 
+  select(!c(Macroplot_UV1, Macroplot_UV2, Macroplot_UV3, Macroplot_UV4, Macroplot_UV5, Macroplot_UV6, Macroplot_UV7, Macroplot_UV8, Status.Prefix, Status.Base, Status.Suffix, MonStatusOrd, SampleEventDate_Year, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV2Desc, UV3Desc, SaComment, Visited, Index)) %>% 
   mutate(SampleEventDate = ymd(SampleEventDate))
 
 Fuels1000_sum <- calculate_coarse_fuels(Fuels1000_all)
