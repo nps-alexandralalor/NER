@@ -92,11 +92,11 @@ date_min <- as.Date(min(MetadataReport_graph$SampleEventDate))
 
     MetadataReport_graph %>% 
       #filter(Purpose == "Fire Monitoring Handbook") %>% 
-      select(MacroPlot.UV1) %>% 
+      select(Macroplot_UV1) %>% 
       unique()
 
-target_project <- c("Cold Harbor")
-target_TreatmentUnits <- c("Cold Harbor I")
+target_project <- c("Cold Harbor I")
+#target_TreatmentUnits <- c("Cold Harbor I")
 ```
 
 # Background
@@ -139,7 +139,7 @@ p_disturbance <- MetadataReport_graph %>%
             data = Disturbances_graph) +
   geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
              data = Disturbances_graph, shape = 21, size = 2.5) +
-  facet_grid(~MacroPlot.UV1) +
+  facet_grid(~Macroplot_UV1) +
   labs(title = "Disturbance History",
        y = "",
        x = "Year",
@@ -172,7 +172,7 @@ p_disturbance
 Fuels_graph <- Fuels %>% 
   filter(
     AdministrationUnit_Name == target_park,
-    MacroPlot.UV1 == target_project,
+    Macroplot_UV1 == target_project,
     Type == target_type
     ) %>% 
   mutate(
@@ -251,7 +251,7 @@ Fuels_graph <- Fuels %>%
 #   select(SampleEvent_TreatmentUnit) %>% 
 #   unique()
 # 
-# target_TreatmentUnits <- c("Cold Harbor I")
+target_TreatmentUnits <- c("Cold Harbor I")
 ```
 
 ### Graph - 2025 Report Replicate
