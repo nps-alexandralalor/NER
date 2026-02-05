@@ -192,14 +192,56 @@ for(i in parks) {
   
   # final column renaming to match protocol exports
     MetadataReport <- MetadataReport %>% 
-      dplyr::rename(MacroPlot.UV1 = UV1,
-                    MacroPlot.UV2 = UV2,
-                    MacroPlot.UV3 = UV3,
-                    MacroPlot.UV4 = UV4,
-                    MacroPlot.UV5 = UV5,
-                    MacroPlot.UV6 = UV6,
-                    MacroPlot.UV7 = UV7,
-                    MacroPlot.UV8 = UV8)
+      dplyr::rename(
+        #AdminUnit_Name = AdministrationUnit_Name,
+        #ProjectUnit_Name = ProjectUnit,
+        #Macroplot_Purpose = Purpose,
+        #Macroplot_Type = Type,
+        #Macroplot_Name = Macroplot,
+        #Macroplot_DdLat = Latitude,
+        #Macroplot_DdLong = Longitude,
+        #"Macroplot_UtmX (m)" = UTM_X,
+        #"Macroplot_UtmY (m)" = UTM_Y,
+        #Macroplot_UtmZone = UTM_Zone,
+        #Macroplot_Datum = Datum,
+        #Macroplot_Pdop = PDOP,
+        #Macroplot_Precision = Precision,
+        #Macroplot_DateIn = DateIn,
+        #Macroplot_DateIn_Year = DateIn_Year,
+        #Macroplot_FutureVisit = FutureVisit,
+        #Macroplot_FutureVisit_Year = FutureVisit_Year,
+        #Macroplot_DateOut = DateOut,
+        #Macroplot_DateOut_Year = DateOut_Year,
+        #Macroplot_Elevation = Elevation,
+        #Macroplot_ElevationUnits = ElevationUnits,
+        #Macroplot_Azimuth = Azimuth,
+        #Macroplot_Aspect = Aspect,
+        #"Macroplot_SlopeHill (%)" = SlopeHill,
+        #"Macroplot_SlopeTransect (%)" = SlopeTransect,
+        #Macroplot_LocatedBy = LocatedBy,
+        #Macroplot_StartPoint = StartPoint,
+        #Macroplot_Directions = Directions,
+        #Macroplot_Comment = Comments,
+        #Macroplot_Metadata = MetaData,
+        Macroplot_UV1 = UV1,
+        Macroplot_UV2 = UV2,
+        Macroplot_UV3 = UV3,
+        Macroplot_UV4 = UV4,
+        Macroplot_UV5 = UV5,
+        Macroplot_UV6 = UV6,
+        Macroplot_UV7 = UV7,
+        Macroplot_UV8 = UV8
+        #SampleEvent_Date = SampleEventDate,
+        #SampleEvent_Date_Year = SampleEventDate_Year,
+        #SampleEvent_Who = SampleEventTeam,
+        #SampleEvent_Comment = SampleEventComment,
+        #SampleEvent_DefaultMonitoringStatus =  # What is this?
+        #SampleEvent_TreatmentUnit =  # What is this?
+        #LegacyMonStatus = LegacyMonStatus, # Does this have equivalent?
+        #MonitoringStatus_Name = MonStatus, # ?
+        #Protocols = Protocols, # Not in Project Unit data depot report
+        #Visited = Visited # MethodData_Visited?
+        )
   
   # replace commas with semicolons
   MetadataReport[] <- lapply(MetadataReport, function(x) gsub(",", ";", x))
@@ -236,6 +278,13 @@ for(i in parks) {
   # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim))
   
+  
+  # # final column renaming to match protocol exports
+  #   SpeciesReport <- SpeciesReport %>% 
+  #     dplyr::rename(
+  #       Species_SymbolLocal = LocalSpecies_Symbol
+  #       )
+
 
   # save file
   write.csv(SpeciesReport, paste0(path_save, target_park, "_SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
@@ -301,13 +350,33 @@ for(i in parks) {
   
   # final column renaming to match metadata
   Fuels1000 <- Fuels1000 %>% 
-    dplyr::rename(Purpose = MacroPlot.Purpose,
-                  Type = MacroPlot.Type,
-                  Macroplot = MacroPlot.Name,
-                  MonStatus = Monitoring.Status,
-                  MonStatusOrd = Status.Order,
-                  SampleEventDate = Date,
-                  SampleEventDate_Year = Date_Year)
+    dplyr::rename(
+      #Macroplot_Purpose = MacroPlot.Purpose,
+      Purpose = MacroPlot.Purpose,
+      #Macroplot_Type = MacroPlot.Type,
+      Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      #Macroplot_Name = MacroPlot.Name,
+      Macroplot = MacroPlot.Name,
+      #MonitoringStatus_Name = Monitoring.Status,
+      MonStatus = Monitoring.Status,
+      #MonitoringStatus_Prefix = Status.Prefix,
+      #MonitoringStatus_Base = Status.Base,
+      #MonitoringStatus_Suffix = Status.Suffix,
+      #MonitoringStatus_Order = Status.Order,
+      MonStatusOrd = Status.Order,
+      #SampleEvent_Date = Date,
+      SampleEventDate = Date,
+      #SampleEvent_Date_Year = Date_Year
+      SampleEventDate_Year = Date_Year
+      )
   
   
   # save file
@@ -372,13 +441,33 @@ for(i in parks) {
   
   # final column renaming to match metadata
   FuelsDuffLitt <- FuelsDuffLitt %>% 
-    dplyr::rename(Purpose = MacroPlot.Purpose,
-                  Type = MacroPlot.Type,
-                  Macroplot = MacroPlot.Name,
-                  MonStatus = Monitoring.Status,
-                  MonStatusOrd = Status.Order,
-                  SampleEventDate = Date,
-                  SampleEventDate_Year = Date_Year)
+    dplyr::rename(
+      #Macroplot_Purpose = MacroPlot.Purpose,
+      Purpose = MacroPlot.Purpose,
+      #Macroplot_Type = MacroPlot.Type,
+      Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      #Macroplot_Name = MacroPlot.Name,
+      Macroplot = MacroPlot.Name,
+      #MonitoringStatus_Name = Monitoring.Status,
+      MonStatus = Monitoring.Status,
+      #MonitoringStatus_Prefix = Status.Prefix,
+      #MonitoringStatus_Base = Status.Base,
+      #MonitoringStatus_Suffix = Status.Suffix,
+      #MonitoringStatus_Order = Status.Order,
+      MonStatusOrd = Status.Order,
+      #SampleEvent_Date = Date,
+      SampleEventDate = Date,
+      #SampleEvent_Date_Year = Date_Year
+      SampleEventDate_Year = Date_Year
+      )
   
   
   # save file
@@ -443,13 +532,33 @@ for(i in parks) {
   
   # final column renaming to match metadata
   FuelsFine <- FuelsFine %>% 
-    dplyr::rename(Purpose = MacroPlot.Purpose,
-                  Type = MacroPlot.Type,
-                  Macroplot = MacroPlot.Name,
-                  MonStatus = Monitoring.Status,
-                  MonStatusOrd = Status.Order,
-                  SampleEventDate = Date,
-                  SampleEventDate_Year = Date_Year)
+    dplyr::rename(
+      #Macroplot_Purpose = MacroPlot.Purpose,
+      Purpose = MacroPlot.Purpose,
+      #Macroplot_Type = MacroPlot.Type,
+      Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      #Macroplot_Name = MacroPlot.Name,
+      Macroplot = MacroPlot.Name,
+      #MonitoringStatus_Name = Monitoring.Status,
+      MonStatus = Monitoring.Status,
+      #MonitoringStatus_Prefix = Status.Prefix,
+      #MonitoringStatus_Base = Status.Base,
+      #MonitoringStatus_Suffix = Status.Suffix,
+      #MonitoringStatus_Order = Status.Order,
+      MonStatusOrd = Status.Order,
+      #SampleEvent_Date = Date,
+      SampleEventDate = Date,
+      #SampleEvent_Date_Year = Date_Year
+      SampleEventDate_Year = Date_Year
+      )
   
   
   # save file
@@ -514,13 +623,33 @@ for(i in parks) {
   
   # final column renaming to match metadata
   PostBurn <- PostBurn %>% 
-    dplyr::rename(Purpose = MacroPlot.Purpose,
-                  Type = MacroPlot.Type,
-                  Macroplot = MacroPlot.Name,
-                  MonStatus = Monitoring.Status,
-                  MonStatusOrd = Status.Order,
-                  SampleEventDate = Date,
-                  SampleEventDate_Year = Date_Year)
+    dplyr::rename(
+      #Macroplot_Purpose = MacroPlot.Purpose,
+      Purpose = MacroPlot.Purpose,
+      #Macroplot_Type = MacroPlot.Type,
+      Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      #Macroplot_Name = MacroPlot.Name,
+      Macroplot = MacroPlot.Name,
+      #MonitoringStatus_Name = Monitoring.Status,
+      MonStatus = Monitoring.Status,
+      #MonitoringStatus_Prefix = Status.Prefix,
+      #MonitoringStatus_Base = Status.Base,
+      #MonitoringStatus_Suffix = Status.Suffix,
+      #MonitoringStatus_Order = Status.Order,
+      MonStatusOrd = Status.Order,
+      #SampleEvent_Date = Date,
+      SampleEventDate = Date,
+      #SampleEvent_Date_Year = Date_Year
+      SampleEventDate_Year = Date_Year
+      )
   
   
   # save file
@@ -585,13 +714,33 @@ for(i in parks) {
   
   # final column renaming to match metadata
   Trees <- Trees %>% 
-    dplyr::rename(Purpose = MacroPlot.Purpose,
-                  Type = MacroPlot.Type,
-                  Macroplot = MacroPlot.Name,
-                  MonStatus = Monitoring.Status,
-                  MonStatusOrd = Status.Order,
-                  SampleEventDate = Date,
-                  SampleEventDate_Year = Date_Year)
+    dplyr::rename(
+      #Macroplot_Purpose = MacroPlot.Purpose,
+      Purpose = MacroPlot.Purpose,
+      #Macroplot_Type = MacroPlot.Type,
+      Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      #Macroplot_Name = MacroPlot.Name,
+      Macroplot = MacroPlot.Name,
+      #MonitoringStatus_Name = Monitoring.Status,
+      MonStatus = Monitoring.Status,
+      #MonitoringStatus_Prefix = Status.Prefix,
+      #MonitoringStatus_Base = Status.Base,
+      #MonitoringStatus_Suffix = Status.Suffix,
+      #MonitoringStatus_Order = Status.Order,
+      MonStatusOrd = Status.Order,
+      #SampleEvent_Date = Date,
+      SampleEventDate = Date,
+      #SampleEvent_Date_Year = Date_Year
+      SampleEventDate_Year = Date_Year
+      )
   
   
   # save file
@@ -659,13 +808,33 @@ for(i in parks) {
   
   # final column renaming to match metadata
   Seedlings <- Seedlings %>% 
-    dplyr::rename(Purpose = MacroPlot.Purpose,
-                  Type = MacroPlot.Type,
-                  Macroplot = MacroPlot.Name,
-                  MonStatus = Monitoring.Status,
-                  MonStatusOrd = Status.Order,
-                  SampleEventDate = Date,
-                  SampleEventDate_Year = Date_Year)
+    dplyr::rename(
+      #Macroplot_Purpose = MacroPlot.Purpose,
+      Purpose = MacroPlot.Purpose,
+      #Macroplot_Type = MacroPlot.Type,
+      Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      #Macroplot_Name = MacroPlot.Name,
+      Macroplot = MacroPlot.Name,
+      #MonitoringStatus_Name = Monitoring.Status,
+      MonStatus = Monitoring.Status,
+      #MonitoringStatus_Prefix = Status.Prefix,
+      #MonitoringStatus_Base = Status.Base,
+      #MonitoringStatus_Suffix = Status.Suffix,
+      #MonitoringStatus_Order = Status.Order,
+      MonStatusOrd = Status.Order,
+      #SampleEvent_Date = Date,
+      SampleEventDate = Date,
+      #SampleEvent_Date_Year = Date_Year
+      SampleEventDate_Year = Date_Year
+      )
   
   
   # save file
@@ -733,13 +902,33 @@ for(i in parks) {
   
   # final column renaming to match metadata
   Shrubs <- Shrubs %>% 
-    dplyr::rename(Purpose = MacroPlot.Purpose,
-                  Type = MacroPlot.Type,
-                  Macroplot = MacroPlot.Name,
-                  MonStatus = Monitoring.Status,
-                  MonStatusOrd = Status.Order,
-                  SampleEventDate = Date,
-                  SampleEventDate_Year = Date_Year)
+    dplyr::rename(
+      #Macroplot_Purpose = MacroPlot.Purpose,
+      Purpose = MacroPlot.Purpose,
+      #Macroplot_Type = MacroPlot.Type,
+      Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      #Macroplot_Name = MacroPlot.Name,
+      Macroplot = MacroPlot.Name,
+      #MonitoringStatus_Name = Monitoring.Status,
+      MonStatus = Monitoring.Status,
+      #MonitoringStatus_Prefix = Status.Prefix,
+      #MonitoringStatus_Base = Status.Base,
+      #MonitoringStatus_Suffix = Status.Suffix,
+      #MonitoringStatus_Order = Status.Order,
+      MonStatusOrd = Status.Order,
+      #SampleEvent_Date = Date,
+      SampleEventDate = Date,
+      #SampleEvent_Date_Year = Date_Year
+      SampleEventDate_Year = Date_Year
+      )
   
   
   # save file
@@ -804,13 +993,33 @@ for(i in parks) {
   
   # final column renaming to match metadata
   HerbsSpComp <- HerbsSpComp %>% 
-    dplyr::rename(Purpose = MacroPlot.Purpose,
-                  Type = MacroPlot.Type,
-                  Macroplot = MacroPlot.Name,
-                  MonStatus = Monitoring.Status,
-                  MonStatusOrd = Status.Order,
-                  SampleEventDate = Date,
-                  SampleEventDate_Year = Date_Year)
+    dplyr::rename(
+      #Macroplot_Purpose = MacroPlot.Purpose,
+      Purpose = MacroPlot.Purpose,
+      #Macroplot_Type = MacroPlot.Type,
+      Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      #Macroplot_Name = MacroPlot.Name,
+      Macroplot = MacroPlot.Name,
+      #MonitoringStatus_Name = Monitoring.Status,
+      MonStatus = Monitoring.Status,
+      #MonitoringStatus_Prefix = Status.Prefix,
+      #MonitoringStatus_Base = Status.Base,
+      #MonitoringStatus_Suffix = Status.Suffix,
+      #MonitoringStatus_Order = Status.Order,
+      MonStatusOrd = Status.Order,
+      #SampleEvent_Date = Date,
+      SampleEventDate = Date,
+      #SampleEvent_Date_Year = Date_Year
+      SampleEventDate_Year = Date_Year
+      )
   
   
   # save file
@@ -875,13 +1084,33 @@ for(i in parks) {
   
   # final column renaming to match metadata
   HerbsPoints <- HerbsPoints %>% 
-    dplyr::rename(Purpose = MacroPlot.Purpose,
-                  Type = MacroPlot.Type,
-                  Macroplot = MacroPlot.Name,
-                  MonStatus = Monitoring.Status,
-                  MonStatusOrd = Status.Order,
-                  SampleEventDate = Date,
-                  SampleEventDate_Year = Date_Year)
+    dplyr::rename(
+      #Macroplot_Purpose = MacroPlot.Purpose,
+      Purpose = MacroPlot.Purpose,
+      #Macroplot_Type = MacroPlot.Type,
+      Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      #Macroplot_Name = MacroPlot.Name,
+      Macroplot = MacroPlot.Name,
+      #MonitoringStatus_Name = Monitoring.Status,
+      MonStatus = Monitoring.Status,
+      #MonitoringStatus_Prefix = Status.Prefix,
+      #MonitoringStatus_Base = Status.Base,
+      #MonitoringStatus_Suffix = Status.Suffix,
+      #MonitoringStatus_Order = Status.Order,
+      MonStatusOrd = Status.Order,
+      #SampleEvent_Date = Date,
+      SampleEventDate = Date,
+      #SampleEvent_Date_Year = Date_Year
+      SampleEventDate_Year = Date_Year
+      )
   
   
   # save file
