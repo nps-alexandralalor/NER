@@ -158,9 +158,9 @@ MetadataReport_all <- MetadataReport_all %>%
   # Calculations
   group_by(AdministrationUnit_Name, Plot_Type) %>%
   dplyr::mutate(n_plots_ByPlotType = n_distinct(Macroplot)) %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1) %>% 
+  group_by(AdministrationUnit_Name, Plot_Type, Macroplot_UV1) %>% 
   dplyr::mutate(n_plots_ByProjectUnit = n_distinct(Macroplot)) %>%
-  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV2) %>% 
+  group_by(AdministrationUnit_Name, Plot_Type, Macroplot_UV2) %>% 
   dplyr::mutate(n_plots_ByMonitoringType = n_distinct(Macroplot)) %>% 
   ungroup()
 ```
