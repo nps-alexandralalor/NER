@@ -1,11 +1,11 @@
 ---
-title: "Park Report"
-subtitle: Northeast Region
+title: Richmond National Battlefield Park Report - Grassland Plots
+author: NPS Northeast Region Fire Effects Monitoring Program
 output:
   html_document:
     theme: readable
     highlight: null
-    toc: true
+    toc: false
     toc_depth: 2
     toc_float:
       smooth_scroll: true
@@ -18,7 +18,7 @@ output:
     toc_depth: 2
 ---
 
-# Annual Report
+# Annual Report {.hidden}
 
 ### Setup {.hidden}
 
@@ -57,6 +57,7 @@ library(patchwork)
 #path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 path_data <- paste0(path_file, "ALL/Calculations/ALL_")
+path_save <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/graphs"
 ```
 
 ### Load Data {.hidden}
@@ -64,7 +65,7 @@ path_data <- paste0(path_file, "ALL/Calculations/ALL_")
 ```{r}
 # Load in data
 MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
-Cover_Points <- read.csv(paste0(path_data, "Data_Cover_Points.csv"))
+Cover <- read.csv(paste0(path_data, "Data_Cover_Points.csv"))
 # Cover_SpComp <- read.csv(paste0(path_data, "Data_Cover_SpComp.csv"))
 ```
 
@@ -73,49 +74,78 @@ Cover_Points <- read.csv(paste0(path_data, "Data_Cover_Points.csv"))
 ```{r}
 target_park <- c("RICH")
 target_type <- c("Grassland")
-target_years <- c(2025)
-year_max <- as.numeric(format(Sys.Date(), "%Y"))
-date_max <- as.Date(paste0(year_max, "-12-31"))
+target_purpose <- c("Fire Monitoring Handbook")
 
-    MetadataReport_filter <- MetadataReport %>% 
+    
+    MetadataReport %>%
       filter(
+        Purpose == target_purpose,
         AdministrationUnit_Name == target_park,
         Type == target_type
-        )
-
-    Cover_filter <- Cover_Points %>% 
-      filter(
-        AdministrationUnit_Name == target_park,
-        Type == target_type
-      )
-
-year_min <- as.numeric((min(MetadataReport_filter$SampleEventDate_Year)) - 1)
-date_min <- as.Date(paste0(year_min, "-12-31"))
-
-    MetadataReport_filter %>% 
-      filter(Purpose == "Fire Monitoring Handbook") %>% 
+        ) %>% 
       select(Macroplot_UV1, Macroplot_UV2) %>% 
       unique()
 
-target_ProjectUnit <- c(
-  "Malvern Hill"
-  )
+target_ProjectUnit <- c("Malvern Hill")
 target_MonitoringType <- c(
   "Warm Season"
   #,"Cool Season"
   #,"Crewes Channel"
   )
+
+    MetadataReport_SampleEvents <- MetadataReport %>%
+      filter(
+        AdministrationUnit_Name == target_park,
+        Type == target_type,
+        Purpose == target_purpose,
+        Macroplot_UV1 == target_ProjectUnit,
+        Macroplot_UV2 == target_MonitoringType,
+        !MonStatus %in% c("Burn", "Herbicide", "Mechanical", "Mow")
+        )
+
+    MetadataReport_Disturbances <- MetadataReport %>%
+      filter(
+        AdministrationUnit_Name == target_park,
+        Type == target_type,
+        Purpose == target_purpose,
+        Macroplot_UV1 == target_ProjectUnit,
+        Macroplot_UV2 == target_MonitoringType,
+        MonStatus %in% c("Burn", "Herbicide", "Mechanical", "Mow")
+        )
+
+year_max <- as.numeric(format(Sys.Date(), "%Y"))
+date_max <- as.Date(paste0(year_max, "-12-31"))
+year_min <- as.numeric((min(MetadataReport_SampleEvents$SampleEventDate_Year)) - 1)
+date_min <- as.Date(paste0(year_min, "-12-31"))
 ```
 
-# Graphs
-
-## Disturbance History
+# Monitoring Objectives
 
 ```{r}
-Disturbances <- MetadataReport_filter %>% 
-  filter(MonStatus %in% c("Burn", "Herbicide", "Mechanical", "Mow"))
+Objectives <- data.frame(
+  Objective = c(
+    "1. <25% cover of woody species",
+    "2. <25% cover of non-native grasses and forbs",
+    "3. >75% cover of native grasses and forbs"
+    ))
 
-Disturbances_graph <- Disturbances %>%
+kable(Objectives)
+```
+
+### Target Values {.hidden}
+
+```{r}
+target_CoverWoody <- 25
+target_CoverInvasive <- 25
+target_CoverNative <- 75
+```
+
+## Overview
+
+### Prep {.hidden}
+
+```{r}
+Disturbances_graph <- MetadataReport_Disturbances %>%
   group_by(
     Region, Zone, Unit, AdministrationUnit_Name, Plot_Type, 
     DisturbanceDate, DisturbanceDate_Year, SampleEventDate_Year, MonStatus
@@ -133,12 +163,10 @@ Disturbances_graph <- Disturbances %>%
   arrange(desc(MonStatus))
 ```
 
+### Disturbance History
+
 ```{r}
-p_disturbance <- MetadataReport_filter %>%
-  filter(
-    Macroplot_UV1 %in% c(target_ProjectUnit),
-    Macroplot_UV2 %in% c(target_MonitoringType)
-    ) %>%
+p_disturbance <- MetadataReport_Disturbances %>%
   ggplot(aes(x = DisturbanceDate, y = Macroplot_Num)) +
   geom_line(aes(group = Macroplot_Num),
             data = Disturbances_graph) +
@@ -148,7 +176,7 @@ p_disturbance <- MetadataReport_filter %>%
             data = Disturbances_graph) +
   geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
              data = Disturbances_graph, shape = 21, size = 2.5) +
-  facet_grid( ~ Macroplot_UV1) +
+  facet_grid( ~ Macroplot_UV2) +
   labs(title = "Disturbance History",
        y = "",
        x = "Year",
@@ -173,10 +201,19 @@ p_disturbance <- MetadataReport_filter %>%
 p_disturbance
 ```
 
-## Herbs Points
+## Cover
+
+### Prep {.hidden}
 
 ```{r}
-Cover_graph <- Cover_filter %>% 
+Cover_graph <- Cover %>% 
+  filter(
+    AdministrationUnit_Name == target_park,
+    Type == target_type,
+    Purpose == target_purpose,
+    Macroplot_UV1 == target_ProjectUnit,
+    Macroplot_UV2 == target_MonitoringType
+    ) %>% 
   mutate(
     SampleEventDate_Year = as.numeric(SampleEventDate_Year)
     ) %>% 
@@ -211,267 +248,25 @@ Cover_graph <- Cover_filter %>%
       )))
 ```
 
-### Graph - 2025 Report Replicate  {.hidden}
+### 2025 Report - Woody
+
+**Objective #1:** \<25% cover of woody species
 
 ```{r}
-p_cover_classic <- Cover_graph %>% 
+p_cover_classic_woody <- Cover_graph %>% 
   filter(
-    Macroplot_UV1 %in% c(target_ProjectUnit),
-    Macroplot_UV2 %in% c(target_MonitoringType),
     Preferred_Lifeform %in% c(
-      #"Nonvascular", "Lichenous", 
-      "Graminoid", "Grass-like"
-      #"Forb/herb", "Fern", "Vine",
-      #"Shrub", "Subshrub",
-      #"Tree",
-      #"Substrate"
-      ),
-    Nativity %in% c(
-      "Native"
-      #"Non-Native",
-      #"Invasive",
-      #"Unknown"
-      )
-    ) %>% 
-  group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    #,Preferred_Lifeform, Genus, Nativity
-    ) %>% 
-  mutate(
-    Total_Cover = sum(PctCover)
-    ) %>%  
-
-  
-  ggplot(aes(x = SampleEventDate_Year, y = Total_Cover)) +
-  geom_line() +
-  geom_point() +
-  facet_wrap( ~ Macroplot_UV2, ncol = 1) +
-  labs(
-    x = "Year",
-    y = "% Cover",
-    title = paste(target_park, target_type, "Native Grass Cover")
-    ) +
-  scale_x_continuous(
-    limits = c(year_min, year_max),
-    breaks = seq(year_min, year_max, by = 1),
-    expand = expansion(mult = c(0, 0))
-    ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
-    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
-    axis.title = element_text(size = 12, face="bold"),
-    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-    axis.text.y = element_text(size = 8),
-    panel.grid.minor = element_blank()
-    )
-
-p_cover_classic
-```
-
-### Graph - Cover Native Grass {.hide-header}
-
-```{r}
-p_cover_points <- Cover_graph %>% 
-  filter(
-    Macroplot_UV1 %in% c(target_ProjectUnit),
-    Macroplot_UV2 %in% c(target_MonitoringType),
-    Preferred_Lifeform %in% c(
-      #"Nonvascular", "Lichenous", 
-      "Graminoid", "Grass-like"
-      #"Forb/herb", "Fern", "Vine",
-      #"Shrub", "Subshrub",
-      #"Tree",
-      #"Substrate"
-      ),
-    Nativity %in% c(
-      "Native"
-      #"Non-Native",
-      #"Invasive",
-      #"Unknown"
-      )
-    ) %>% 
-  group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    ,Preferred_Lifeform
-    ,Genus
-    ,Nativity
-    ,Species.Symbol
-    ) %>% 
-  dplyr::summarise(
-    Total_Cover = sum(PctCover, na.rm = TRUE),
-    .groups = "drop"
-    ) %>%  
-  
-  ggplot(aes(
-      x = SampleEventDate_Year, 
-      y = Total_Cover, 
-      fill = Genus
-      )) +
-  geom_col() +
-  facet_wrap( ~ Macroplot_UV2, ncol = 1) +
-  labs(
-    x = "Year",
-    y = "% Cover",
-    title = paste(target_park, target_type, "Native Grass Cover")
-    ) +
-  scale_x_continuous(
-    limits = c(year_min, year_max),
-    breaks = seq(year_min, year_max, by = 1),
-    expand = expansion(mult = c(0, 0))
-    ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
-    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
-    axis.title = element_text(size = 12, face="bold"),
-    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-    axis.text.y = element_text(size = 8),
-    panel.grid.minor = element_blank()
-    ) +
-  geom_vline(
-    xintercept = (MetadataReport_filter$DisturbanceDate_Year) - 0.5, 
-    linetype = "dashed", 
-    color = "red"
-    )
-
-#p_cover_points
-```
-
-```{r}
-p_disturbance_merge <- p_disturbance +
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
-        )+
-  labs(
-    title = paste(target_park, target_type, "Native Grass Cover"),
-    fill = "Disturbance"
-       )
-
-p_cover_merge <- p_cover_points +
-  theme(plot.title = element_blank())
-
-p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
-```
-
-### Graph - Cover Lifeform {.hide-header}
-
-```{r}
-p_cover_lifeform <- Cover_graph %>% 
-  filter(
-    Macroplot_UV1 %in% c(target_ProjectUnit),
-    Macroplot_UV2 %in% c(target_MonitoringType),
-    Preferred_Lifeform %in% c(
-      #"Nonvascular", "Lichenous", 
-      "Graminoid", "Grass-like",
-      "Forb/herb", "Fern", 
-      #"Vine",
-      "Shrub", "Subshrub"
-      #"Tree",
-      #"Substrate"
-      ),
-    Nativity %in% c(
-      "Native",
-      "Non-Native",
-      "Invasive",
-      "Unknown"
-      )
-    ) %>% 
-  group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    ,Preferred_Lifeform
-    ,Genus
-    ,Nativity
-    ,Species.Symbol
-    ) %>% 
-  dplyr::summarise(
-    Total_Cover = sum(PctCover, na.rm = TRUE),
-    .groups = "drop"
-    ) %>%  
-  
-  ggplot(aes(
-      x = SampleEventDate_Year, 
-      y = Total_Cover, 
-      fill = Preferred_Lifeform
-      )) +
-  geom_col() +
-  facet_wrap( ~ Macroplot_UV2, ncol = 1) +
-  labs(
-    x = "Year",
-    y = "% Cover",
-    fill = "Lifeform",
-    title = paste(target_park, target_type, "Cover")
-    ) +
-  scale_x_continuous(
-    limits = c(year_min, year_max),
-    breaks = seq(year_min, year_max, by = 1),
-    expand = expansion(mult = c(0, 0))
-    ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
-    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
-    axis.title = element_text(size = 12, face="bold"),
-    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-    axis.text.y = element_text(size = 8),
-    panel.grid.minor = element_blank()
-    ) +
-  geom_vline(
-    xintercept = (MetadataReport_filter$DisturbanceDate_Year) - 0.5, 
-    linetype = "dashed", 
-    color = "red"
-    )
-
-#p_cover_lifeform
-```
-
-```{r}
-p_disturbance_merge <- p_disturbance +
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
-        )+
-  labs(
-    title = paste(target_park, target_type, "Cover"),
-    fill = "Disturbance"
-       )
-
-p_cover_merge <- p_cover_lifeform +
-  theme(plot.title = element_blank())
-
-p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
-```
-
-### Graph - Cover Nativity {.hide-header}
-
-```{r}
-p_cover_nativity <- Cover_graph %>% 
-  filter(
-    Macroplot_UV1 %in% c(target_ProjectUnit),
-    Macroplot_UV2 %in% c(target_MonitoringType),
-    Preferred_Lifeform %in% c(
-      "Nonvascular", "Lichenous", 
-      "Graminoid", "Grass-like",
-      "Forb/herb", "Fern", "Vine",
-      "Shrub", "Subshrub",
+      #"Substrate",
+      #"Nonvascular",
+      #"Lichenous", 
+      #"Graminoid",
+      #"Grass-like",
+      #"Forb/herb"
+      #"Fern",
+      "Vine",
+      "Subshrub",
+      "Shrub", 
       "Tree"
-      #"Substrate"
       ),
     Nativity %in% c(
       "Native",
@@ -481,30 +276,159 @@ p_cover_nativity <- Cover_graph %>%
       )
     ) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    ,Preferred_Lifeform
-    ,Genus
-    ,Nativity
-    ,Species.Symbol
-    ) %>% 
-  dplyr::summarise(
-    Total_Cover = sum(PctCover, na.rm = TRUE),
-    .groups = "drop"
-    ) %>%  
+    AdministrationUnit_Name, Purpose, Type,
+    Macroplot_UV1, Macroplot_UV2
+    ,MonStatus
+    ,SampleEventDate_Year
+    #,Preferred_Lifeform
+    #,Genus
+    #,Nativity
+    ) %>%
+  mutate(
+    Total_Cover = sum(PctCover)
+    ) %>%
+  group_by(
+    AdministrationUnit_Name, Purpose, Type,
+    Macroplot_UV1, Macroplot_UV2
+    #,MonStatus
+    ,SampleEventDate_Year
+    #,Preferred_Lifeform
+    #,Genus
+    #,Nativity
+    ) %>%
+  mutate(
+    Avg_Cover = mean(Total_Cover)
+    ) %>%
+
   
-  ggplot(aes(
-      x = SampleEventDate_Year, 
-      y = Total_Cover, 
-      fill = Nativity
-      )) +
-  geom_col() +
+  ggplot(aes(x = SampleEventDate_Year, y = Avg_Cover)) +
+  geom_line() +
+  geom_point() +
   facet_wrap( ~ Macroplot_UV2, ncol = 1) +
   labs(
     x = "Year",
     y = "% Cover",
-    fill = "Lifeform",
-    title = paste(target_park, target_type, "Native Cover")
+    title = paste(target_park, target_type, "Woody Cover")
+    ) +
+  scale_x_continuous(
+    limits = c(year_min, year_max),
+    breaks = seq(year_min, year_max, by = 1),
+    expand = expansion(mult = c(0, 0))
+    ) +
+  scale_y_continuous(
+    limits = c(0, 100)
+    ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
+    axis.title = element_text(size = 12, face="bold"),
+    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+    axis.text.y = element_text(size = 8),
+    panel.grid.minor = element_blank()
+    ) +
+  # geom_vline(
+  #   xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+  #   linetype = "dashed", 
+  #   color = "red"
+  #   ) +
+  geom_hline(
+    yintercept = target_CoverWoody, 
+    linetype = "dashed", 
+    color = "black"
+    )
+
+#p_cover_classic_woody
+```
+
+```{r}
+p_disturbance_merge <- p_disturbance +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "right",
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
+        )+
+  labs(
+    title = paste(target_park, target_type, "Woody Cover"),
+    fill = "Disturbance"
+       )
+
+p_cover_merge <- p_cover_classic_woody +
+  theme(plot.title = element_blank())
+
+p_disturbance_merge / p_cover_merge +
+  plot_layout(heights = c(0.2, 1.4))
+```
+
+### 2025 Report - Native vs Non Native
+
+**Objective #2:** \<25% cover of non-native grasses and forbs
+
+**Objective #3:** \>75% cover of native grasses and forbs
+
+```{r}
+p_cover_classic <- Cover_graph %>% 
+  mutate(
+    Nativity = ifelse(Nativity == "Invasive", "Non-Native", Nativity)
+  ) %>%
+  filter(
+    Preferred_Lifeform %in% c(
+      #"Substrate",
+      #"Nonvascular",
+      #"Lichenous", 
+      "Graminoid",
+      "Grass-like",
+      "Forb/herb"
+      #"Fern",
+      #"Vine",
+      #"Subshrub",
+      #"Shrub", 
+      #"Tree"
+      ),
+    Nativity %in% c(
+      "Native",
+      "Non-Native"
+      #"Invasive"
+      #"Unknown"
+      )
+    ) %>% 
+  group_by(
+    AdministrationUnit_Name, Purpose, Type, 
+    Macroplot_UV1, Macroplot_UV2
+    ,MonStatus
+    ,SampleEventDate_Year
+    #,Preferred_Lifeform
+    #,Genus
+    ,Nativity
+    ) %>% 
+  mutate(
+    Total_Cover = sum(PctCover)
+    ) %>%  
+  group_by(
+    AdministrationUnit_Name, Purpose, Type, 
+    Macroplot_UV1, Macroplot_UV2
+    #,MonStatus
+    ,SampleEventDate_Year
+    #,Preferred_Lifeform
+    #,Genus
+    ,Nativity
+    ) %>% 
+  mutate(
+    Avg_Cover = mean(Total_Cover)
+    ) %>%  
+
+  
+  ggplot(aes(x = SampleEventDate_Year, y = Avg_Cover, col = Nativity)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap( ~ Macroplot_UV2, ncol = 1) +
+  labs(
+    x = "Year",
+    y = "% Cover",
+    title = paste(target_park, target_type, "Native vs Non-Native Grass/Forb Cover")
     ) +
   scale_x_continuous(
     limits = c(year_min, year_max),
@@ -522,13 +446,28 @@ p_cover_nativity <- Cover_graph %>%
     axis.text.y = element_text(size = 8),
     panel.grid.minor = element_blank()
     ) +
-  geom_vline(
-    xintercept = (MetadataReport_filter$DisturbanceDate_Year) - 0.5, 
+  scale_color_manual(
+    values = c(
+      "Non-Native" = "orange", 
+      "Native" = "forestgreen"
+      )) +
+  # geom_vline(
+  #   xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+  #   linetype = "dashed", 
+  #   color = "red"
+  #   ) +
+  geom_hline(
+    yintercept = target_CoverNative, 
     linetype = "dashed", 
-    color = "red"
+    color = "forestgreen"
+    ) +
+  geom_hline(
+    yintercept = target_CoverInvasive, 
+    linetype = "dashed", 
+    color = "orange"
     )
 
-#p_cover_nativity
+#p_cover_classic
 ```
 
 ```{r}
@@ -540,30 +479,13 @@ p_disturbance_merge <- p_disturbance +
         plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
         )+
   labs(
-    title = paste(target_park, target_type, "Native Cover"),
+    title = paste(target_park, target_type, "Native vs Non-Native Grass/Forb Cover"),
     fill = "Disturbance"
        )
 
-p_cover_merge <- p_cover_nativity +
+p_cover_merge <- p_cover_classic +
   theme(plot.title = element_blank())
 
 p_disturbance_merge / p_cover_merge +
   plot_layout(heights = c(0.2, 1.4))
-```
-
-## Herbs Species Comp
-
-```{r}
-# HerbsSpComp_graph <- HerbsSpComp_all %>% 
-#   filter(AdministrationUnit_Name == target_park,
-#          Type == target_type) %>% 
-#   group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year, Nativity) %>% 
-#   dplyr::summarise(n_species_ByNativity = n_distinct(Species.Symbol),
-#                    .groups = "drop")
-```
-
-```{r}
-# HerbsSpComp_graph %>%
-#   ggplot(aes(x = SampleEventDate_Year, y = n_species_ByNativity, fill = Nativity)) +
-#   geom_bar(position = "stack", stat = "identity")
 ```
