@@ -176,7 +176,7 @@ p_disturbance <- MetadataReport_Disturbances %>%
             data = Disturbances_graph) +
   geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
              data = Disturbances_graph, shape = 21, size = 2.5) +
-  facet_grid( ~ Macroplot_UV2) +
+  facet_grid( ~ Macroplot_UV1) +
   labs(title = "Disturbance History",
        y = "",
        x = "Year",
@@ -263,8 +263,8 @@ p_cover_classic_woody <- Cover_graph %>%
       #"Grass-like",
       #"Forb/herb"
       #"Fern",
-      "Vine",
-      "Subshrub",
+      #"Vine",
+      #"Subshrub",
       "Shrub", 
       "Tree"
       ),
@@ -280,7 +280,7 @@ p_cover_classic_woody <- Cover_graph %>%
     Macroplot_UV1, Macroplot_UV2
     ,MonStatus
     ,SampleEventDate_Year
-    #,Preferred_Lifeform
+    ,Preferred_Lifeform
     #,Genus
     #,Nativity
     ) %>%
@@ -292,7 +292,7 @@ p_cover_classic_woody <- Cover_graph %>%
     Macroplot_UV1, Macroplot_UV2
     #,MonStatus
     ,SampleEventDate_Year
-    #,Preferred_Lifeform
+    ,Preferred_Lifeform
     #,Genus
     #,Nativity
     ) %>%
@@ -301,7 +301,7 @@ p_cover_classic_woody <- Cover_graph %>%
     ) %>%
 
   
-  ggplot(aes(x = SampleEventDate_Year, y = Avg_Cover)) +
+  ggplot(aes(x = SampleEventDate_Year, y = Avg_Cover, col = Preferred_Lifeform)) +
   geom_line() +
   geom_point() +
   facet_wrap( ~ Macroplot_UV2, ncol = 1) +
