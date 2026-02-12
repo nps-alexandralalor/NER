@@ -119,85 +119,108 @@ for(i in parks) {
     # separate tables
     filter(is.na(SampleEventDate)) %>%
     # separate Date columns into Date and Time columns
-    separate(DateIn, sep = " ", into = c("DateIn", "DateInTime")) %>%
-    separate(FutureVisit, sep = " ", into = c("FutureVisit", "FutureVisitTime")) %>%
-    separate(DateOut, sep = " ", into = c("DateOut", "DateOutTime")) %>%
+    separate(DateIn, sep = " ", 
+             into = c("Macroplot_DateIn", "DateInTime")) %>%
+    separate(FutureVisit, sep = " ", 
+             into = c("Macroplot_FutureVisit", "FutureVisitTime")) %>%
+    separate(DateOut, sep = " ", 
+             into = c("Macroplot_DateOut", "DateOutTime")) %>%
     # reformate Date columns
-    mutate(DateIn = as.Date(DateIn, "%m/%d/%Y")) %>%
-    mutate(FutureVisit = as.Date(FutureVisit, "%m/%d/%Y")) %>%
-    mutate(DateOut = as.Date(DateOut, "%m/%d/%Y")) %>% 
-    # separate Date columns into Year Month Day columns
-    separate(DateIn, sep = "-", into = c("DateIn_Year", "Month", "Day"), remove = F) %>%
-    separate(FutureVisit, sep = "-", into = c("FutureVisit_Year", "Month", "Day"), remove = F) %>%
-    separate(DateOut, sep = "-", into = c("DateOut_Year", "Month", "Day"), remove = F) %>%
+    mutate(
+      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
+      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
+      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y")
+      ) %>%
+    # add Year columns
+    mutate(
+      Macroplot_DateIn_Year = year(Macroplot_DateIn),
+      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
+      Macroplot_DateOut_Year = year(Macroplot_DateOut)
+    ) %>% 
+    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
+    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
+    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
+    # make column names consistent
+    dplyr::rename(Macroplot_Name = Macroplot) %>% 
     # remove unnecessary columns
-    select(!c(DateInTime, FutureVisitTime, DateOutTime, Month, Day)) %>%
-    select(!c(SampleEventDate, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
-  
+    select(!c(DateInTime, FutureVisitTime, DateOutTime)) %>% 
+    select(!c(SampleEventDate, SampleEventTeam, SampleEventComment, 
+              MonStatusOrd, LegacyMonStatus, MonStatus))
+
   MacroplotReport_SampleEvents <- MacroplotReport %>%
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>%
     # separate tables
     filter(!is.na(SampleEventDate)) %>%
     # separate Date columns into Date and Time columns
-    separate(SampleEventDate, sep = " ", into = c("SampleEventDate", "SampleEventTime")) %>%
+    separate(SampleEventDate, sep = " ", 
+             into = c("SampleEvent_Date", "SampleEvent_Time")) %>%
     # reformate Date columns
-    mutate(SampleEventDate = as.Date(SampleEventDate, "%m/%d/%Y")) %>%
-    separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "Month", "Day"), remove = F) %>%
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
+    # add Year columns
+    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
+    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
+    # make column names consistent
+    dplyr::rename(Macroplot_Name = Macroplot,
+                  SampleEvent_LegacyMonitoringStatus = LegacyMonStatus,
+                  SampleEvent_Who = SampleEventTeam,
+                  SampleEvent_Comment = SampleEventComment,
+                  MonitoringStatus_Name = MonStatus,
+                  MonitoringStatus_Order = MonStatusOrd) %>% 
     # remove unnecessary columns
-    select(!c(SampleEventTime, Month, Day)) %>%
-    select(c(Macroplot, SampleEventDate, SampleEventDate_Year, SampleEventTeam, SampleEventComment, MonStatusOrd, LegacyMonStatus, MonStatus))
+    select(!c(SampleEvent_Time)) %>%
+    select(c(Macroplot_Name, SampleEvent_Date, SampleEvent_Date_Year, 
+             SampleEvent_Who, SampleEvent_Comment, MonitoringStatus_Order, 
+             SampleEvent_LegacyMonitoringStatus, MonitoringStatus_Name))
   
   #### Sample Event Report
   # The Sample Event Report has different column names as the Macroplot Report, but contains the same information. Make column names consistent.
-  SampleEventReport <- SampleEventReport %>%
+  SampleEventReport_clean <- SampleEventReport %>%
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>%
-    # make column names consistent
-    mutate(Macroplot = MacroPlot_Name,
-           LegacyMonitoringStatus = SampleEvent_LegacyMonitoringStatus,
-           MonStatus = MonitoringStatus_Name,
-           ProjectUnit = ProjectUnit_Name,
-           SampleEventDate = SampleEvent_Date) %>%
     # separate Date columns into Date and Time columns
-    separate(SampleEventDate, sep = " ", into = c("SampleEventDate", "SampleEventTime")) %>%
+    separate(SampleEvent_Date, sep = " ", 
+             into = c("SampleEvent_Date", "SampleEvent_Time")) %>%
     # reformate Date columns
-    mutate(SampleEventDate = as.Date(SampleEventDate, "%m/%d/%Y")) %>%
-    separate(SampleEventDate, sep = "-", into = c("SampleEventDate_Year", "Month", "Day"), remove = F) %>%
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
+    # add Year columns
+    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
+    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
+    # make column names consistent
+    dplyr::rename(AdminUnit_Name = AdministrationUnit_Name,
+                  Macroplot_Name = MacroPlot_Name,
+                  SampleEvent_Protocols = Protocols,
+                  SampleEvent_Visited = Visited) %>% 
     # remove unnecessary columns
-    select(!c(SampleEventTime, Month, Day)) %>%
-    select(!c(MacroPlot_Name, SampleEvent_LegacyMonitoringStatus, MonitoringStatus_Name, ProjectUnit_Name, SampleEvent_Date))
+    select(!c(SampleEvent_Time, SampleEvent_LegacyMonitoringStatus))
   
   
   # merge data
   #### Merge MacroplotReport_Metadata and MacroplotReport_SampleEvents
-  MacroplotReport_merge <- merge(MacroplotReport_MetaData, MacroplotReport_SampleEvents, by = c("Macroplot")) %>%
-    select(!MonStatusOrd)
+  MacroplotReport_merge <- merge(MacroplotReport_MetaData, MacroplotReport_SampleEvents, by = c("Macroplot_Name")) %>%
+    select(!MonitoringStatus_Order)
   
   #### Filter Sample Event Report for merging
-  SampleEventReport_merge <- SampleEventReport %>%
-    filter(ProjectUnit != "ALL") %>% 
-    select(!c(Multi_PU, LegacyMonitoringStatus))
+  SampleEventReport_merge <- SampleEventReport_clean %>%
+    filter(ProjectUnit_Name != "ALL") %>% 
+    select(!c(Multi_PU))
   
   #### Merge Macroplot Report and Sample Event Report
-  MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot", "SampleEventDate", "SampleEventDate_Year", "MonStatus")) %>%
-    relocate(AdministrationUnit_Name, .before = Macroplot) %>%
-    relocate(ProjectUnit, .after = Purpose) %>%
+  MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot_Name", "SampleEvent_Date", "SampleEvent_Date_Year", "MonitoringStatus_Name")) %>%
+    relocate(AdminUnit_Name, .before = Macroplot_Name) %>%
+    relocate(ProjectUnit_Name, .after = Purpose) %>%
     relocate(Type, .after = Purpose) %>% 
-    relocate(Macroplot, .after = Type) %>%
-    relocate(SampleEventDate, .after = Visited) %>%
-    relocate(SampleEventDate_Year, .after = SampleEventDate) %>% 
-    relocate(MonStatus, .after = LegacyMonStatus) %>%
+    relocate(Macroplot_Name, .after = Type) %>%
+    relocate(SampleEvent_Date, .after = SampleEvent_Visited) %>%
+    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
+    relocate(MonitoringStatus_Name, .after = SampleEvent_LegacyMonitoringStatus) %>%
     relocate(LocatedBy, .before = StartPoint)
   
   # final column renaming to match protocol exports
     MetadataReport <- MetadataReport %>% 
       dplyr::rename(
-        #AdminUnit_Name = AdministrationUnit_Name,
-        #ProjectUnit_Name = ProjectUnit,
-        #Macroplot_Purpose = Purpose,
-        #Macroplot_Type = Type,
-        #Macroplot_Name = Macroplot,
+        Macroplot_Purpose = Purpose,
+        Macroplot_Type = Type,
         #Macroplot_DdLat = Latitude,
         #Macroplot_DdLong = Longitude,
         #"Macroplot_UtmX (m)" = UTM_X,
@@ -206,12 +229,6 @@ for(i in parks) {
         #Macroplot_Datum = Datum,
         #Macroplot_Pdop = PDOP,
         #Macroplot_Precision = Precision,
-        #Macroplot_DateIn = DateIn,
-        #Macroplot_DateIn_Year = DateIn_Year,
-        #Macroplot_FutureVisit = FutureVisit,
-        #Macroplot_FutureVisit_Year = FutureVisit_Year,
-        #Macroplot_DateOut = DateOut,
-        #Macroplot_DateOut_Year = DateOut_Year,
         #Macroplot_Elevation = Elevation,
         #Macroplot_ElevationUnits = ElevationUnits,
         #Macroplot_Azimuth = Azimuth,
@@ -231,16 +248,8 @@ for(i in parks) {
         Macroplot_UV6 = UV6,
         Macroplot_UV7 = UV7,
         Macroplot_UV8 = UV8
-        #SampleEvent_Date = SampleEventDate,
-        #SampleEvent_Date_Year = SampleEventDate_Year,
-        #SampleEvent_Who = SampleEventTeam,
-        #SampleEvent_Comment = SampleEventComment,
-        #SampleEvent_DefaultMonitoringStatus =  # What is this?
-        #SampleEvent_TreatmentUnit =  # What is this?
-        #LegacyMonStatus = LegacyMonStatus, # Does this have equivalent?
-        #MonitoringStatus_Name = MonStatus, # ?
-        #Protocols = Protocols, # Not in Project Unit data depot report
-        #Visited = Visited # MethodData_Visited?
+        #SampleEvent_DefaultMonitoringStatus =  # Does this have an equivalent?
+        #SampleEvent_LegacyMonitoringStatus = # Does this have an equivalent?
         )
   
   # replace commas with semicolons
@@ -269,23 +278,50 @@ for(i in parks) {
   
   # load data
   SpeciesReport <- read.csv(paste0(path_data, "LocalSpeciesReport.csv"), na.strings = c("","NA","N/A"))
-  ## replace commas with semicolons
-  SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
-  
+
   
   # clean data
   SpeciesReport <- SpeciesReport %>%
   # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim))
+  ## replace commas with semicolons
+  SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
+  
   
   
   # # final column renaming to match protocol exports
-  #   SpeciesReport <- SpeciesReport %>% 
+  #   SpeciesReport <- SpeciesReport %>%
   #     dplyr::rename(
-  #       Species_SymbolLocal = LocalSpecies_Symbol
+  #       Species_SourceEntityId = LocalSpecies_GUID,
+  #       Species_ITISTaxonomicSerialNumber = MasterSpecies_ITIS_TSN,
+  #       Species_SymbolLocal = LocalSpecies_Symbol,
+  #       #Species_Symbol = # not on species report
+  #       Species_Description = LocalSpecies_Description,
+  #       Species_CommonNameLocal = LocalSpecies_CommonName,
+  #       #Species_CommonName = # not on species report
+  #       Species_LifeCycleLocal = LocalSpecies_LifeCycle,
+  #       #Species_LifeCycle = # not on species report
+  #       # = LocalSpecies_UserAdded, # not on data depot outputs
+  #       Species_NativityLocal = LocalSpecies_Nativity,
+  #       #Species_Nativity = # not on species report
+  #       Species_Invasive = LocalSpecies_Invasive,
+  #       Species_Cultural = LocalSpecies_Cultural,
+  #       Species_Concern = LocalSpecies_Concern,
+  #       Species_Retired = LocalSpecies_Retired,
+  #       Species_Comment = LocalSpecies_Comment,
+  #       Species_UV1 = LocalSpecies_UV1,
+  #       Species_UV2 = LocalSpecies_UV2,
+  #       Species_UV3 = LocalSpecies_UV3,
+  #       Species_LifeFormNameLocal = LocalSpecies_PreferedLifeForm,
+  #       #Species_LifeFormName = # not on species report
+  #       Species_ScientificName = MasterSpecies_ScientificName,
+  #       Species_Genus = MasterSpecies_Genus,
+  #       Species_Family = MasterSpecies_Family,
+  #       Species_NotBiological = MasterSpecies_NotBiolgoical,
+  #       # = ReportType # not on data depot outputs
   #       )
 
-
+  
   # save file
   write.csv(SpeciesReport, paste0(path_save, target_park, "_SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
 }
