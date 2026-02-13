@@ -80,8 +80,8 @@ library(knitr)
 
 ```{r}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 ```
 
 ### Parks {.hidden}
