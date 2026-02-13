@@ -1,6 +1,6 @@
 ---
-title: "QAQC MetaData"
-author: "Alexandra Lalor"
+title: QAQC MetaData
+author: Alexandra Lalor
 output:
   html_document:
     theme: readable
@@ -21,7 +21,7 @@ This code is intended to quality check plot metadata, including the Macroplot Re
 
 -   MetadataReport.csv
 
-## Before Starting  {.hidden}
+## Before Starting {.hidden}
 
 ### Setup {.hidden}
 

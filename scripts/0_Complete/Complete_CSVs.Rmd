@@ -1,6 +1,6 @@
 ---
-title: "Complete CSVs"
-author: "Alexandra Lalor"
+title: Complete CSVs
+author: Alexandra Lalor
 output:
   html_document:
     theme: readable

@@ -1,6 +1,6 @@
 ---
-title: "FFI Database Summary"
-subtitle: Northeast Region
+title: Annual Report
+author: NPS Northeast Region Fire Effects Monitoring Program
 output:
   word_document:
     toc: true

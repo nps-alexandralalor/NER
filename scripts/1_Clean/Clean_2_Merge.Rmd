@@ -1,6 +1,6 @@
 ---
-title: "FFI Database Summary"
-subtitle: Northeast Region
+title: Merge FFI Data
+author: Alexandra Lalor
 output:
   word_document:
     toc: true

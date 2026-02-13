@@ -1,6 +1,7 @@
 ---
-title: "FFI Database Summary"
+title: FFI Database Calculations
 subtitle: Northeast Region
+author: Alexandra Lalor
 output:
   word_document:
     toc: true
