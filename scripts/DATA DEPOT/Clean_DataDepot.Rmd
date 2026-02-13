@@ -304,6 +304,8 @@ for(i in parks) {
 ## Fuels 1000
 
 ```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+
 for(i in parks) {
   # select target park
   target_park <- i
@@ -403,6 +405,8 @@ for(i in parks) {
 ## Fuels Duff Litt
 
 ```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+
 for(i in parks) {
   # select target park
   target_park <- i
@@ -503,6 +507,8 @@ for(i in parks) {
 ## Fuels Fine
 
 ```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+
 for(i in parks) {
   # select target park
   target_park <- i
@@ -605,6 +611,8 @@ for(i in parks) {
 ## Post Burn
 
 ```{r}
+# parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+
 # for(i in parks) {
 #   # select target park
 #   target_park <- i
@@ -706,7 +714,10 @@ for(i in parks) {
 ## Trees
 
 ```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "FRSP", "NERI", "RICH", "SHEN")
+
 for(i in parks) {
+  
   # select target park
   target_park <- i
   
@@ -848,6 +859,7 @@ for(i in parks) {
 ## Seedlings
 
 ```{r}
+# parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 # excluding park PRWI because of database exporting issues
 # excluding park APCO because Density - Quadrats (metric) aka Seedlings protocol does not include Area header...
 
@@ -965,6 +977,7 @@ for(i in parks) {
 ## Shrubs
 
 ```{r}
+# parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 # excluding park PRWI because of database exporting issues
 # excluding park APCO because Density - Belts (metric) aka Shrubs protocol does not include Subbelt, NumSubbelt, or Area header...
 
@@ -1082,6 +1095,8 @@ for(i in parks) {
 ## Herbs Species Comp
 
 ```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+
 for(i in parks) {
   # select target park
   target_park <- i
@@ -1190,6 +1205,8 @@ for(i in parks) {
 ## Herbs Points
 
 ```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GETT", "MONO", "NERI", "RICH", "SARA", "SHEN")
+
 for(i in parks) {
   # select target park
   target_park <- i
