@@ -127,7 +127,7 @@ library(knitr)
 
 ```{r}
 # designate target park(s)
-target_park <- "VAFO"
+target_park <- "CATO"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -139,7 +139,7 @@ path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_file <- paste0(path_main, "Exports Data Depot/", target_park, "/")
 path_data_english <- paste0(path_file, "English_ffi_", target_park, "_data_export/")
 path_data_metric <- paste0(path_file, "Metric_ffi_", target_park, "_data_export/")
-path_data_original <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
+path_data_original <- paste0(path_main, "R Outputs Data Depot/", target_park, "/", target_park, "_")
 ```
 
 ### Zip Data {.hidden}
@@ -612,4 +612,40 @@ if(nrow(errors_ProjectUnitReport) > 1) {
     filter(Error != "No Error")
 } else {
   errors_ProjectUnitReport <- errors_ProjectUnitReport}
+```
+
+# Compare Rows
+
+```{r}
+data_depot <- FuelsFine_E
+data_ffi <- FuelsFine_O
+```
+
+```{r}
+data_depot <- data_depot %>% 
+  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>% 
+  relocate(Macroplot_Name, .after = Macroplot_UV8) %>% 
+  relocate(SampleEvent_TreatmentUnit, .after = Macroplot_Name) %>% 
+  relocate(MethodData_visited, .before = MethodData_index) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(Macroplot_Name, MethodData_fieldTeam))
+
+
+data_ffi <- data_ffi %>% 
+  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(Macroplot_Name, MethodData_fieldTeam))
+```
+
+```{r}
+data_depot <- data_depot %>% 
+  select(c("Species_SourceEntityId","Species_LocalSpeciesId","Species_MasterSpeciesId","Species_AuxSpeciesId","Species_ITISTaxonomicSerialNumber","Species_SymbolLocal","Species_Symbol","Species_ScientificName","Species_CommonNameLocal","Species_CommonName","Species_Genus","Species_Family","Species_NotBiological","Species_Nativity","Species_NativityLocal","Species_Invasive","Species_LifeFormName","Species_LifeFormNameLocal","Species_Description","Species_LifeCycle","Species_LifeCycleLocal","Species_Cultural","Species_Concern","Species_Retired","Species_Comment","Species_UV1","Species_UV2","Species_UV3","MethodData_sppGuid"))
+```
+
+```{r}
+all.equal(data_depot, data_ffi)
 ```
