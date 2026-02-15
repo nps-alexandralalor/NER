@@ -68,23 +68,11 @@ Missing Protocols
 
 ### Major issues to check across all CSVs
 
--   Check that protocols exist (manual check). For code to work across all Administration Units, you must export all relevant protocols across all parks. Even if no data exists, a CSV will export with correct protocol headers. If a CSV fails to export, the protocol may be missing or broken in FFI. In this case, take a blank protocol (headers but no data) and use it as a placeholder.
+-   Check that column names match expected
 
--   Check that columns match expected. If columns do not match across Administration Units, CSVs cannot be combined. Solutions include manually inserting columns with the missing headers (but with no data). If CSVs contains extra columns as empty placeholders (common in CSV exports), you can manually delete these columns or use R to remove them. The script Clean_1_all.Rmd contains this code already.
+-   Check that number of rows match expected
 
-    For example: Fuels1000_all \<- Fuels1000_all[, -ncol(Fuels1000_all)]
-
--   Check that fundamental columns are not blank and are consistent between reports (e.g. Macroplot, ProjectUnit, MonStatus)
-
--   Check that data exists for every protocol which was visited. If data is missing or deviates from protocol, [make sure this is noted in the comment field of the protocol header]{.underline}.
-
-    -   **No data (invalid):** If data should exist but doesn't, data may not have been entered into FFI yet.
-
-    -   **No data (valid):** Certain protocols may not contain data for valid reasons (e.g. no trees, no coarse woody debris, no seedlings, no shrubs, etc...)
-
-    -   **Incomplete data (invalid):** If protocols have fewer data points than expected, select data may be missing (e.g. data exists for 3 fuels transects instead of 4).
-
-    -   **Incomplete data (valid):** Protocols may intentionally have fewer data points than expected (e.g. it was decided that certain plots would only have 1 herb transect instead of 2).
+-   Check that data matches expected (especially conversions between metric and english
 
 ## Before Starting {.hidden}
 
@@ -103,6 +91,7 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 # install.packages("condformat")
 # install.packages("knitr")
 # install.packages("here")
+# install.packages("diffdf")
 ```
 
 ```{r load packages, include=FALSE}
@@ -111,16 +100,8 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 # tidyverse and dplyr have lots of useful functions for data cleaning
 library(tidyverse)
 library(dplyr)
-library(readr)
-# janitor has functions to find duplicates
-library(janitor)
-# writexl is used to create excel output files
-library(writexl)
-# condformat is used to format excel output files
-library(condformat)
-# knitr and LaTeX is used to create output files from R Markdown
-library(knitr)
-#library(LaTeX)
+# diffdf will find differences between databases
+library(diffdf)
 ```
 
 ### Target Park {.hidden}
@@ -206,7 +187,232 @@ HerbsPoints_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_e
 #        HerbsFrequency_E, HerbsFrequency_M)
 ```
 
-# Columns
+# ROWS
+
+## Fuels 1000Hr (CWD)
+
+```{r}
+Fuels1000_DataDepot <- Fuels1000_E %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+Fuels1000_DataFFI <- Fuels1000_O %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+```
+
+```{r}
+#diffdf(Fuels1000_DataDepot, Fuels1000_DataFFI)
+```
+
+```{r}
+Fuels1000_DataDepot <- Fuels1000_DataDepot %>% 
+  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>%
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+
+
+Fuels1000_DataFFI <- Fuels1000_DataFFI %>% 
+  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+```
+
+```{r}
+diffdf(Fuels1000_DataDepot, Fuels1000_DataFFI)
+```
+
+## Fuels Duff Litter (DL)
+
+```{r}
+FuelsDuffLitt_DataDepot <- FuelsDuffLitt_E %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+FuelsDuffLitt_DataFFI <- FuelsDuffLitt_O %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+```
+
+```{r}
+#diffdf(FuelsDuffLitt_DataDepot, FuelsDuffLitt_DataFFI)
+```
+
+```{r}
+FuelsDuffLitt_DataDepot <- FuelsDuffLitt_DataDepot %>% 
+  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX","Macroplot_UtmY","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill","Macroplot_SlopeTransect","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+
+
+FuelsDuffLitt_DataFFI <- FuelsDuffLitt_DataFFI %>% 
+  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+```
+
+```{r}
+diffdf(FuelsDuffLitt_DataDepot, FuelsDuffLitt_DataFFI)
+```
+
+## Fuels Fine (FWD)
+
+```{r}
+FuelsFine_DataDepot <- FuelsFine_E %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+FuelsFine_DataFFI <- FuelsFine_O %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+```
+
+```{r}
+#diffdf(FuelsFine_DataDepot, FuelsFine_DataFFI)
+```
+
+```{r}
+FuelsFine_DataDepot <- FuelsFine_DataDepot %>% 
+  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+
+
+FuelsFine_DataFFI <- FuelsFine_DataFFI %>% 
+  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+```
+
+```{r}
+diffdf(FuelsFine_DataDepot, FuelsFine_DataFFI)
+```
+
+## Post Burn
+
+## Trees
+
+```{r}
+Trees_DataDepot <- Trees_M %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+Trees_DataFFI <- Trees_O %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+```
+
+```{r}
+#diffdf(Trees_DataDepot, Trees_DataFFI)
+```
+
+```{r}
+Trees_DataDepot <- Trees_DataDepot %>% 
+  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>% 
+  select(!c("Species_SourceEntityId","Species_LocalSpeciesId","Species_MasterSpeciesId","Species_AuxSpeciesId","Species_ITISTaxonomicSerialNumber","Species_SymbolLocal","Species_Symbol","Species_ScientificName","Species_CommonNameLocal","Species_CommonName","Species_Genus","Species_Family","Species_NotBiological","Species_Nativity","Species_NativityLocal","Species_Invasive","Species_LifeFormName","Species_LifeFormNameLocal","Species_Description","Species_LifeCycle","Species_LifeCycleLocal","Species_Cultural","Species_Concern","Species_Retired","Species_Comment","Species_UV1","Species_UV2","Species_UV3","MethodData_sppGuid")) %>% 
+  select(!c("MethodData_density","MethodData_basalArea")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+
+
+Trees_DataFFI <- Trees_DataFFI %>% 
+  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
+  select(!c("Species_LifeCycleLocal","Species_NotBiological","Species_LifeFormNameLocal","Species_Family","Species_Genus","Species_ScientificName","Species_NativityLocal","Species_Invasive")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+```
+
+```{r}
+diffdf(Trees_DataDepot, Trees_DataFFI)
+```
+
+## Seedlings
+
+## Shrubs
+
+## Herbs Species Comp
+
+```{r}
+HerbsSpComp_DataDepot <- HerbsSpComp_M %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam)) %>% 
+  dplyr::rename(MethodData_symbolLocal = MethodData_localSpeciesSymbol)
+HerbsSpComp_DataFFI <- HerbsSpComp_O %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+```
+
+```{r}
+#diffdf(HerbsSpComp_DataDepot, HerbsSpComp_DataFFI)
+```
+
+```{r}
+HerbsSpComp_DataDepot <- HerbsSpComp_DataDepot %>% 
+  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>% 
+  select(!c("Species_SourceEntityId","Species_LocalSpeciesId","Species_MasterSpeciesId","Species_AuxSpeciesId","Species_ITISTaxonomicSerialNumber","Species_SymbolLocal","Species_Symbol","Species_ScientificName","Species_CommonNameLocal","Species_CommonName","Species_Genus","Species_Family","Species_NotBiological","Species_Nativity","Species_NativityLocal","Species_Invasive","Species_LifeFormName","Species_LifeFormNameLocal","Species_Description","Species_LifeCycle","Species_LifeCycleLocal","Species_Cultural","Species_Concern","Species_Retired","Species_Comment","Species_UV1","Species_UV2","Species_UV3","MethodData_sppGuid")) %>% 
+  select(!c("MethodData_localSpeciesId","MethodData_speciesId")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+
+
+HerbsSpComp_DataFFI <- HerbsSpComp_DataFFI %>% 
+  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
+  select(!c("Species_LifeCycleLocal","Species_NotBiological","Species_LifeFormNameLocal","Species_Family","Species_Genus","Species_ScientificName","Species_NativityLocal","Species_Invasive")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+```
+
+```{r}
+diffdf(HerbsSpComp_DataDepot, HerbsSpComp_DataFFI)
+```
+
+## Herbs Points
+
+```{r}
+HerbsPoints_DataDepot <- HerbsPoints_M %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam)) %>% 
+  dplyr::rename(MethodData_symbolLocal = MethodData_localSpeciesSymbol)
+HerbsPoints_DataFFI <- HerbsPoints_O %>% 
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
+  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+```
+
+```{r}
+#diffdf(HerbsPoints_DataDepot, HerbsPoints_DataFFI)
+```
+
+```{r}
+HerbsPoints_DataDepot <- HerbsPoints_DataDepot %>% 
+  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>% 
+  select(!c("Species_SourceEntityId","Species_LocalSpeciesId","Species_MasterSpeciesId","Species_AuxSpeciesId","Species_ITISTaxonomicSerialNumber","Species_SymbolLocal","Species_Symbol","Species_ScientificName","Species_CommonNameLocal","Species_CommonName","Species_Genus","Species_Family","Species_NotBiological","Species_Nativity","Species_NativityLocal","Species_Invasive","Species_LifeFormName","Species_LifeFormNameLocal","Species_Description","Species_LifeCycle","Species_LifeCycleLocal","Species_Cultural","Species_Concern","Species_Retired","Species_Comment","Species_UV1","Species_UV2","Species_UV3","MethodData_sppGuid")) %>% 
+  select(!c("MethodData_localSpeciesId","MethodData_speciesId","MethodData_cover")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+
+
+HerbsPoints_DataFFI <- HerbsPoints_DataFFI %>% 
+  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
+  select(!c("Species_LifeCycleLocal","Species_NotBiological","Species_LifeFormNameLocal","Species_Family","Species_Genus","Species_ScientificName","Species_NativityLocal","Species_Invasive")) %>% 
+  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
+  select(!c(Macroplot_Name))
+```
+
+```{r}
+diffdf(HerbsPoints_DataDepot, HerbsPoints_DataFFI)
+```
+
+## Herbs Frequency
+
+# COLUMNS
 
 -   If all successfully load, this means that column names match across all units and protocols
 
@@ -240,7 +446,7 @@ data_SpeciesData <- data %>%
   select(c("Species_SourceEntityId","Species_LocalSpeciesId","Species_MasterSpeciesId","Species_AuxSpeciesId","Species_ITISTaxonomicSerialNumber","Species_SymbolLocal","Species_Symbol","Species_ScientificName","Species_CommonNameLocal","Species_CommonName","Species_Genus","Species_Family","Species_NotBiological","Species_Nativity","Species_NativityLocal","Species_Invasive","Species_LifeFormName","Species_LifeFormNameLocal","Species_Description","Species_LifeCycle","Species_LifeCycleLocal","Species_Cultural","Species_Concern","Species_Retired","Species_Comment","Species_UV1","Species_UV2","Species_UV3","MethodData_sppGuid"))
 ```
 
-## PROTOCOL - SURFACE FUELS 1000HR (CWD)
+## Fuels 1000Hr (CWD)
 
 English
 
@@ -260,7 +466,7 @@ data_MethodData_Data <- Fuels1000_M %>%
   arrange(MethodData_index)
 ```
 
-## PROTOCOL - SURFACE FUELS DUFF LITTER (DL)
+## Fuels Duff Litter (DL)
 
 English
 
@@ -280,7 +486,7 @@ data_MethodData_Data <- FuelsDuffLitt_M %>%
   arrange(MethodData_index)
 ```
 
-## PROTOCOL - SURFACE FUELS FINE FUELS (FWD)
+## Fuels Fine (FWD)
 
 English
 
@@ -300,7 +506,7 @@ data_MethodData_Data <- FuelsFine_M %>%
   arrange(MethodData_index)
 ```
 
-## PROTOCOL - POST BURN
+## Post Burn
 
 English
 
@@ -314,7 +520,7 @@ Metric
 #values_data <- names(PostBurn_M)
 ```
 
-## PROTOCOL - TREES
+## Trees
 
 English
 
@@ -334,7 +540,7 @@ data_MethodData_Data <- Trees_M %>%
   arrange(MethodData_index)
 ```
 
-## PROTOCOL - SEEDLINGS
+## Seedlings
 
 English
 
@@ -348,7 +554,7 @@ Metric
 #values_data <- names(Seedlings_M)
 ```
 
-## PROTOCOL - SHRUBS
+## Shrubs
 
 English
 
@@ -362,7 +568,7 @@ Metric
 #values_data <- names(Shrubs_M)
 ```
 
-## PROTOCOL - HERBS SPECIES COMP
+## Herbs Species Comp
 
 English
 
@@ -382,7 +588,7 @@ data_MethodData_Data <- HerbsSpComp_M %>%
   arrange(MethodData_index)
 ```
 
-## PROTOCOL - HERBS POINTS
+## Herbs Points
 
 English
 
@@ -402,7 +608,7 @@ data_MethodData_Data <- HerbsPoints_M %>%
   arrange(MethodData_index)
 ```
 
-## PROTOCOL - HERBS FREQUENCY
+## Herbs Frequency
 
 English
 
@@ -422,9 +628,9 @@ Metric
 #   arrange(MethodData_index)
 ```
 
-# Metric vs English vs Original
+# METRIC VS ENGLISH
 
-## PROTOCOL - SURFACE FUELS 1000HR (CWD)
+## Fuels 1000Hr (CWD)
 
 Header
 
@@ -473,25 +679,25 @@ data_MethodData_Data_units <- merge(data_MethodData_Data_M, data_MethodData_Data
 remove(data_MethodData_Data_merge, data_MethodData_Data_O, data_MethodData_Data_E, data_MethodData_Data_M)
 ```
 
-## PROTOCOL - SURFACE FUELS DUFF LITTER (DL)
+## Fuels Duff Litter (DL)
 
 Header
 
 Data
 
-## PROTOCOL - SURFACE FUELS FINE FUELS (FWD)
+## Fuels Fine (FWD)
 
 Header
 
 Data
 
-## PROTOCOL - POST BURN
+## Post Burn
 
 Header
 
 Data
 
-## PROTOCOL - TREES
+## Trees
 
 Header
 
@@ -501,25 +707,31 @@ Data
 "MethodData_macroPlotSize (ha)","MethodData_snagPlotSize (ha)","MethodData_dBH (cm)","MethodData_ht (m)","MethodData_crFuBHt (m)","MethodData_liCrBHt (m)","MethodData_crwnRad (m)","MethodData_grwthRt (cm)","MethodData_laddBaseHt (m)","MethodData_laddMaxHt (m)","MethodData_dRC (cm)","MethodData_eqDia (cm)","MethodData_xCoord (m)","MethodData_yCoord (m)","MethodData_charHt (m)","MethodData_scorchHt (m)","MethodData_density","MethodData_basalArea"
 ```
 
-## PROTOCOL - SEEDLINGS
+## Seedlings
 
 Header
 
 Data
 
-## PROTOCOL - SHRUBS
+## Shrubs
 
 Header
 
 Data
 
-## PROTOCOL - HERBS SPECIES COMP
+## Herbs Species Comp
 
 Header
 
 Data
 
-## PROTOCOL - HERBS POINTS
+## Herbs Points
+
+Header
+
+Data
+
+## Herbs Frequency
 
 Header
 
@@ -612,40 +824,4 @@ if(nrow(errors_ProjectUnitReport) > 1) {
     filter(Error != "No Error")
 } else {
   errors_ProjectUnitReport <- errors_ProjectUnitReport}
-```
-
-# Compare Rows
-
-```{r}
-data_depot <- FuelsFine_E
-data_ffi <- FuelsFine_O
-```
-
-```{r}
-data_depot <- data_depot %>% 
-  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>% 
-  relocate(Macroplot_Name, .after = Macroplot_UV8) %>% 
-  relocate(SampleEvent_TreatmentUnit, .after = Macroplot_Name) %>% 
-  relocate(MethodData_visited, .before = MethodData_index) %>% 
-  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
-  select(!c(Macroplot_Name, MethodData_fieldTeam))
-
-
-data_ffi <- data_ffi %>% 
-  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
-  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
-  select(!c(Macroplot_Name, MethodData_fieldTeam))
-```
-
-```{r}
-data_depot <- data_depot %>% 
-  select(c("Species_SourceEntityId","Species_LocalSpeciesId","Species_MasterSpeciesId","Species_AuxSpeciesId","Species_ITISTaxonomicSerialNumber","Species_SymbolLocal","Species_Symbol","Species_ScientificName","Species_CommonNameLocal","Species_CommonName","Species_Genus","Species_Family","Species_NotBiological","Species_Nativity","Species_NativityLocal","Species_Invasive","Species_LifeFormName","Species_LifeFormNameLocal","Species_Description","Species_LifeCycle","Species_LifeCycleLocal","Species_Cultural","Species_Concern","Species_Retired","Species_Comment","Species_UV1","Species_UV2","Species_UV3","MethodData_sppGuid"))
-```
-
-```{r}
-all.equal(data_depot, data_ffi)
 ```
