@@ -15,11 +15,7 @@ output:
     toc_depth: '3'
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-```
-
-# BEFORE STARTING
+# Purpose
 
 This code is intended to quality check plot data for protocols listed below. These protocols been cleaned using the Clean_1_All.Rmd script.
 
@@ -41,9 +37,15 @@ This code is intended to quality check plot data for protocols listed below. The
 
 -   Cover - Points (metric)
 
-### Install Packages (if needed) {.hidden}
+## Before Starting {.hidden}
 
-```{r}
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r install packages, include=FALSE}
+## Install packages (if needed)
+
 # install.packages("tidyverse")
 # install.packages("plyr")
 # install.packages("Rtools")
@@ -54,9 +56,9 @@ This code is intended to quality check plot data for protocols listed below. The
 # install.packages("writexl")
 ```
 
-### Load Packages {.hidden}
+```{r load packages, include=FALSE}
+## Load Packages
 
-```{r}
 # tidyverse and dplyr have lots of useful functions for data cleaning
 library(tidyverse)
 library(dplyr)
@@ -77,11 +79,11 @@ library(knitr)
 
 ```{r}
 # Create blank data frame as error log template
-errors_blank <- data.frame("SavedQuery" = "", "AdministrationUnit_Name" = "", "SampleEvent_TreatmentUnit" = "", "Macroplot" = "", "SampleEventDate" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>%
-  mutate(SampleEventDate = as.Date(SampleEventDate))
+errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "SampleEvent_TreatmentUnit" = "", "Macroplot_Name" = "", "SampleEvent_Date" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>%
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date))
 
 # Create error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "AdministrationUnit_Name", "Macroplot", "SampleEventDate", "Error")
+errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "SampleEvent_Date", "Error")
 
 ############################################################################################
 ## Source Code
@@ -146,18 +148,16 @@ qaqc <- function(data, query, query_message, values_check) {
 
 ### Target Values {.hidden}
 
-```{r}
+```{r target values, include=FALSE}
 # designate target values
 # 2025 parks: "CATO" "GETT" "MONO" "NERI" "RICH" "SHEN"
-target_park <- c("SHEN")
+target_park <- c("ALL")
 target_years <- c(2025)
 ```
 
 ### Adjust File Paths {.hidden}
 
-Make sure to update file paths to be specific for your data.
-
-```{r}
+```{r import data, include=FALSE}
 # adjust file paths
 path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 #path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
@@ -168,7 +168,7 @@ path_errors_name <- paste0(target_park, " FMH Data QAQC Errors")
 
 ### Load Data {.hidden}
 
-```{r}
+```{r load data, include=FALSE}
 # Load in data
 Fuels1000_all <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
 FuelsDuffLitt_all <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
@@ -188,55 +188,55 @@ HerbsPoints_all <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"
 # Fuels1000
 #####
 Fuels1000_data <- Fuels1000_all %>%
-  filter(SampleEventDate_Year %in% target_years)
+  filter(SampleEvent_Date_Year %in% target_years)
 
 #####
 # FuelsDuffLitt
 #####
 FuelsDuffLitt_data <- FuelsDuffLitt_all %>%   
-  filter(SampleEventDate_Year %in% target_years)
+  filter(SampleEvent_Date_Year %in% target_years)
 
 #####
 # FuelsFine
 #####
 FuelsFine_data <- FuelsFine_all %>%   
-  filter(SampleEventDate_Year %in% target_years)
+  filter(SampleEvent_Date_Year %in% target_years)
 
 #####
 # PostBurn
 #####
 PostBurn_data <- PostBurn_all %>%
-  filter(SampleEventDate_Year %in% target_years)
+  filter(SampleEvent_Date_Year %in% target_years)
 
 #####
 # Trees
 #####
 Trees_data <- Trees_all %>%   
-  filter(SampleEventDate_Year %in% target_years)
+  filter(SampleEvent_Date_Year %in% target_years)
 
 #####
 # Seedlings
 #####
 Seedlings_data <- Seedlings_all %>%
-  filter(SampleEventDate_Year %in% target_years)
+  filter(SampleEvent_Date_Year %in% target_years)
 
 #####
 # Shrubs
 #####
 Shrubs_data <- Shrubs_all %>%
-  filter(SampleEventDate_Year %in% target_years)
+  filter(SampleEvent_Date_Year %in% target_years)
 
 #####
 # HerbsSpComp
 #####
 HerbsSpComp_data <- HerbsSpComp_all %>%
-  filter(SampleEventDate_Year %in% target_years)
+  filter(SampleEvent_Date_Year %in% target_years)
 
 #####
 # HerbsPoints
 #####
 HerbsPoints_data <- HerbsPoints_all %>%
-  filter(SampleEventDate_Year %in% target_years)
+  filter(SampleEvent_Date_Year %in% target_years)
 ```
 
 ### Define Codes {.hidden}
@@ -274,7 +274,7 @@ It checks for errors in: headers, decay class values, diameters, fuel constants,
 ```{r}
 # Set parameters 
 data <- Fuels1000_data %>% 
-  filter(Purpose == "Fire Monitoring Handbook")
+  filter(Macroplot_Purpose == "Fire Monitoring Handbook")
 query <- "Fuel 1000 Header"
 query_message <- "Number of Transects" 
 values_data <- data$NumTran
@@ -288,7 +288,7 @@ errors_Fuels1000_NumTran_FMH <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Fuels1000_data %>% 
-  filter(Purpose == "Inventory & Monitoring")
+  filter(Macroplot_Purpose == "Inventory & Monitoring")
 query <- "Fuel 1000 Header"
 query_message <- "Number of Transects" 
 values_data <- data$NumTran
@@ -472,7 +472,7 @@ errors_Fuels1000_FuelConst <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Check for log duplication and store results in new column
 data_temp <- Fuels1000_data %>%
-  get_dupes(SampleEventDate, Macroplot, Transect, LogNum, Dia, DecayCl)
+  get_dupes(SampleEvent_Date, Macroplot_Name, Transect, LogNum, Dia, DecayCl)
 
 # Set parameters 
 data <- merge(Fuels1000_data, data_temp, all.x = T)
@@ -565,7 +565,7 @@ It checks for errors in: headers, fuel constants, offset values, sample location
 ```{r}
 # Set parameters  
 data <- FuelsDuffLitt_data %>% 
-  filter(Purpose == "Fire Monitoring Handbook")
+  filter(Macroplot_Purpose == "Fire Monitoring Handbook")
 query <- "Fuel DL Header" 
 query_message <- "FMH plot. Number of Transects"  
 values_data <- data$NumTran  
@@ -579,7 +579,7 @@ errors_FuelsDuffLitt_NumTran_FMH <- qaqc(data, query, query_message, values_chec
 ```{r}
 # Set parameters  
 data <- FuelsDuffLitt_data %>% 
-  filter(Purpose == "Inventory & Monitoring")
+  filter(Macroplot_Purpose == "Inventory & Monitoring")
 query <- "Fuel DL Header" 
 query_message <- "I&M plot. Number of Transects"  
 values_data <- data$NumTran  
@@ -838,7 +838,7 @@ It checks for errors in: headers, azimuth, fuel constants, slope, transects, and
 ```{r}
 # Set parameters  
 data <- FuelsFine_data %>% 
-  filter(Purpose == "Fire Monitoring Handbook")
+  filter(Macroplot_Purpose == "Fire Monitoring Handbook")
 query <- "Fuel Fine Header" 
 query_message <- "Number of Transects"  
 values_data <- data$NumTran  
@@ -852,7 +852,7 @@ errors_FuelsFine_NumTran_FMH <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- FuelsFine_data %>% 
-  filter(Purpose == "Inventory & Monitoring")
+  filter(Macroplot_Purpose == "Inventory & Monitoring")
 query <- "Fuel Fine Header" 
 query_message <- "Number of Transects"  
 values_data <- data$NumTran  
@@ -1022,19 +1022,19 @@ errors_FuelsFine_Slope_Value <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 data_temp1 <- Fuels1000_data %>%
-  group_by(Macroplot, SampleEventDate, Transect, Slope) %>%
-  dplyr::summarise("Macroplot" = unique(Macroplot),
+  group_by(Macroplot_Name, SampleEvent_Date, Transect, Slope) %>%
+  dplyr::summarise("Macroplot_Name" = unique(Macroplot_Name),
             "Transect" = unique(Transect)) %>%
   mutate(Slope_1000 = Slope) %>%
-  arrange(Macroplot, Transect) %>%
+  arrange(Macroplot_Name, Transect) %>%
   select(!Slope)
 
 data_temp2 <- FuelsFine_data %>%
-  group_by(Macroplot, SampleEventDate, Transect, Slope) %>%
-  dplyr::summarise("Macroplot" = unique(Macroplot),
+  group_by(Macroplot_Name, SampleEvent_Date, Transect, Slope) %>%
+  dplyr::summarise("Macroplot_Name" = unique(Macroplot_Name),
             "Transect" = unique(Transect)) %>%
   mutate(Slope_fine = Slope) %>%
-  arrange(Macroplot, Transect) %>%
+  arrange(Macroplot_Name, Transect) %>%
   select(!Slope)
 
 data_temp <- merge(data_temp1, data_temp2, all.y = T)
@@ -1043,7 +1043,7 @@ data_temp <- data_temp %>%
 remove(data_temp1, data_temp2)
 
 # Set parameters
-data <- merge(FuelsFine_data, data_temp, by = c("Macroplot", "SampleEventDate", "Transect"), all = T)
+data <- merge(FuelsFine_data, data_temp, by = c("Macroplot_Name", "SampleEvent_Date", "Transect"), all = T)
 query <- "Fuel Fine Slope"
 query_message <- paste0("Transect = ", data$Transect, ". ", "CWD slope = ", data$Slope_1000, ". ", "FWD slope")
 values_data <- data$Slope_fine
@@ -2013,7 +2013,7 @@ remove(errors_Trees_DamCd_L, errors_Trees_DamCd_D, errors_Trees_DamCd_Blank)
 if(nrow(errors_Trees_DamCd) > 1) {
   errors_Trees_DamCd <- errors_Trees_DamCd %>%
     filter(Error != "No Error") %>% 
-    arrange(Macroplot)
+    arrange(Macroplot_Name)
 } else {
   errors_Trees_DamCd <- errors_Trees_DamCd}
 ```
@@ -2157,7 +2157,7 @@ if(nrow(errors_Trees_DD) > 1) {
 ```{r}
 # Check for tag duplication and store results in new column
 data_temp <- Trees_data %>% 
-  get_dupes(SampleEventDate, Macroplot, SubFrac, TagNo)
+  get_dupes(SampleEvent_Date, Macroplot_Name, SubFrac, TagNo)
 
 # Set parameters 
 data <- merge(Trees_data, data_temp, all.x = T)
@@ -2258,7 +2258,7 @@ errors_Trees_LifeForm <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == FALSE)
 data$CharHt[is.na(data$CharHt)] <- ""
@@ -2275,7 +2275,7 @@ errors_Trees_NonPost_Severity_CharHt <- qaqc(data, query, query_message, values_
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == FALSE)
 data$ScorchHt[is.na(data$ScorchHt)] <- ""
@@ -2292,7 +2292,7 @@ errors_Trees_NonPost_Severity_ScorchHt <- qaqc(data, query, query_message, value
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == FALSE)
 data$CrScPct[is.na(data$CrScPct)] <- ""
@@ -2332,7 +2332,7 @@ if(nrow(errors_Trees_NonPost_Severity) > 1) {
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == TRUE,
          CrwnCl %in% c("DD", "BBD", "CUS"))
@@ -2352,7 +2352,7 @@ errors_Trees_Post_Char_DD <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == TRUE,
          !CrwnCl %in% c("DD", "BBD", "CUS"))
@@ -2372,7 +2372,7 @@ errors_Trees_Post_Char_Standing <- qaqc(data, query, query_message, values_check
 ```{r}
 # # Perform Rosner's Test for outliers using all values
 # data_temp <- Trees_all %>%
-#   filter(MonStatus %in% c("01Post", "02Post", "03Post", "04Post"),
+#   filter(MonitoringStatus_Name %in% c("01Post", "02Post", "03Post", "04Post"),
 #          !is.na(CharHt))
 # data_outlier <- rosnerTest(data_temp$CharHt)
 # outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
@@ -2380,7 +2380,7 @@ errors_Trees_Post_Char_Standing <- qaqc(data, query, query_message, values_check
 
 # Set parameters
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == TRUE,
          !is.na(CharHt))
@@ -2420,7 +2420,7 @@ if(nrow(errors_Trees_Post_Char) > 1) {
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == TRUE,
          CrwnCl %in% c("DD", "BBD", "CUS"))
@@ -2440,7 +2440,7 @@ errors_Trees_Post_Scorch_DD <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == TRUE,
          !CrwnCl %in% c("DD", "BBD", "CUS"),
@@ -2462,7 +2462,7 @@ errors_Trees_Post_Scorch_Dead <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == TRUE,
          Status == "L")
@@ -2504,7 +2504,7 @@ if(nrow(errors_Trees_Post_ScorchHt) > 1) {
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == TRUE,
          CrwnCl %in% c("DD", "BBD", "CUS"))
@@ -2524,7 +2524,7 @@ errors_Trees_Post_ScorchPct_DD <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == TRUE,
          !CrwnCl %in% c("DD", "BBD", "CUS"),
@@ -2545,7 +2545,7 @@ errors_Trees_Post_ScorchPct_Dead <- qaqc(data, query, query_message, values_chec
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonStatus) == TRUE), 
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
                        TRUE, FALSE)) %>%
   filter(Post == TRUE,
          Status == "L")
@@ -4423,7 +4423,7 @@ errors_HerbsPoints_Order_Number <- qaqc(data, query, query_message, values_check
 ```{r}
 # Check for tag duplication and store results in new column
 data_temp <- HerbsPoints_data %>% 
-  get_dupes(SampleEventDate, Macroplot, Transect, Point, Order)
+  get_dupes(SampleEvent_Date, Macroplot_Name, Transect, Point, Order)
 
 # Set parameters 
 data <- merge(HerbsPoints_data, data_temp, all.x = T)
@@ -4497,8 +4497,8 @@ expected_sum <- 166 * (1 + 166) / 2
 
 data_temp <- HerbsPoints_data %>%
   filter(is.na(Order)|Order == 1,
-         Type == "Forest") %>% 
-  group_by(Macroplot, SampleEventDate, Transect) %>% 
+         Macroplot_Type == "Forest") %>% 
+  group_by(Macroplot_Name, SampleEvent_Date, Transect) %>% 
   dplyr::summarize(across(Point, sum))
 
 data_temp <- data_temp %>% 
@@ -4506,8 +4506,8 @@ data_temp <- data_temp %>%
   select(!Point)
 
 # Set parameters 
-data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot", "SampleEventDate", "Transect"), all = T) %>% 
-  filter(Type == "Forest")
+data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot_Name", "SampleEvent_Date", "Transect"), all = T) %>% 
+  filter(Macroplot_Type == "Forest")
 query <- "Cvr Pts Point" 
 query_message <- paste0("Transect = ", data$Transect, ". ", "Order = 1. Missing/Extra Point") 
 values_data <- data$Missing
@@ -4524,8 +4524,8 @@ expected_sum <- 100 * (1 + 100) / 2
 
 data_temp <- HerbsPoints_data %>%
   filter(is.na(Order)|Order == 1,
-         Type == "Grassland") %>% 
-  group_by(Macroplot, SampleEventDate, Transect) %>% 
+         Macroplot_Type== "Grassland") %>% 
+  group_by(Macroplot_Name, SampleEvent_Date, Transect) %>% 
   dplyr::summarize(across(Point, sum))
 
 data_temp <- data_temp %>% 
@@ -4533,8 +4533,8 @@ data_temp <- data_temp %>%
   select(!Point)
 
 # Set parameters 
-data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot", "SampleEventDate", "Transect"), all = T) %>% 
-  filter(Type == "Grassland")
+data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot_Name", "SampleEvent_Date", "Transect"), all = T) %>% 
+  filter(Macroplot_Type == "Grassland")
 query <- "Cvr Pts Point" 
 query_message <- paste0("Transect = ", data$Transect, ". ", "Order = 1. Missing/Extra Point") 
 values_data <- data$Missing
@@ -4817,6 +4817,6 @@ kable(errors_all, "pipe")
 
 # Save as CSV or XLSX 
 errors_all <- errors_all %>% 
-  mutate(SampleEventDate = as.character(SampleEventDate))
+  mutate(SampleEvent_Date = as.character(SampleEvent_Date))
 condformat2excel(errors_all, paste0(path_errors, target_park, "_errors_data_FMH.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```

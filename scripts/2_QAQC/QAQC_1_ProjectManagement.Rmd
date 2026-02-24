@@ -64,10 +64,10 @@ library(here)
 
 ```{r}
 # Create blank data frame as error log template
-errors_blank <- data.frame("SavedQuery" = "", "Macroplot" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+errors_blank <- data.frame("SavedQuery" = "", "Macroplot_Name" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
 
 # Create error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "Macroplot", "Error")
+errors_group <- c("SavedQuery", "Macroplot_Name", "Error")
 
 ############################################################################################
 ## Source Code
@@ -132,17 +132,17 @@ qaqc <- function(data, query, query_message, values_check) {
 
 ### Target Park {.hidden}
 
-```{r}
+```{r target values, include=FALSE}
 # designate target park(s)
-target_park <- "SHEN"
+target_park <- "APCO"
 ```
 
 ### Adjust File Paths {.hidden}
 
 ```{r import data, include=FALSE}
 # adjust file paths
-#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
@@ -169,7 +169,7 @@ MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
 ```{r}
 # Set parameters 
 data <- MetadataReport %>% 
-  extract(Macroplot, regex = "([0-9]+[0-9]+)", into = c("Macroplot_Num"), remove = F)
+  extract(Macroplot_Name, regex = "([0-9]+[0-9]+)", into = c("Macroplot_Num"), remove = F)
 query <- "Macroplot Report - Installation"
 query_message <- "Macroplot naming convention is incorrect. Macroplot Number" 
 values_data <- data$Macroplot_Num
@@ -187,7 +187,7 @@ errors_MacroplotReport_MacroplotNum <- qaqc(data, query, query_message, values_c
 data <- MetadataReport
 query <- "Macroplot Report - Installation"
 query_message <- "Purpose" 
-values_data <- data$Purpose
+values_data <- data$Macroplot_Purpose
 values_valid <- c("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Fuels", "Inventory & Monitoring")
 values_check <- values_data %in% values_valid
 
@@ -202,7 +202,7 @@ errors_MacroplotReport_Purpose <- qaqc(data, query, query_message, values_check)
 data <- MetadataReport
 query <- "Macroplot Report - Installation"
 query_message <- "Type" 
-values_data <- data$Type
+values_data <- data$Macroplot_Type
 values_valid <- c("Forest", "Grassland", "Shrubland", "CBI", "Control", "Inventory", "Measured", "Other", "RA")
 values_check <- values_data %in% values_valid
 
@@ -217,8 +217,8 @@ errors_MacroplotReport_Type <- qaqc(data, query, query_message, values_check)
 data <- MetadataReport
 query <- "Macroplot Report - Installation"
 query_message <- "Date In" 
-values_data <- data$DateIn
-values_valid <- is.na(data$DateIn)
+values_data <- data$Macroplot_DateIn
+values_valid <- is.na(data$Macroplot_DateIn)
 values_check <- values_data != values_valid
 
 # Identify errors
@@ -477,7 +477,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 data <- MetadataReport
 query <- "Macroplot Report - Sample Events"
 query_message <- "Macroplot" 
-values_data <- data$Macroplot
+values_data <- data$Macroplot_Name
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -492,8 +492,8 @@ errors_MacroplotReport_Macroplot <- qaqc(data, query, query_message, values_chec
 data <- MetadataReport
 query <- "Macroplot Report - Sample Events"
 query_message <- "Sample Event Date" 
-values_data <- data$SampleEventDate
-values_valid <- is.na(data$SampleEventDate)
+values_data <- data$SampleEvent_Date
+values_valid <- is.na(data$SampleEvent_Date)
 values_check <- values_data != values_valid
 
 # Identify errors
@@ -507,7 +507,7 @@ errors_MacroplotReport_SampleEventDate <- qaqc(data, query, query_message, value
 data <- MetadataReport
 query <- "Macroplot Report - Sample Events"
 query_message <- "Monitoring Status" 
-values_data <- data$MonStatus
+values_data <- data$MonitoringStatus_Name
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -536,89 +536,6 @@ if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
 errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent)
 ```
 
-# Project Unit Assignment Report
-
-[Problem:]{.underline} Project Unit Assignment Report is missing information
-
-[Procedure:]{.underline}
-
--   Check that Quotes = FALSE
-
-```{r}
-# # Set parameters 
-# data <- ProjectUnitReport %>% 
-#   mutate(Quotes = pmap_lgl(as.list(ProjectUnitReport), 
-#     ~ any(str_detect(c(...), '["]')))) %>% 
-#   mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-# query <- "Project Unit Report"
-# query_message <- "Quotes"
-# values_data <- data$Quotes
-# values_valid <- FALSE
-# values_check <- values_data == values_valid
-# 
-# # Identify errors
-# errors_ProjectUnitReport_Quotes <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Macroplot is not blank
-
-```{r}
-# # Set parameters 
-# data <- ProjectUnitReport
-# query <- "Project Unit Report"
-# query_message <- "Macroplot" 
-# values_data <- data$Macroplot
-# values_valid <- ""
-# values_check <- values_data != values_valid
-# 
-# # Identify errors
-# errors_ProjectUnitReport_Macroplot <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that ProjectUnit is not blank
-
-```{r}
-# # Set parameters 
-# data <- ProjectUnitReport
-# query <- "Project Unit Report"
-# query_message <- "Project Unit" 
-# values_data <- data$ProjectUnit
-# values_valid <- ""
-# values_check <- values_data != values_valid
-# 
-# # Identify errors
-# errors_ProjectUnitReport_ProjectUnit <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Multi_PU = N or Y. If Multi_PU = Y, you will need to isolate which Project Unit contains the primary data for the analysis of interest.
-
-```{r}
-# # Set parameters 
-# data <- ProjectUnitReport
-# query <- "Project Unit Report"
-# query_message <- "Multi Project Units" 
-# values_data <- data$Multi_PU
-# values_valid <- c("N", "Y")
-# values_check <- values_data %in% values_valid
-# 
-# # Identify errors
-# errors_ProjectUnitReport_MultiPU <- qaqc(data, query, query_message, values_check)
-```
-
-#### Combine Project Unit Report Errors {.hidden}
-
-```{r}
-# errors_ProjectUnitReport <- unique(rbind(errors_ProjectUnitReport_Quotes, errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU))
-# 
-# remove(errors_ProjectUnitReport_Quotes, errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU)
-# 
-# if(nrow(errors_ProjectUnitReport) > 1) {
-#   errors_ProjectUnitReport <- errors_ProjectUnitReport %>%
-#     filter(Error != "No Error")
-# } else {
-#   errors_ProjectUnitReport <- errors_ProjectUnitReport}
-```
-
 # Sample Event Report
 
 [Problem:]{.underline} Sample Event Report is missing information or is inconsistent with the Macroplot Report
@@ -632,7 +549,7 @@ errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_Macr
 data <- MetadataReport
 query <- "Sample Event Report"
 query_message <- "Administration Unit Name" 
-values_data <- data$AdministrationUnit_Name
+values_data <- data$AdminUnit_Name
 values_valid <- target_park
 values_check <- values_data == values_valid
 
@@ -645,10 +562,10 @@ errors_SampleEventReport_AdministrationUnit <- qaqc(data, query, query_message, 
 ```{r}
 # Set parameters 
 data <- MetadataReport %>% 
-  filter(!MonStatus %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
+  filter(!MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
 query <- "Sample Event Report"
-query_message <- paste0("Date = ", data$SampleEventDate, ". Read = ", data$MonStatus, ". Protocol")
-values_data <- data$Protocol
+query_message <- paste0("Date = ", data$SampleEvent_Date, ". Read = ", data$MonitoringStatus_Name, ". Protocol")
+values_data <- data$SampleEvent_Protocols
 values_valid <- c("Surface Fuels", "Surface Fuels - 1000Hr", "Surface Fuels - Duff_Litter", "Surface Fuels - Fine", "Post Burn Severity (metric)", "Trees - Individuals (metric)", "Density - Quadrats (metric)", "Density - Belts (metric)", "Cover - Species Composition (metric)", "Cover - Points (metric)", "CBI")
 values_check <- values_data %in% values_valid
 
@@ -658,10 +575,10 @@ errors_SampleEventReport_Protocols <- qaqc(data, query, query_message, values_ch
 
 ```{r}
 data <- MetadataReport %>% 
-  filter(MonStatus %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
+  filter(MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
 query <- "Sample Event Report"
-query_message <- paste0("Date = ", data$SampleEventDate, ". Read = ", data$MonStatus, ". Protocol")
-values_data <- data$Protocol
+query_message <- paste0("Date = ", data$SampleEvent_Date, ". Read = ", data$MonitoringStatus_Name, ". Protocol")
+values_data <- data$SampleEvent_Protocols
 values_valid <- c("Disturbance History", NA)
 values_check <- values_data %in% values_valid
 
@@ -674,10 +591,10 @@ errors_SampleEventReport_ProtocolsPost <- qaqc(data, query, query_message, value
 ```{r}
 # Set parameters 
 data <- MetadataReport %>% 
-  filter(!MonStatus %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
+  filter(!MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
 query <- "Sample Event Report"
-query_message <- paste0("Date = ", data$SampleEventDate, ". Read = ", data$MonStatus, ". Visited")
-values_data <- data$Visited
+query_message <- paste0("Date = ", data$SampleEvent_Date, ". Read = ", data$MonitoringStatus_Name, ". Visited")
+values_data <- data$SampleEvent_Visited
 values_valid <- "Y"
 values_check <- values_data == values_valid
 
@@ -688,11 +605,11 @@ errors_SampleEventReport_Visited_1 <- qaqc(data, query, query_message, values_ch
 ```{r}
 # Set parameters 
 data <- MetadataReport %>% 
-  filter(MonStatus %in% c("Burn", "Herbicide", "Mow", "Mechanical"),
-         Protocols != "Disturbance History")
+  filter(MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"),
+         SampleEvent_Protocols != "Disturbance History")
 query <- "Sample Event Report"
-query_message <- paste0("Date = ", data$SampleEventDate, ". Read = ", data$MonStatus, ". Visited")
-values_data <- data$Visited
+query_message <- paste0("Date = ", data$SampleEvent_Date, ". Read = ", data$MonitoringStatus_Name, ". Visited")
+values_data <- data$SampleEvent_Visited
 values_valid <- "N"
 values_check <- values_data == values_valid
 
@@ -705,7 +622,7 @@ errors_SampleEventReport_Visited_2 <- qaqc(data, query, query_message, values_ch
 ```{r}
 errors_SampleEventReport <- unique(rbind(errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_ProtocolsPost, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2))
 
-remove(errors_SampleEventReport_Quotes, errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_ProtocolsPost, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2)
+remove(errors_SampleEventReport_AdministrationUnit, errors_SampleEventReport_Protocols, errors_SampleEventReport_ProtocolsPost, errors_SampleEventReport_Visited_1, errors_SampleEventReport_Visited_2)
 
 if(nrow(errors_SampleEventReport) > 1) {
   errors_SampleEventReport <- errors_SampleEventReport %>%
