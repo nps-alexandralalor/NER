@@ -15,11 +15,13 @@ output:
     toc_depth: '3'
 ---
 
-# Before Starting
+# Purpose
 
 This code is intended to quality check species metadata, including the Local Species Report. This report has been cleaned and combined with other Administration Units using the Clean_1_All.Rmd and Clean_2_Merge.Rmd scripts.
 
 -   SpeciesReport.csv
+
+## Before Starting
 
 ### Setup {.hidden}
 
@@ -137,8 +139,8 @@ target_park <- "ALL"
 
 ```{r import data, include=FALSE}
 # adjust file paths
-#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " Species QAQC Errors")
