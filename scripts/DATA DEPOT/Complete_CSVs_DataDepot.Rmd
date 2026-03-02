@@ -108,7 +108,7 @@ library(diffdf)
 
 ```{r}
 # designate target park(s)
-target_park <- "RICH"
+target_park <- "ANTI"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -117,7 +117,7 @@ target_park <- "RICH"
 # adjust file paths
 #path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_file <- paste0(path_main, "Exports Data Depot/", target_park, "/")
+path_file <- paste0(path_main, "Exports Data Depot/", target_park, "/v2/")
 path_data_english <- paste0(path_file, "English_ffi_", target_park, "_data_export/")
 path_data_metric <- paste0(path_file, "Metric_ffi_", target_park, "_data_export/")
 path_data_original <- paste0(path_main, "R Outputs Data Depot/", target_park, "/", target_park, "_")
@@ -131,8 +131,8 @@ path_data_original <- paste0(path_main, "R Outputs Data Depot/", target_park, "/
 # load data
 
 # # project unit report
-# ProjectUnitReport_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_project_units.csv"))
-# ProjectUnitReport_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_project_units.csv"))
+ProjectUnitReport_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_project_units.csv"))
+ProjectUnitReport_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_project_units.csv"))
 
 # protocols
 Fuels1000_O <- read_csv(paste0(path_data_original, "Data_Surface Fuels - 1000Hr.csv"))
@@ -157,24 +157,24 @@ HerbsSpComp_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_e
 HerbsPoints_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_cover_points.csv"))
 
 
-# # blank protocols
-# PostBurn_O <- read.csv(paste0(path_data_original, "Data_Post Burn Severity (metric).csv"))
-# Seedlings_O <- read.csv(paste0(path_data_original, "Data_Density - Quadrats (metric).csv"))
-# Shrubs_O <- read.csv(paste0(path_data_original, "Data_Density - Belts (metric).csv"))
-# # blank protocols
-# FuelsDuffLittAK_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_alaska_duff_litter.csv"))
-# FuelsPiles_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_piles.csv"))
-# FuelsVeg_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_vegetation.csv"))
-# TreesSaplings_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_trees_saplings.csv"))
-# TreesSeedlings_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_trees_seedlings.csv"))
-# HerbsFrequency_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_cover_frequency.csv"))
-# # blank protocols
-# FuelsDuffLittAK_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_alaska_duff_litter.csv"))
-# FuelsPiles_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_piles.csv"))
-# FuelsVeg_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_vegetation.csv"))
-# TreesSaplings_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_trees_saplings.csv"))
-# TreesSeedlings_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_trees_seedlings.csv"))
-# HerbsFrequency_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_cover_frequency.csv"))
+# blank protocols
+PostBurn_O <- read.csv(paste0(path_data_original, "Data_Post Burn Severity (metric).csv"))
+Seedlings_O <- read.csv(paste0(path_data_original, "Data_Density - Quadrats (metric).csv"))
+Shrubs_O <- read.csv(paste0(path_data_original, "Data_Density - Belts (metric).csv"))
+# blank protocols
+FuelsDuffLittAK_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_alaska_duff_litter.csv"))
+FuelsPiles_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_piles.csv"))
+FuelsVeg_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_vegetation.csv"))
+TreesSaplings_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_trees_saplings.csv"))
+TreesSeedlings_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_trees_seedlings.csv"))
+HerbsFrequency_E <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_cover_frequency.csv"))
+# blank protocols
+FuelsDuffLittAK_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_alaska_duff_litter.csv"))
+FuelsPiles_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_piles.csv"))
+FuelsVeg_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_surface_fuels_vegetation.csv"))
+TreesSaplings_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_trees_saplings.csv"))
+TreesSeedlings_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_trees_seedlings.csv"))
+HerbsFrequency_M <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_cover_frequency.csv"))
 ```
 
 ```{r}
