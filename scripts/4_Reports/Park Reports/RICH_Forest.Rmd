@@ -127,19 +127,44 @@ Objectives <- data.frame(
   Objective = c(
     "1. >50% reduction in pole-sized (2.5-15cm DBH) tree density after four burns",
     "2. >75% increase in native grasses after four burns",
-    "3. >50% reduction in 1, 10, and 100 hour fuels within one year post burn"
+    "3. >50% reduction in 1, 10, and 100 hour fuels within one year post burn",
+    "",
+    "FMP 1. Reduce the loading of 1-hr and 10-hr fuels by >50% and >25%, repsectively",
+    "FMP 2. Reduce the loading of 100-hr and 1000-hr fuels by >50% and >25, respectively"
     ))
 
 kable(Objectives)
 ```
 
-### Target Values  {.hidden}
+### Target Values {.hidden}
 
 ```{r}
 target_FineFuelLoading <- 1.12 * .5
 target_PoleDensity <- 380 * .5
 target_Cover <- 2.4 * 1.75
+
+target_new_FineFuelLoading <- 2.4
+target_new_PoleDensity <- 380 * .5
+target_new_Cover <- 2.4 * 1.75
 ```
+
+### Resources
+
+Current Vegetation Association:
+
+-   Northeastern Coastal Plain Mixed Oak / Heath Forest ; Quercus alba - Quercus falcata - (Carya pallida) / Gaylussacia frondosa Forest [(CEGL006269)](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.689304/Quercus_alba_-_Quercus_falcata_-_(Carya_pallida)_-_Gaylussacia_frondosa_Forest)
+
+Desired Future Condition ?
+
+Fuel Types (Scott and Burgan 2006 Standard Fire Behavior Fuel Models):
+
+-   TL6 (fine fuel load = 2.4 tons/acre)
+
+-   TU3 (fine fuel load = 2.85 tons/acre)
+
+-   SH4 (fine fuel load = 3.4 tons/acre)
+
+-   GR1 (fine fuel load = 0.40 tons/acre)
 
 ## Overview
 
@@ -290,6 +315,8 @@ Fuels_graph <- Fuels %>%
 
 **Objective #3:** \>50% reduction in 1, 10, and 100 hour fuels ("fine fuels") within one year post burn
 
+**FMP Objective #1**: Reduce the loading of 1-hr, 10-hr, and 100-hr fuels by \>50%, \>25%, and \>50% repsectively"
+
 ```{r}
 p_fuels_classic <- Fuels_graph %>% 
   filter(
@@ -353,6 +380,15 @@ p_fuels_classic <- Fuels_graph %>%
 
 p_fuels_classic
 #ggsave("fuels_classic.jpg", p_fuels_classic, path = path_save, width = 12, height = 8, dpi = 300)
+```
+
+```{r}
+# p_fuels_classic +
+#     geom_hline(
+#     yintercept = target_new_FineFuelLoading, 
+#     linetype = "dashed", 
+#     color = "forestgreen"
+#     )
 ```
 
 ### All Fuels
@@ -1485,7 +1521,7 @@ p_disturbance_merge / p_cover_merge +
   plot_layout(heights = c(0.2, 1.4))
 ```
 
-### Cover  {.hidden}
+### Cover {.hidden}
 
 ```{r}
 p_cover<- Cover_graph %>% 
@@ -1575,7 +1611,7 @@ p_disturbance_merge / p_cover_merge +
   plot_layout(heights = c(0.2, 1.4))
 ```
 
-## Herbs Species Comp  {.hidden}
+## Herbs Species Comp {.hidden}
 
 ```{r}
 # HerbsSpComp_graph <- HerbsSpComp %>%
