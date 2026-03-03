@@ -387,7 +387,9 @@ errors_MacroplotReport_Commas <- qaqc(data, query, query_message, values_check)
 data <- MacroplotReport
 values_data <- names(data)
 values_valid <- c("Macroplot", "SampleEventDate", "SampleEventTeam", "SampleEventComment", "MonStatusOrd", "MonStatus", "LegacyMonStatus", "Purpose", "LocatedBy", "Type", "Latitude", "Longitude", "UTM_X", "UTM_Y", "UTM_Zone", "Datum", "PDOP", "Precision", "DateIn", "FutureVisit", "DateOut", "Elevation", "ElevationUnits", "Azimuth", "Aspect", "SlopeHill", "SlopeTransect", "StartPoint", "Directions", "Comments", "MetaData", "UV1", "UV2", "UV3", "UV4", "UV5", "UV6", "UV7", "UV8")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -482,7 +484,9 @@ errors_ProjectUnitReport_Commas <- qaqc(data, query, query_message, values_check
 data <- ProjectUnitReport
 values_data <- names(data)
 values_valid <- c("Macroplot", "ProjectUnit", "Multi_PU")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -607,7 +611,9 @@ errors_SampleEventReport_Commas <- qaqc(data, query, query_message, values_check
 data <- SampleEventReport
 values_data <- names(data)
 values_valid <- c("AdministrationUnit_Name", "ProjectUnit_Name", "MacroPlot_Name", "Multi_PU", "SampleEvent_Date", "SampleEvent_LegacyMonitoringStatus", "MonitoringStatus_Name", "Protocols", "Visited")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -725,7 +731,9 @@ errors_SpeciesReport_Commas <- qaqc(data, query, query_message, values_check)
 data <- SpeciesReport
 values_data <- names(data)
 values_valid <- c("LocalSpecies_Symbol", "LocalSpecies_GUID", "LocalSpecies_Description", "LocalSpecies_CommonName", "LocalSpecies_LifeCycle", "LocalSpecies_UserAdded", "LocalSpecies_Nativity", "LocalSpecies_Invasive", "LocalSpecies_Cultural", "LocalSpecies_Concern", "LocalSpecies_Retired", "LocalSpecies_Comment", "LocalSpecies_UV1", "LocalSpecies_UV2", "LocalSpecies_UV3", "LocalSpecies_PreferedLifeForm", "MasterSpecies_ScientificName", "MasterSpecies_ITIS_TSN", "MasterSpecies_Genus", "MasterSpecies_Family", "MasterSpecies_NotBiolgoical", "ReportType")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -807,7 +815,9 @@ errors_Fuels1000_Commas <- qaqc(data, query, query_message, values_check)
 data <- Fuels1000_all
 values_data <- names(data)
 values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Slope","LogNum","Dia","DecayCl","CWDFuConSt","Comment","UV1","UV2","UV3","NumTran","TranLen","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Visited")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -916,7 +926,9 @@ errors_FuelsDuffLitt_Commas <- qaqc(data, query, query_message, values_check)
 data <- FuelsDuffLitt_all
 values_data <- names(data)
 values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","SampLoc","OffSet","LittDep","DuffDep","FuelbedDep","DLFuConSt","Comment","UV1","UV2","UV3","NumTran","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Visited")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -1027,7 +1039,9 @@ errors_FuelsFine_Commas <- qaqc(data, query, query_message, values_check)
 data <- FuelsFine_all
 values_data <- names(data)
 values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Azimuth","Slope","OneHr","TenHr","HunHr","FWDFuConSt","Comment","UV1","UV2","UV3","NumTran","OneHrTranLen","TenHrTranLen","HunHrTranLen","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Visited")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -1136,7 +1150,9 @@ errors_PostBurn_Commas <- qaqc(data, query, query_message, values_check)
 data <- PostBurn_all
 values_data <- names(data)
 values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Point","TapeDist","Veg","Sub","Comment","UV1","UV2","UV3","NumTran","TranLen","NumPtsTran","PlotType","PtArea","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Visited")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -1247,7 +1263,9 @@ errors_Trees_Commas <- qaqc(data, query, query_message, values_check)
 data <- Trees_all
 values_data <- names(data)
 values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","IsVerified","QTR","SubFrac","TagNo","Status","DBH","Ht","CrwnRto","CrwnCl","LiCrBHt","CrFuBHt","CrwnRad","Age","GrwthRt","Mort","DecayCl","LaddBaseHt","LaddMaxHt","DRC","NuLiStems","NuDeStems","EqDia","XCoord","YCoord","CKR","CharHt","ScorchHt","CrScPct","DamCd1","DamSev1","DamCd2","DamSev2","DamCd3","DamSev3","DamCd4","DamSev4","DamCd5","DamSev5","Comment","UV1","UV2","UV3","MacroPlotSize","SnagPlotSize","BrkPntDia","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Species.Symbol","Lifecycle","NotBiological","Preferred_Lifeform","Family","Genus","ScientificName","Native.Species","Invasive.Species","Visited")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -1356,7 +1374,9 @@ errors_Seedlings_Commas <- qaqc(data, query, query_message, values_check)
 data <- Seedlings_all
 values_data <- names(data)
 values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Quadrat","Status","SizeCl","AgeCl","Count","Height","SubFrac","Comment","UV1","UV2","UV3","NumTran","NumQuadTran","QuadLen","QuadWid","Area","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Species.Symbol","Lifecycle","NotBiological","Preferred_Lifeform","Family","Genus","ScientificName","Native.Species","Invasive.Species","Visited")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -1465,7 +1485,9 @@ errors_Shrubs_Commas <- qaqc(data, query, query_message, values_check)
 data <- Shrubs_all
 values_data <- names(data)
 values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Subbelt","Status","SizeCl","AgeCl","Count","Height","SubFrac","Comment","UV1","UV2","UV3","NumTran","NumSubbelt","TranLen","TranWid","Area","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Species.Symbol","Lifecycle","NotBiological","Preferred_Lifeform","Family","Genus","ScientificName","Native.Species","Invasive.Species","Visited")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -1574,7 +1596,9 @@ errors_HerbsSpComp_Commas <- qaqc(data, query, query_message, values_check)
 data <- HerbsSpComp_all
 values_data <- names(data)
 values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Status","SizeCl","AgeCl","Cover","Height","Comment","UV1","UV2","UV3","MinCovLevel","Area","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Species.Symbol","Lifecycle","NotBiological","Preferred_Lifeform","Family","Genus","ScientificName","Native.Species","Invasive.Species","Visited")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
@@ -1683,7 +1707,9 @@ errors_HerbsPoints_Commas <- qaqc(data, query, query_message, values_check)
 data <- HerbsPoints_all
 values_data <- names(data)
 values_valid <- c("MacroPlot.Purpose","MacroPlot.Type","MacroPlot.UV1","MacroPlot.UV2","MacroPlot.UV3","MacroPlot.UV4","MacroPlot.UV5","MacroPlot.UV6","MacroPlot.UV7","MacroPlot.UV8","MacroPlot.Name","Monitoring.Status","Status.Prefix","Status.Base","Status.Suffix","Status.Order","SampleEvent_TreatmentUnit","Date","Index","Transect","Point","Tape","Order","Height","CanopyLayer","Status","Comment","UV1","UV2","UV3","NumTran","TranLen","NumPtsTran","Offset","FieldTeam","EntryTeam","UV1Desc","UV2Desc","UV3Desc","SaComment","Species.Symbol","Lifecycle","NotBiological","Preferred_Lifeform","Family","Genus","ScientificName","Native.Species","Invasive.Species","Visited")
-MissingColumn <- setdiff(values_data, values_valid)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
 if(length(MissingColumn) == 0) {
   MissingColumn <- "none"
 } else {
