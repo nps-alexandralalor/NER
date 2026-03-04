@@ -109,10 +109,10 @@ library(knitr)
 
 ```{r}
 # Create blank data frame as error log template
-errors_blank <- data.frame("SavedQuery" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Protocol" = "","Error" = "")
 
 # Create error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "Error")
+errors_group <- c("SavedQuery", "AdminUnit_Name", "Protocol", "Error")
 
 ############################################################################################
 ## Source Code
@@ -172,16 +172,16 @@ qaqc <- function(data, query, query_message, values_check) {
 
 ```{r}
 # designate target park(s)
-target_park <- "CATO"
+target_park <- "VAFO"
 ```
 
 ### Adjust File Paths {.hidden}
 
 ```{r import data, include=FALSE}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_file <- paste0(path_main, "Exports Data Depot/", target_park, "/v2/")
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_file <- paste0(path_main, "Exports Data Depot/", target_park, "/")
 path_data_english <- paste0(path_file, "English_ffi_", target_park, "_data_export/")
 path_data_metric <- paste0(path_file, "Metric_ffi_", target_park, "_data_export/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
@@ -205,137 +205,16 @@ HerbsSpComp_all <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data
 HerbsPoints_all <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_cover_points.csv"))
 ```
 
-# PROJECT UNIT ASSIGNMENT REPORT
-
-[Procedure:]{.underline}
-
--   Check that Quotes = FALSE
-
-```{r}
-# Set parameters 
-data <- ProjectUnitReport %>% 
-  mutate(Quotes = pmap_lgl(as.list(ProjectUnitReport), 
-    ~ any(str_detect(c(...), '[�]]')))) %>% 
-  mutate(Quotes = ifelse(is.na(Quotes), FALSE, Quotes))
-query <- "Project Unit Report"
-query_message <- "Quotes"
-values_data <- data$Quotes
-values_valid <- FALSE
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_ProjectUnitReport_Quotes <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Commas = FALSE
-
-```{r}
-# Set parameters 
-data <- ProjectUnitReport %>% 
-  mutate(Commas = pmap_lgl(as.list(ProjectUnitReport), 
-    ~ any(str_detect(c(...), '[,]')))) %>% 
-  mutate(Commas = ifelse(is.na(Commas), FALSE, Commas))
-query <- "Project Unit Report"
-query_message <- "Commas"
-values_data <- data$Commas
-values_valid <- FALSE
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_ProjectUnitReport_Commas <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that columns match expected
-
-```{r}
-# Set parameters 
-data <- ProjectUnitReport
-values_data <- names(data)
-values_valid <- c("Macroplot", "ProjectUnit", "Multi_PU")
-MissingColumn <- setdiff(values_data, values_valid)
-if(length(MissingColumn) == 0) {
-  MissingColumn <- "none"
-} else {
-  MissingColumn <- paste((MissingColumn), collapse = ", ")
-}
-
-data$MissingColumn <- MissingColumn
-query <- "Project Unit Report"
-query_message <- "Missing/Extra Columns"
-values_data <- data$MissingColumn
-values_valid <- "none"
-values_check <- values_data == values_valid
-
-# Identify errors
-errors_ProjectUnitReport_Columns <- qaqc(data, query, query_message, values_check)
-errors_ProjectUnitReport_Columns <- unique(errors_ProjectUnitReport_Columns)
-```
-
--   Check that Macroplot is not blank
-
-```{r}
-# Set parameters 
-data <- ProjectUnitReport
-query <- "Project Unit Report"
-query_message <- "Macroplot" 
-values_data <- data$Macroplot
-values_valid <- ""
-values_check <- values_data != values_valid
-
-# Identify errors
-errors_ProjectUnitReport_Macroplot <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that ProjectUnit is not blank
-
-```{r}
-# Set parameters 
-data <- ProjectUnitReport
-query <- "Project Unit Report"
-query_message <- "Project Unit" 
-values_data <- data$ProjectUnit
-values_valid <- ""
-values_check <- values_data != values_valid
-
-# Identify errors
-errors_ProjectUnitReport_ProjectUnit <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Multi_PU = N or Y. If Multi_PU = Y, you will need to isolate which Project Unit contains the primary data for the analysis of interest.
-
-```{r}
-# Set parameters 
-data <- ProjectUnitReport
-query <- "Project Unit Report"
-query_message <- "Multi Project Units" 
-values_data <- data$Multi_PU
-values_valid <- c("N")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_ProjectUnitReport_MultiPU <- qaqc(data, query, query_message, values_check)
-```
-
-### Combine Project Unit Report Errors {.hidden}
-
-```{r}
-errors_ProjectUnitReport <- unique(rbind(errors_ProjectUnitReport_Quotes, errors_ProjectUnitReport_Commas, errors_ProjectUnitReport_Columns, errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU))
-
-remove(errors_ProjectUnitReport_Quotes, errors_ProjectUnitReport_Commas, errors_ProjectUnitReport_Columns, errors_ProjectUnitReport_Macroplot, errors_ProjectUnitReport_ProjectUnit, errors_ProjectUnitReport_MultiPU)
-
-if(nrow(errors_ProjectUnitReport) > 1) {
-  errors_ProjectUnitReport <- errors_ProjectUnitReport %>%
-    filter(Error != "No Error")
-} else {
-  errors_ProjectUnitReport <- errors_ProjectUnitReport}
-```
-
 # Column Name List
 
 ```{r}
+columns_ProjectUnit <- c("AdminUnitId", "ProjectUnitId", "MonitoringStatusId", "SampleEventId", "AdminUnit_Name","Protocol","ProjectUnit_Name", "ProjectUnit_Agency", "ProjectUnit_Area", "ProjectUnit_Grid", "ProjectUnit_AreaUnits", "ProjectUnit_DateIn", "ProjectUnit_DateOut", "ProjectUnit_Objective", "ProjectUnit_Description", "ProjectUnit_CreateCode", "ProjectUnit_Comment", "ProjectUnit_UserVariables", "MonitoringStatus_Name", "MonitoringStatus_Prefix", "MonitoringStatus_Base", "MonitoringStatus_Suffix", "MonitoringStatus_Order", "MonitoringStatus_Comment")
+
+
+
 columns_ID <- c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","MethodDataId","MethodData_Id")
 
-columns_Macroplot <- c("Organization_Name","AdminUnit_Name","AdminUnit_Comment","Macroplot_Name","Macroplot_Purpose","Macroplot_LocatedBy","Macroplot_Type","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_DateOut","Macroplot_FutureVisit","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","Macroplot_UV1","Macroplot_UV2","Macroplot_UV3","Macroplot_UV4","Macroplot_UV5","Macroplot_UV6","Macroplot_UV7","Macroplot_UV8")
+columns_Macroplot <- c("Organization_Name","AdminUnit_Name","Protocol","AdminUnit_Comment","Macroplot_Name","Macroplot_Purpose","Macroplot_LocatedBy","Macroplot_Type","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_DateOut","Macroplot_FutureVisit","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","Macroplot_UV1","Macroplot_UV2","Macroplot_UV3","Macroplot_UV4","Macroplot_UV5","Macroplot_UV6","Macroplot_UV7","Macroplot_UV8")
 
 columns_SampleEvent <- c("SampleEvent_Date","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleEvent_TreatmentUnit","SampleData_Executed")
 
@@ -364,9 +243,7 @@ columns_HerbsPoints_M <- c("MethodData_NumTran (num.)","MethodData_TranLen (m)",
 columns_HerbsPoints_E <- c("MethodData_NumTran (num.)","MethodData_TranLen (ft)","MethodData_NumPtsTran (num.)","MethodData_Offset (ft)","MethodData_Transect (num.)","MethodData_Point (num.)","MethodData_Tape (num.)","MethodData_Order (num.)","MethodData_Height (ft)","MethodData_Status","MethodData_Cover","MethodData_CanopyLayer")
 ```
 
-# PROTOCOL - SURFACE FUELS
-
-## 1000HR (CWD)
+# PROJECT UNIT ASSIGNMENT REPORT
 
 [Procedure:]{.underline}
 
@@ -374,10 +251,11 @@ columns_HerbsPoints_E <- c("MethodData_NumTran (num.)","MethodData_TranLen (ft)"
 
 ```{r}
 # Set parameters 
-data <- Fuels1000_all
+data <- ProjectUnitReport %>% 
+  mutate(AdminUnit_Name = target_park,
+         Protocol = "project_units")
 values_data <- names(data)
-values_valid <- c(columns_ID,columns_Macroplot,columns_SampleEvent,columns_MethodData,
-                  columns_Fuels1000_E)
+values_valid <- c(columns_ProjectUnit)
 MissingColumn1 <- setdiff(values_data, values_valid)
 MissingColumn2 <- setdiff(values_valid, values_data)
 MissingColumn <- c(MissingColumn1, MissingColumn2)
@@ -388,8 +266,43 @@ if(length(MissingColumn) == 0) {
 }
 
 data$MissingColumn <- MissingColumn
-query <- "Fuel 1000"
-query_message <- "Missing/Extra Columns"
+query <- "Column - Names"
+query_message <- "Mismatched/Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_ProjectUnitReport_Columns <- qaqc(data, query, query_message, values_check)
+errors_ProjectUnitReport_Columns <- unique(errors_ProjectUnitReport_Columns)
+```
+
+# PROTOCOL - SURFACE FUELS
+
+## 1000HR (CWD)
+
+[Procedure:]{.underline}
+
+-   Check that columns match expected
+
+```{r}
+# Set parameters 
+data <- Fuels1000_all %>% 
+  mutate(Protocol = "surface_fuels_thousand_hr")
+values_data <- names(data)
+values_valid <- c(columns_ID,columns_Macroplot,columns_SampleEvent,columns_MethodData,columns_Fuels1000_E)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
+
+data$MissingColumn <- MissingColumn
+query <- "Column - Names"
+query_message <- "Mismatched/Missing/Extra Columns"
 values_data <- data$MissingColumn
 values_valid <- "none"
 values_check <- values_data == values_valid
@@ -407,7 +320,8 @@ errors_Fuels1000_Columns <- unique(errors_Fuels1000_Columns)
 
 ```{r}
 # Set parameters 
-data <- FuelsDuffLitt_all
+data <- FuelsDuffLitt_all %>% 
+  mutate(Protocol = "surface_fuels_duff_litter")
 values_data <- names(data)
 values_valid <- c(columns_ID,columns_Macroplot,columns_SampleEvent,columns_MethodData,
                   columns_FuelsDuffLitt_E)
@@ -421,8 +335,8 @@ if(length(MissingColumn) == 0) {
 }
 
 data$MissingColumn <- MissingColumn
-query <- "Fuel DL"
-query_message <- "Missing/Extra Columns"
+query <- "Column - Names"
+query_message <- "Mismatched/Missing/Extra Columns"
 values_data <- data$MissingColumn
 values_valid <- "none"
 values_check <- values_data == values_valid
@@ -440,7 +354,8 @@ errors_FuelsDuffLitt_Columns <- unique(errors_FuelsDuffLitt_Columns)
 
 ```{r}
 # Set parameters 
-data <- FuelsFine_all
+data <- FuelsFine_all %>% 
+  mutate(Protocol = "surface_fuels_fine")
 values_data <- names(data)
 values_valid <- c(columns_ID,columns_Macroplot,columns_SampleEvent,columns_MethodData,
                   columns_FuelsFine_E)
@@ -454,8 +369,8 @@ if(length(MissingColumn) == 0) {
 }
 
 data$MissingColumn <- MissingColumn
-query <- "Fuel Fine"
-query_message <- "Missing/Extra Columns"
+query <- "Column - Names"
+query_message <- "Mismatched/Missing/Extra Columns"
 values_data <- data$MissingColumn
 values_valid <- "none"
 values_check <- values_data == values_valid
@@ -473,7 +388,8 @@ errors_FuelsFine_Columns <- unique(errors_FuelsFine_Columns)
 
 ```{r}
 # Set parameters 
-data <- Trees_all
+data <- Trees_all %>% 
+  mutate(Protocol = "trees_individuals")
 values_data <- names(data)
 values_valid <- c(columns_ID,columns_Macroplot,columns_SampleEvent,columns_MethodData,
                   columns_Species, columns_Trees_M)
@@ -487,8 +403,8 @@ if(length(MissingColumn) == 0) {
 }
 
 data$MissingColumn <- MissingColumn
-query <- "Trees"
-query_message <- "Missing/Extra Columns"
+query <- "Column - Names"
+query_message <- "Mismatched/Missing/Extra Columns"
 values_data <- data$MissingColumn
 values_valid <- "none"
 values_check <- values_data == values_valid
@@ -506,7 +422,8 @@ errors_Trees_Columns <- unique(errors_Trees_Columns)
 
 ```{r}
 # Set parameters 
-data <- HerbsSpComp_all
+data <- HerbsSpComp_all %>% 
+  mutate(Protocol = "cover_species_composition")
 values_data <- names(data)
 values_valid <- c(columns_ID,columns_Macroplot,columns_SampleEvent,columns_MethodData,
                   columns_Species, columns_HerbsSpComp_M)
@@ -520,8 +437,8 @@ if(length(MissingColumn) == 0) {
 }
 
 data$MissingColumn <- MissingColumn
-query <- "Cvr SpComp"
-query_message <- "Missing/Extra Columns"
+query <- "Column - Names"
+query_message <- "Mismatched/Missing/Extra Columns"
 values_data <- data$MissingColumn
 values_valid <- "none"
 values_check <- values_data == values_valid
@@ -539,7 +456,8 @@ errors_HerbsSpComp_Columns <- unique(errors_HerbsSpComp_Columns)
 
 ```{r}
 # Set parameters 
-data <- HerbsPoints_all
+data <- HerbsPoints_all %>% 
+  mutate(Protocol = "cover_points")
 values_data <- names(data)
 values_valid <- c(columns_ID,columns_Macroplot,columns_SampleEvent,columns_MethodData,
                   columns_Species, columns_HerbsPoints_M)
@@ -553,8 +471,8 @@ if(length(MissingColumn) == 0) {
 }
 
 data$MissingColumn <- MissingColumn
-query <- "Cvr Pts"
-query_message <- "Missing/Extra Columns"
+query <- "Column - Names"
+query_message <- "Mismatched/Missing/Extra Columns"
 values_data <- data$MissingColumn
 values_valid <- "none"
 values_check <- values_data == values_valid
@@ -564,73 +482,30 @@ errors_HerbsPoints_Columns <- qaqc(data, query, query_message, values_check)
 errors_HerbsPoints_Columns <- unique(errors_HerbsPoints_Columns)
 ```
 
-## ALL ERRORS {.hidden}
+# ALL ERRORS
+
+## Combine Column Errors
 
 ```{r}
-# Create protocol separators
-errors_blank_MacroplotReport <- errors_blank %>%
-  mutate(SavedQuery = "MACROPLOT REPORT")
+# Combine
+errors_columns <- unique(rbind(errors_ProjectUnitReport_Columns, errors_Fuels1000_Columns, errors_FuelsDuffLitt_Columns, errors_FuelsFine_Columns, errors_Trees_Columns, errors_HerbsSpComp_Columns, errors_HerbsPoints_Columns))
 
-errors_blank_ProjectUnitReport <- errors_blank %>%
-  mutate(SavedQuery = "PROJECT UNIT ASSIGNMENT REPORT")
+remove(errors_ProjectUnitReport_Columns, errors_Fuels1000_Columns, errors_FuelsDuffLitt_Columns, errors_FuelsFine_Columns, errors_Trees_Columns, errors_HerbsSpComp_Columns, errors_HerbsPoints_Columns)
 
-errors_blank_SampleEventReport <- errors_blank %>%
-  mutate(SavedQuery = "SAMPLE EVENT REPORT")
-
-errors_blank_SpeciesReport <- errors_blank %>%
-  mutate(SavedQuery = "SPECIES REPORT")
-
-errors_blank_Fuels1000 <- errors_blank %>%
-  mutate(SavedQuery = "PROTOCOL - FUEL 1000")
-
-errors_blank_FuelsDuffLitt <- errors_blank %>%
-  mutate(SavedQuery = "PROTOCOL - FUEL DUFF LITTER")
-
-errors_blank_FuelsFine <- errors_blank %>%
-  mutate(SavedQuery = "PROTOCOL - FUEL FINE")
-
-errors_blank_PostBurn <- errors_blank %>%
-  mutate(SavedQuery = "PROTOCOL - POST BURN")
-
-errors_blank_Trees <- errors_blank %>%
-  mutate(SavedQuery = "PROTOCOL - TREES")
-
-errors_blank_Seedlings <- errors_blank %>%
-  mutate(SavedQuery = "PROTOCOL - SEEDLINGS")
-
-errors_blank_Shrubs <- errors_blank %>%
-  mutate(SavedQuery = "PROTOCOL - SHRUBS")
-
-errors_blank_HerbsSpComp <- errors_blank %>%
-  mutate(SavedQuery = "PROTOCOL - HERBS OBSERVED")
-
-errors_blank_HerbsPoints <- errors_blank %>%
-  mutate(SavedQuery = "PROTOCOL - HERBS POINTS")
+if(nrow(errors_columns) > 1) {
+  errors_columns <- errors_columns %>%
+    filter(Error != "No Error")
+} else {
+  errors_columns <- errors_columns}
 ```
 
-```{r}
-# Save to master error list 
-errors_all <- rbind(errors_blank_MacroplotReport, errors_blank, errors_MacroplotReport, errors_blank, errors_blank_ProjectUnitReport, errors_blank, errors_ProjectUnitReport, errors_blank, errors_blank_SampleEventReport, errors_blank, errors_SampleEventReport, errors_blank, errors_blank_SpeciesReport, errors_blank, errors_SpeciesReport, errors_blank, errors_blank_Fuels1000, errors_blank, errors_Fuels1000, errors_blank, errors_blank_FuelsDuffLitt, errors_blank, errors_FuelsDuffLitt, errors_blank, errors_blank_FuelsFine, errors_blank, errors_FuelsFine, errors_blank, errors_blank_PostBurn, errors_blank, errors_PostBurn, errors_blank, errors_blank_Trees, errors_blank, errors_Trees, errors_blank, errors_blank_Seedlings, errors_blank, errors_Seedlings, errors_blank, errors_blank_Shrubs, errors_blank, errors_Shrubs, errors_blank, errors_blank_HerbsSpComp, errors_blank, errors_HerbsSpComp, errors_blank, errors_blank_HerbsPoints, errors_blank, errors_HerbsPoints)
-```
+## Combine All Errors
 
 ```{r}
-# # Create conditional formatting rules
-errors_all_cf <- errors_all %>%
-  mutate(Color = ifelse(SavedQuery == "", NA, "Color")) %>% 
-  mutate(Color = ifelse((grepl("PROTOCOL|REPORT", errors_all$SavedQuery) == TRUE), "Protocol", Color)) %>%
-  mutate(Color = ifelse(Color == FALSE, "Standard", Color))
-
-# Add conditional formating to ouput
-errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:6]) %>%
-  rule_fill_discrete(columns = 1:5,
-                     expression = (errors_all_cf$Color),
-                     colours = c("Color"="#C6E0B4",
-                                 "Protocol" = "#969696"),
-                     na.value = "#FFFFFF") %>%
-  select(!c("Color"))
+errors_all <- rbind(errors_columns)
 ```
 
 ```{r}
 # Save as CSV or XLSX 
-condformat2excel(errors_all, paste0(path_errors, paste0(target_park, "_errors_CSVsComplete.xlsx")), sheet_name = path_errors_name, overwrite_wb = TRUE)
+write_xlsx(errors_all, paste0(path_errors, target_park, "_errors_DataDepot.xlsx"))
 ```
