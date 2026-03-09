@@ -301,6 +301,54 @@ Fuels_graph <- Fuels %>%
   )
 ```
 
+```{r}
+FuelsDuff_graph <- Fuels %>% 
+  filter(
+    AdministrationUnit_Name == target_park,
+    Type == target_type,
+    Purpose == target_purpose,
+    Macroplot_UV1 == target_ProjectUnit,
+    Macroplot_UV2 == target_MonitoringType
+    ) %>% 
+  mutate(
+    SampleEventDate_Year = as.numeric(SampleEventDate_Year)
+    ) %>%
+  group_by(
+    AdministrationUnit_Name, Purpose, Type, 
+    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    ) %>% 
+  dplyr::summarise(
+    n_plots = n_distinct(Macroplot),
+    Avg_LittDep = mean(Avg_LittDep, na.rm = TRUE),
+    Avg_DuffDep = mean(Avg_DuffDep, na.rm = TRUE),
+    .groups = "drop"
+    ) %>% 
+  pivot_longer(
+    cols = c(
+      Avg_LittDep,
+      Avg_DuffDep
+    ),
+    names_to  = "FuelClass",
+    values_to = "FuelDepth"
+  ) %>% 
+    mutate(
+    FuelClass = factor(
+      FuelClass,
+      levels = c(
+        "Avg_LittDep",
+        "Avg_DuffDep"
+      )
+    )
+  ) %>%
+    mutate(
+    FuelClass = recode(
+      FuelClass,
+      Avg_LittDep       = "Litter",
+      Avg_DuffDep       = "Duff"
+    )
+  )
+```
+
 ### All Fuels {.hidden}
 
 ```{r}
@@ -315,8 +363,8 @@ p_fuels <- Fuels_graph %>%
       "10-hr",
       "1-hr",
       #"Litter/Duff",
-      "Litter",
-      "Duff"
+      "Litter"
+      #"Duff"
   )) %>% 
   group_by(
     AdministrationUnit_Name, Purpose, Type, 
@@ -359,6 +407,56 @@ p_fuels <- Fuels_graph %>%
     )
 
 p_fuels
+```
+
+```{r}
+p_duff <- FuelsDuff_graph %>% 
+  filter(
+    FuelClass %in% c(
+      #"Litter",
+      "Duff"
+  )) %>% 
+  group_by(
+    AdministrationUnit_Name, Purpose, Type, 
+    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    ) %>% 
+  mutate(
+    Total_FuelDepth = sum(FuelDepth)
+    ) %>% 
+  
+  ggplot() +
+  geom_bar(aes(x = SampleEventDate_Year, y = FuelDepth, fill = FuelClass),
+           position = "stack", stat = "identity") + 
+  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  labs(
+    x = "Year",
+    y = "Depth (inches)",
+    fill = "Fuel Class",
+    title = paste(target_park, target_type, "Fuel Depth")
+  ) +
+  scale_x_continuous(
+    limits = c((year_min), year_max),
+    breaks = seq(year_min, year_max, by = 1),
+    expand = expansion(mult = c(0, 0))
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
+    axis.title = element_text(size = 12, face="bold"),
+    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+    axis.text.y = element_text(size = 8),
+    panel.grid.minor = element_blank()
+    ) +
+  geom_vline(
+    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    linetype = "dashed", 
+    color = "red"
+    )
+
+p_duff
 ```
 
 ```{r}
