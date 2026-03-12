@@ -16,6 +16,8 @@ output:
   word_document:
     toc: true
     toc_depth: 2
+link-citations: true
+bibliography: zotero_refs.bib
 ---
 
 # Annual Report {.hidden}
@@ -33,6 +35,7 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 # install.packages("tidyverse")
 # install.packages("kableExtra")
 # install.packages("ggplot2")
+# install.packages("RefManageR")
 ```
 
 ```{r}
@@ -48,6 +51,24 @@ library(DT)
 library(fs)
 library(ggplot2)
 library(patchwork)
+library(RefManageR)
+```
+
+### References
+
+```{r}
+ZoteroUserID <- "3306456"
+ZoteroAPIkey <- "F7k8Rp07XhH9rIqiKP1ob0uB"
+ZoteroFolderKey <- "DGJVBG7G"
+
+bib <- ReadZotero(
+  user = ZoteroUserID,
+  .params = list(
+    collection = ZoteroFolderKey,
+    key = ZoteroAPIkey,
+    limit = 100),
+  temp.file = "zotero_refs.bib",
+  delete.file = TRUE)
 ```
 
 ### Adjust File Paths {.hidden}
@@ -125,6 +146,8 @@ date_min <- as.Date(paste0(year_min, "-12-31"))
 # Methods {.hidden}
 
 # Monitoring Objective Table
+
+ref [@scott_standard_2005]
 
 ```{r}
 Objectives <- data.frame(
@@ -865,3 +888,9 @@ p_cover_lifeform
 ```
 
 # Discussion {.hidden}
+
+# References
+
+```{r}
+WriteBib(bib, file = "zotero_refs.bib")
+```
