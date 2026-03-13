@@ -155,11 +155,12 @@ date_min <- as.Date(paste0(year_min, "-12-31"))
 
 The current vegetation association of Richmond's forest is a Northern Coastal Plain Mixed Oak / Heath Forest [@noauthor_natureserve_nodate]. Recommendations for forest characteristics will be aimed at maintaining this community type.
 
-1.  The fuel model most representative of this vegetation association is TL6 [@scott_standard_2005]. "Timber Litter" (TL) fuel models are primarily driven by dead and down woody fuel, and TL6 specifically represents moderate load broadleaf litter. Expected fine fuel loading for this model is 2.4 tons/acre, which serves as a target value to moderate fire spread potential.
+1.  The fuel model most representative of this vegetation association is TL6 [@scott_standard_2005]. "Timber Litter" (TL) fuel models are primarily driven by dead and down woody fuel, and TL6 specifically represents moderate load broadleaf litter. To moderate fire spread potential, fine fuel loading should be at or below what is expected for each fuel model.
 2.  To promote oak and pine regeneration, duff depth should be maintained at 1.5 inches or below [@jenkins_yellow_2011].
-3.  Oaks need abundant light and sun to have successful regeneration. To maintain open canopy woodlands, tree stocking density should be maintained within 30-70% [@ginrich_measuring_1967; @kabrick_silvicultural_2014]
-4.  Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021]. The species composition of younger pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments.
-5.   Diversity objective...
+3.  Advanced regeneration potential can be indicated by competitive seedlings. The size class of seedlings most likely to survive are those which are \>1m in height (referred to here as "saplings").
+4.  Pole-sized trees are classified as between 2.5cm and 15cm diameter measured at a height of 1.3m (DBH). Species composition of pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments. Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021].
+5.  Overstory trees are classifed as \>15cm DBH. These are the mature trees which make up the overall forest structure. Oaks need abundant light and sun to have successful regeneration. To maintain open canopy woodlands, tree stocking density should be maintained within 30-70% [@ginrich_measuring_1967; @kabrick_silvicultural_2014]
+6.  Diversity objective...
 
 ```{r}
 Objectives <- data.frame(
@@ -177,17 +178,14 @@ kable(Objectives)
 ### Target Values {.hidden}
 
 ```{r}
-# target_FineFuelLoading <- 1.12 * .5
-# target_PoleDensity <- 380 * .5
-# target_Cover <- 2.4 * 1.75
-
 target_FineFuelLoading <- 2.4
 target_Duff <- 1.5
+target_Sapling <- 100
 target_PoleDensity <- 380 * .5
 target_Cover <- 2.4 * 1.75
 ```
 
-## Overview  {.hidden}
+## Overview {.hidden}
 
 ### Prep {.hidden}
 
@@ -245,7 +243,7 @@ p_disturbance <- MetadataReport_Disturbances %>%
         axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1),
         legend.position = "top")
 
-p_disturbance
+#p_disturbance
 ```
 
 ## Surface Fuels
@@ -632,7 +630,7 @@ p_disturbance_merge / p_fuels_merge +
   plot_layout(heights = c(0.2, 1.4))
 ```
 
-### Coarse Woody Debris  {.hidden}
+### Coarse Woody Debris {.hidden}
 
 ```{r}
 p_fuels <- Fuels_graph %>% 
@@ -693,23 +691,23 @@ p_fuels <- Fuels_graph %>%
 ```
 
 ```{r}
-p_disturbance_merge <- p_disturbance +
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
-        )+
-  labs(
-    title = paste(target_park, target_type, "Fuel Loading"),
-    fill = "Disturbance"
-       )
-
-p_fuels_merge <- p_fuels +
-  theme(plot.title = element_blank())
-
-p_disturbance_merge / p_fuels_merge +
-  plot_layout(heights = c(0.2, 1.4))
+# p_disturbance_merge <- p_disturbance +
+#   theme(axis.text.x = element_blank(),
+#         axis.title.x = element_blank(),
+#         axis.ticks.x = element_blank(),
+#         legend.position = "right",
+#         plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
+#         )+
+#   labs(
+#     title = paste(target_park, target_type, "Fuel Loading"),
+#     fill = "Disturbance"
+#        )
+# 
+# p_fuels_merge <- p_fuels +
+#   theme(plot.title = element_blank())
+# 
+# p_disturbance_merge / p_fuels_merge +
+#   plot_layout(heights = c(0.2, 1.4))
 ```
 
 ## Trees
@@ -806,7 +804,7 @@ Trees_graph <- Trees %>%
     )
 ```
 
-### Seedlings  {.hidden}
+### Seedlings {.hidden}
 
 ```{r}
 p_trees_seedlings <- Trees_graph %>% 
@@ -854,7 +852,7 @@ p_trees_seedlings <- Trees_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
   ) +
-  scale_fill_manual(values = c("#FF4040", "#EE6A50", "#FF8C00", "#00B2EE", "#009ACD", "#666666")) +
+  #scale_fill_manual(values = c("#FF4040", "#EE6A50", "#FF8C00", "#00B2EE", "#009ACD", "#666666")) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -895,7 +893,7 @@ p_disturbance_merge / p_trees_merge +
   plot_layout(heights = c(0.2, 1.4))
 ```
 
-### Saplings  {.hidden}
+### Saplings
 
 ```{r}
 p_trees_saplings <- Trees_graph %>% 
@@ -930,12 +928,14 @@ p_trees_saplings <- Trees_graph %>%
       y = Total_Density_ac, 
       fill = Genus
       ),
-    position = "stack", stat = "identity") +
+    # position_dodge means the bars will display side by side
+    position = position_dodge2(preserve = "single"), stat = "identity") +
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   labs(
     x = "Year",
     y = "Stems / Acre",
-    title = paste(target_park, target_type, "Sapling Tree Density")
+    title = paste(target_park, target_type, "Sapling Tree Density"),
+    caption = expression("*40 stems/acre is equivalent to 1 sapling found in a sample area of 50m"^2)
   ) +
   scale_x_continuous(
     limits = c(year_min, year_max),
@@ -958,6 +958,11 @@ p_trees_saplings <- Trees_graph %>%
     xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
+    ) +
+  geom_hline(
+    yintercept = target_Sapling, 
+    linetype = "dashed", 
+    color = "forestgreen"
     )
 
 #p_trees_saplings
@@ -1017,7 +1022,7 @@ p_trees_poles <- Trees_graph %>%
     aes(
       x = SampleEventDate_Year, 
       y = Total_Density_ac, 
-      fill = Legend
+      fill = Genus
       ),
     position = "stack", stat = "identity") +
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -1031,7 +1036,7 @@ p_trees_poles <- Trees_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
     ) +
-  scale_fill_manual(values = c("Fire Adapted" = "#EE6A50", "Fire Tolerant" = "#FF8C00", "Fire Intolerant" = "#00B2EE", "Unknown" = "#666666")) +
+  #scale_fill_manual(values = c("Fire Adapted" = "#EE6A50", "Fire Tolerant" = "#FF8C00", "Fire Intolerant" = "#00B2EE", "Unknown" = "#666666")) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -1119,7 +1124,7 @@ plot.gingrich.imperial(
 )
 ```
 
-## Cover  {.hidden}
+## Cover {.hidden}
 
 ### Prep {.hidden}
 
@@ -1170,134 +1175,134 @@ Cover_graph <- Cover %>%
 ### Diversity
 
 ```{r}
-wide_diversity <- Cover_graph %>%
-  filter(
-    Preferred_Lifeform %in% c(
-      #"Nonvascular", "Lichenous", 
-      "Graminoid", "Grass-like",
-      "Forb/herb", "Fern", "Vine"
-      #"Shrub", "Subshrub",
-      #"Tree"
-      #"Substrate"
-      ),
-    Nativity %in% c(
-      "Native",
-      "Non-Native",
-      "Invasive"
-      #"Unknown"
-      )
-    ) %>% 
-  select(SampleEventDate_Year, Species.Symbol, Abundance) %>%
-  tidyr::pivot_wider(
-    names_from = Species.Symbol,
-    values_from = Abundance,
-    values_fill = 0
-  )
-
-shannon <- wide_diversity %>%
-  mutate(
-    Shannon_Index = diversity(select(., -SampleEventDate_Year),
-                        index = "shannon")
-  ) %>%
-  select(SampleEventDate_Year, Shannon_Index)
-
-
-p_diversity <- shannon %>% 
-  ggplot(aes(x = SampleEventDate_Year, y = Shannon_Index)) +
-  geom_line() +
-  geom_point() +
-  #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
-  labs(
-    x = "Year",
-    y = "Shannon-Wiener Diversity Index",
-    title = paste(target_park, target_type, "Native Grass Cover")
-    ) +
-  scale_x_continuous(
-    limits = c(year_min, year_max),
-    breaks = seq(year_min, year_max, by = 1),
-    expand = expansion(mult = c(0, 0))
-    ) +
-  ylim(0, 4) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
-    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
-    axis.title = element_text(size = 12, face="bold"),
-    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-    axis.text.y = element_text(size = 8),
-    panel.grid.minor = element_blank()
-    )  +
-  geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
-    linetype = "dashed", 
-    color = "red"
-    )
-
-p_diversity
+# wide_diversity <- Cover_graph %>%
+#   filter(
+#     Preferred_Lifeform %in% c(
+#       #"Nonvascular", "Lichenous", 
+#       "Graminoid", "Grass-like",
+#       "Forb/herb", "Fern", "Vine"
+#       #"Shrub", "Subshrub",
+#       #"Tree"
+#       #"Substrate"
+#       ),
+#     Nativity %in% c(
+#       "Native",
+#       "Non-Native",
+#       "Invasive"
+#       #"Unknown"
+#       )
+#     ) %>% 
+#   select(SampleEventDate_Year, Species.Symbol, Abundance) %>%
+#   tidyr::pivot_wider(
+#     names_from = Species.Symbol,
+#     values_from = Abundance,
+#     values_fill = 0
+#   )
+# 
+# shannon <- wide_diversity %>%
+#   mutate(
+#     Shannon_Index = diversity(select(., -SampleEventDate_Year),
+#                         index = "shannon")
+#   ) %>%
+#   select(SampleEventDate_Year, Shannon_Index)
+# 
+# 
+# p_diversity <- shannon %>% 
+#   ggplot(aes(x = SampleEventDate_Year, y = Shannon_Index)) +
+#   geom_line() +
+#   geom_point() +
+#   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+#   labs(
+#     x = "Year",
+#     y = "Shannon-Wiener Diversity Index",
+#     title = paste(target_park, target_type, "Native Grass Cover")
+#     ) +
+#   scale_x_continuous(
+#     limits = c(year_min, year_max),
+#     breaks = seq(year_min, year_max, by = 1),
+#     expand = expansion(mult = c(0, 0))
+#     ) +
+#   ylim(0, 4) +
+#   theme_minimal() +
+#   theme(
+#     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+#     plot.title = element_text(size = 15, face="bold", hjust = 0.5),
+#     plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
+#     axis.title = element_text(size = 12, face="bold"),
+#     axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+#     axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+#     axis.text.y = element_text(size = 8),
+#     panel.grid.minor = element_blank()
+#     )  +
+#   geom_vline(
+#     xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+#     linetype = "dashed", 
+#     color = "red"
+#     )
+# 
+# p_diversity
 ```
 
 ```{r}
-p_cover_classic <- Cover_graph %>% 
-  filter(
-    Preferred_Lifeform %in% c(
-      "Nonvascular", "Lichenous", 
-      "Graminoid", "Grass-like",
-      "Forb/herb", "Fern", "Vine",
-      "Shrub", "Subshrub",
-      "Tree"
-      #"Substrate"
-      ),
-    Nativity %in% c(
-      "Native",
-      "Non-Native",
-      "Invasive"
-      #"Unknown"
-      )
-    ) %>% 
-  group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    #,Preferred_Lifeform, Genus, Nativity
-    ) %>% 
-  mutate(
-    Total_Cover = sum(PctCover),
-    Total_Abundance = sum(Abundance, na.rm = TRUE)
-    ) %>%  
-  
-  
-p_diversity <- sdi_results %>% 
-  ggplot(aes(x = SampleEventDate_Year, y = Shannon_Index)) +
-  geom_line() +
-  geom_point() +
-  #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
-  labs(
-    x = "Year",
-    y = "% Cover",
-    title = paste(target_park, target_type, "Native Grass Cover")
-    ) +
-  scale_x_continuous(
-    limits = c(year_min, year_max),
-    breaks = seq(year_min, year_max, by = 1),
-    expand = expansion(mult = c(0, 0))
-    ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
-    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
-    axis.title = element_text(size = 12, face="bold"),
-    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-    axis.text.y = element_text(size = 8),
-    panel.grid.minor = element_blank()
-    )  +
-  geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
-    linetype = "dashed", 
-    color = "red"
-    )
+# p_cover_classic <- Cover_graph %>% 
+#   filter(
+#     Preferred_Lifeform %in% c(
+#       "Nonvascular", "Lichenous", 
+#       "Graminoid", "Grass-like",
+#       "Forb/herb", "Fern", "Vine",
+#       "Shrub", "Subshrub",
+#       "Tree"
+#       #"Substrate"
+#       ),
+#     Nativity %in% c(
+#       "Native",
+#       "Non-Native",
+#       "Invasive"
+#       #"Unknown"
+#       )
+#     ) %>% 
+#   group_by(
+#     AdministrationUnit_Name, Purpose, Type, 
+#     Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+#     #,Preferred_Lifeform, Genus, Nativity
+#     ) %>% 
+#   mutate(
+#     Total_Cover = sum(PctCover),
+#     Total_Abundance = sum(Abundance, na.rm = TRUE)
+#     ) %>%  
+#   
+#   
+# p_diversity <- sdi_results %>% 
+#   ggplot(aes(x = SampleEventDate_Year, y = Shannon_Index)) +
+#   geom_line() +
+#   geom_point() +
+#   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+#   labs(
+#     x = "Year",
+#     y = "% Cover",
+#     title = paste(target_park, target_type, "Native Grass Cover")
+#     ) +
+#   scale_x_continuous(
+#     limits = c(year_min, year_max),
+#     breaks = seq(year_min, year_max, by = 1),
+#     expand = expansion(mult = c(0, 0))
+#     ) +
+#   theme_minimal() +
+#   theme(
+#     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+#     plot.title = element_text(size = 15, face="bold", hjust = 0.5),
+#     plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
+#     axis.title = element_text(size = 12, face="bold"),
+#     axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+#     axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+#     axis.text.y = element_text(size = 8),
+#     panel.grid.minor = element_blank()
+#     )  +
+#   geom_vline(
+#     xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+#     linetype = "dashed", 
+#     color = "red"
+#     )
 ```
 
 ### 2025 Report - Cover
