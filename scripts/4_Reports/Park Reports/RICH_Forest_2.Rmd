@@ -53,10 +53,11 @@ library(DT)
 library(fs)
 library(ggplot2)
 #library(gganimate)
-library(patchwork)
+#library(patchwork)
 library(RefManageR)
 # shannon diversity index
 library(vegan)
+library(here)
 ```
 
 ### References
@@ -80,12 +81,12 @@ bib <- ReadZotero(
 
 ```{r}
 ## Adjust File Paths
-#path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
+#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 path_data <- paste0(path_file, "ALL/Calculations/ALL_")
 path_save <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/graphs"
 ## Source Code for Gingrich Stocking Chart
-source("C:/Users/alalor/OneDrive - DOI/R/NER/scripts/4_Reports/Gingrich Stocking Chart.R")
+source(paste0(here(), "/scripts/4_Reports/Gingrich Stocking Chart.R"))
 ```
 
 ### Load Data {.hidden}
@@ -93,8 +94,9 @@ source("C:/Users/alalor/OneDrive - DOI/R/NER/scripts/4_Reports/Gingrich Stocking
 ```{r}
 # Load in data
 MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
-Fuels <- read.csv(paste0(path_data, "Data_Surface Fuels.csv"))
-Trees <- read.csv(paste0(path_data, "Data_Trees-Seedlings.csv"))
+Fuels <- read.csv(paste0(path_data, "Data_Fuels.csv"))
+Trees <- read.csv(paste0(path_data, "Data_Trees.csv"))
+Seedlings <- read.csv(paste0(path_data, "Data_Seedlings.csv"))
 Cover <- read.csv(paste0(path_data, "Data_Cover_Points.csv"))
 # Cover_SpComp <- read.csv(paste0(path_data, "Data_Cover_SpComp.csv"))
 # PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
@@ -150,40 +152,40 @@ target_year <- c(2025)
     
     MetadataReport %>%
       filter(
-        Purpose == target_purpose,
-        AdministrationUnit_Name == target_park,
-        Type == target_type
+        Macroplot_Purpose == target_purpose,
+        AdminUnit_Name == target_park,
+        Macroplot_Type == target_type
         ) %>% 
       select(Macroplot_UV1, Macroplot_UV2) %>% 
       unique()
 
-target_ProjectUnit <- c("Cold Harbor I")
+target_ProjectUnit <- c("Cold Harbor")
 target_MonitoringType <- c("Pine Oak")
 
 
     MetadataReport_SampleEvents <- MetadataReport %>%
       filter(
-        AdministrationUnit_Name == target_park,
-        Type == target_type,
-        Purpose == target_purpose,
+        AdminUnit_Name == target_park,
+        Macroplot_Type == target_type,
+        Macroplot_Purpose == target_purpose,
         Macroplot_UV1 == target_ProjectUnit,
         Macroplot_UV2 == target_MonitoringType,
-        !MonStatus %in% c("Burn", "Herbicide", "Mechanical", "Mow")
+        !MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mechanical", "Mow")
         )
 
     MetadataReport_Disturbances <- MetadataReport %>%
       filter(
-        AdministrationUnit_Name == target_park,
-        Type == target_type,
-        Purpose == target_purpose,
+        AdminUnit_Name == target_park,
+        Macroplot_Type == target_type,
+        Macroplot_Purpose == target_purpose,
         Macroplot_UV1 == target_ProjectUnit,
         Macroplot_UV2 == target_MonitoringType,
-        MonStatus %in% c("Burn", "Herbicide", "Mechanical", "Mow")
+        MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mechanical", "Mow")
         )
 
 year_max <- as.numeric(format(Sys.Date(), "%Y"))
 date_max <- as.Date(paste0(year_max, "-12-31"))
-year_min <- as.numeric((min(MetadataReport_SampleEvents$SampleEventDate_Year)) - 1)
+year_min <- as.numeric((min(MetadataReport_SampleEvents$SampleEvent_Date_Year)) - 1)
 date_min <- as.Date(paste0(year_min, "-12-31"))
 ```
 
@@ -194,34 +196,34 @@ date_min <- as.Date(paste0(year_min, "-12-31"))
 ```{r}
 Disturbances_graph <- MetadataReport_Disturbances %>%
   group_by(
-    Region, Zone, Unit, AdministrationUnit_Name, Plot_Type, 
-    DisturbanceDate, DisturbanceDate_Year, SampleEventDate_Year, MonStatus
+    Region, Zone, Unit, AdminUnit_Name, Plot_Type, 
+    Disturbance_Date, Disturbance_Date_Year, SampleEvent_Date_Year, MonitoringStatus_Name
     ) %>%
   filter(
-    DisturbanceDate_Year == SampleEventDate_Year
+    Disturbance_Date_Year == SampleEvent_Date_Year
     ) %>%
   dplyr::summarize(
     n_Macroplot = n()
     ) %>%
   mutate(
-    DisturbanceDate = as.Date(DisturbanceDate),
+    Disturbance_Date = as.Date(Disturbance_Date),
     Macroplot_Num = "All"
     ) %>%
-  arrange(desc(MonStatus))
+  arrange(desc(MonitoringStatus_Name))
 ```
 
 ### Disturbance History
 
 ```{r}
 p_disturbance <- MetadataReport_Disturbances %>%
-  ggplot(aes(x = DisturbanceDate, y = Macroplot_Num)) +
+  ggplot(aes(x = Disturbance_Date, y = Macroplot_Num)) +
   geom_line(aes(group = Macroplot_Num),
             data = Disturbances_graph) +
-  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+  geom_point(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
              data = Disturbances_graph, shape = 21) +
-  geom_line(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+  geom_line(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
             data = Disturbances_graph) +
-  geom_point(aes(X = DisturbanceDate, y = Macroplot_Num, fill = MonStatus),
+  geom_point(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
              data = Disturbances_graph, shape = 21, size = 2.5) +
   facet_grid( ~ Macroplot_UV2) +
   labs(title = "Disturbance History",
@@ -255,21 +257,21 @@ p_disturbance <- MetadataReport_Disturbances %>%
 ```{r}
 Fuels_graph <- Fuels %>% 
   filter(
-    AdministrationUnit_Name == target_park,
-    Type == target_type,
-    Purpose == target_purpose,
+    AdminUnit_Name == target_park,
+    Macroplot_Type == target_type,
+    Macroplot_Purpose == target_purpose,
     Macroplot_UV1 == target_ProjectUnit,
     Macroplot_UV2 == target_MonitoringType
     ) %>% 
   mutate(
-    SampleEventDate_Year = as.numeric(SampleEventDate_Year)
+    SampleEvent_Date_Year = as.numeric(SampleEvent_Date_Year)
     ) %>%
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ) %>% 
   dplyr::summarise(
-    n_plots = n_distinct(Macroplot),
+    n_plots = n_distinct(Macroplot_Name),
     ThousHr_FuelLoad = mean(ThousHr_FuelLoad, na.rm = TRUE),
     ThousHrRott_FuelLoad = mean(ThousHrRott_FuelLoad, na.rm = TRUE),
     ThousHrSound_FuelLoad = mean(ThousHrSound_FuelLoad, na.rm = TRUE),
@@ -335,21 +337,21 @@ Fuels_graph <- Fuels %>%
 ```{r}
 FuelsDuff_graph <- Fuels %>% 
   filter(
-    AdministrationUnit_Name == target_park,
-    Type == target_type,
-    Purpose == target_purpose,
+    AdminUnit_Name == target_park,
+    Macroplot_Type == target_type,
+    Macroplot_Purpose == target_purpose,
     Macroplot_UV1 == target_ProjectUnit,
     Macroplot_UV2 == target_MonitoringType
     ) %>% 
   mutate(
-    SampleEventDate_Year = as.numeric(SampleEventDate_Year)
+    SampleEvent_Date_Year = as.numeric(SampleEvent_Date_Year)
     ) %>%
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ) %>% 
   dplyr::summarise(
-    n_plots = n_distinct(Macroplot),
+    n_plots = n_distinct(Macroplot_Name),
     Avg_LittDep = mean(Avg_LittDep, na.rm = TRUE),
     Avg_DuffDep = mean(Avg_DuffDep, na.rm = TRUE),
     .groups = "drop"
@@ -405,14 +407,14 @@ p_fuels <- Fuels_graph %>%
       #"Duff"
   )) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ) %>% 
   mutate(
     Total_FuelLoad = sum(FuelLoad, na.rm = TRUE)
     ) %>% 
   
-  ggplot(aes(x = SampleEventDate_Year, y = Total_FuelLoad)) +
+  ggplot(aes(x = SampleEvent_Date_Year, y = Total_FuelLoad)) +
   geom_line() +
   geom_point() +
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -440,7 +442,7 @@ p_fuels <- Fuels_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     ) +
@@ -450,7 +452,7 @@ p_fuels <- Fuels_graph %>%
     color = "forestgreen"
     )
 
-#p_fuels
+p_fuels
 #ggsave("fuels_classic.jpg", p_fuels_classic, path = path_save, width = 12, height = 8, dpi = 300)
 ```
 
@@ -499,14 +501,14 @@ p_fuels <- Fuels_graph %>%
       #"Duff"
   )) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ) %>% 
   mutate(
     Total_FuelLoad = sum(FuelLoad)
     ) %>% 
   
-  ggplot(aes(x = SampleEventDate_Year, y = Total_FuelLoad, fill = FuelClass)) +
+  ggplot(aes(x = SampleEvent_Date_Year, y = Total_FuelLoad, fill = FuelClass)) +
   geom_line() +
   geom_point() +
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -534,7 +536,7 @@ p_fuels <- Fuels_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     ) +
@@ -544,7 +546,7 @@ p_fuels <- Fuels_graph %>%
     color = "forestgreen"
     )
 
-#p_fuels
+p_fuels
 ```
 
 ```{r}
@@ -584,15 +586,15 @@ p_fuels <- FuelsDuff_graph %>%
       "Duff"
   )) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ) %>% 
   mutate(
     Total_FuelDepth = sum(FuelDepth)
     ) %>% 
   
   ggplot() +
-  geom_bar(aes(x = SampleEventDate_Year, y = FuelDepth, fill = FuelClass),
+  geom_bar(aes(x = SampleEvent_Date_Year, y = FuelDepth, fill = FuelClass),
            position = "stack", stat = "identity") + 
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   labs(
@@ -619,7 +621,7 @@ p_fuels <- FuelsDuff_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     ) +
@@ -630,7 +632,7 @@ p_fuels <- FuelsDuff_graph %>%
     size = 0.7
     )
 
-#p_fuels
+p_fuels
 ```
 
 ```{r}
@@ -671,15 +673,15 @@ p_fuels <- Fuels_graph %>%
       #"Duff"
   )) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ) %>% 
   mutate(
     Total_FuelLoad = sum(FuelLoad)
     ) %>% 
   
   ggplot() +
-  geom_bar(aes(x = SampleEventDate_Year, y = FuelLoad, fill = FuelClass),
+  geom_bar(aes(x = SampleEvent_Date_Year, y = FuelLoad, fill = FuelClass),
            position = "stack", stat = "identity") + 
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   labs(
@@ -705,7 +707,7 @@ p_fuels <- Fuels_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     )
@@ -738,99 +740,181 @@ p_fuels <- Fuels_graph %>%
 ### Prep {.hidden}
 
 ```{r}
-Trees_graph <- Trees %>%
+Seedlings_graph <- Seedlings %>%
   filter(
-    AdministrationUnit_Name == target_park,
-    Type == target_type,
-    Purpose == target_purpose,
+    AdminUnit_Name == target_park,
+    Macroplot_Type == target_type,
+    Macroplot_Purpose == target_purpose,
     Macroplot_UV1 == target_ProjectUnit,
     Macroplot_UV2 == target_MonitoringType
     ) %>% 
   mutate(
-    SampleEventDate_Year = as.numeric(SampleEventDate_Year)
+    SampleEvent_Date_Year = as.numeric(SampleEvent_Date_Year)
     ) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ,Genus, Status
     ) %>%
   dplyr::summarise(
-    n_plots = n_distinct(Macroplot),
+    n_plots = n_distinct(Macroplot_Name),
     
-    Seedling_Species = paste(na.omit(unique(Seedling_Species)), collapse = "; "),
+    Seedling_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
     Seedling_Count  = sum(Seedling_Count),
-    Seedling_Density_ac = round(mean(Seedling_Dens_ac, na.rm = TRUE)),
-    Seedling_Density_ha = round(mean(Seedling_Dens_ha, na.rm = TRUE)),
+    Seedling_Density_ac = sum(Seedling_Dens_ac, na.rm = TRUE),
+    Seedling_Density_ha = sum(Seedling_Dens_ha, na.rm = TRUE),
     
-    Sapling_Species = paste(na.omit(unique(Sapling_Species)), collapse = "; "),
+    Sapling_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
     Sapling_Count = sum(Sapling_Count),
-    Sapling_Density_ac = round(mean(Sapling_Dens_ac, na.rm = TRUE)),
-    Sapling_Density_ha = round(mean(Sapling_Dens_ha, na.rm = TRUE)),
+    Sapling_Density_ac = sum(Sapling_Dens_ac, na.rm = TRUE),
+    Sapling_Density_ha = sum(Sapling_Dens_ha, na.rm = TRUE),
     
-    Pole_Species = paste(na.omit(unique(Pole_Species)), collapse = "; "),
+    # Pole_Species = paste(na.omit(unique(Pole_Species)), collapse = "; "),
+    # Pole_Count = sum(Pole_Count),
+    # Pole_Density_ac = round(mean(Pole_Dens_ac, na.rm = TRUE)),
+    # Pole_Density_ha = round(mean(Pole_Dens_ha, na.rm = TRUE)),
+    # Pole_BA_ft2 = round((mean(Pole_BA_ft2, na.rm = TRUE)), 2),
+    # Pole_BA_m2 = round((mean(Pole_BA_m2, na.rm = TRUE)), 2),
+    # 
+    # Overstory_Species = paste(na.omit(unique(Overstory_Species)), collapse = "; "),
+    # Overstory_Count = sum(Overstory_Count),
+    # Overstory_Density_ac = round(mean(Overstory_Dens_ac, na.rm = TRUE)),
+    # Overstory_Density_ha = round(mean(Overstory_Dens_ha, na.rm = TRUE)),
+    # Overstory_BA_ft2 = round((mean(Overstory_BA_ft2, na.rm = TRUE)), 2),
+    # Overstory_BA_m2 = round((mean(Overstory_BA_m2, na.rm = TRUE)), 2),
+    
+    .groups = "drop"
+  ) %>% 
+  pivot_longer(
+    cols = matches("Seedling|Sapling"),
+    names_to = c("SizeClass", ".value"),
+    names_pattern = "(Seedling|Sapling)_(Species|Count|Density_[a-z]+)"
+  ) %>% 
+  # mutate(Legend  = ifelse(Genus == "Carya",
+  #                         "Fire Tolerant",
+  #                    ifelse(Genus %in% c("Liriodendron", "Liquidambar"),
+  #                           "Fire Intolerant",
+  #                                  ifelse(Genus %in% c("Pinus", "Quercus"),
+  #                                         "Fire Adapted", "Unknown")))
+  #        ) %>%
+  mutate(
+    SizeClass = factor(
+      SizeClass,
+      levels = c(
+        "Sapling",
+        "Seedling"
+      ))
+    # Genus = factor(
+    #   Genus,
+    #   levels = c(
+    #     "Pinus",
+    #     "Quercus",
+    #     "Carya",
+    #     "Liriodendron",
+    #     "Liquidambar",
+    #     "Carex"
+    #   )),
+    # Legend = factor(
+    #   Legend,
+    #   levels = c(
+    #     "Fire Adapted",
+    #     "Fire Tolerant",
+    #     "Fire Intolerant",
+    #     "Unknown"
+    #     ))
+    )
+```
+
+```{r}
+Trees_graph <- Trees %>%
+  filter(
+    AdminUnit_Name == target_park,
+    Macroplot_Type == target_type,
+    Macroplot_Purpose == target_purpose,
+    Macroplot_UV1 == target_ProjectUnit,
+    Macroplot_UV2 == target_MonitoringType
+    ) %>% 
+  mutate(
+    SampleEvent_Date_Year = as.numeric(SampleEvent_Date_Year)
+    ) %>% 
+  group_by(
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
+    ,Genus, Status
+    ) %>%
+  dplyr::summarise(
+    n_plots = n_distinct(Macroplot_Name),
+    
+    # Seedling_Species = paste(na.omit(unique(Seedling_Species)), collapse = "; "),
+    # Seedling_Count  = sum(Seedling_Count),
+    # Seedling_Density_ac = round(mean(Seedling_Dens_ac, na.rm = TRUE)),
+    # Seedling_Density_ha = round(mean(Seedling_Dens_ha, na.rm = TRUE)),
+    # 
+    # Sapling_Species = paste(na.omit(unique(Sapling_Species)), collapse = "; "),
+    # Sapling_Count = sum(Sapling_Count),
+    # Sapling_Density_ac = round(mean(Sapling_Dens_ac, na.rm = TRUE)),
+    # Sapling_Density_ha = round(mean(Sapling_Dens_ha, na.rm = TRUE)),
+    
+    Pole_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
     Pole_Count = sum(Pole_Count),
-    Pole_Density_ac = round(mean(Pole_Dens_ac, na.rm = TRUE)),
-    Pole_Density_ha = round(mean(Pole_Dens_ha, na.rm = TRUE)),
+    Pole_Density_ac = sum(Pole_Dens_ac, na.rm = TRUE),
+    Pole_Density_ha = sum(Pole_Dens_ha, na.rm = TRUE),
     Pole_BA_ft2 = round((mean(Pole_BA_ft2, na.rm = TRUE)), 2),
     Pole_BA_m2 = round((mean(Pole_BA_m2, na.rm = TRUE)), 2),
     
-    Overstory_Species = paste(na.omit(unique(Overstory_Species)), collapse = "; "),
+    Overstory_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
     Overstory_Count = sum(Overstory_Count),
-    Overstory_Density_ac = round(mean(Overstory_Dens_ac, na.rm = TRUE)),
-    Overstory_Density_ha = round(mean(Overstory_Dens_ha, na.rm = TRUE)),
+    Overstory_Density_ac = sum(Overstory_Dens_ac, na.rm = TRUE),
+    Overstory_Density_ha = sum(Overstory_Dens_ha, na.rm = TRUE),
     Overstory_BA_ft2 = round((mean(Overstory_BA_ft2, na.rm = TRUE)), 2),
     Overstory_BA_m2 = round((mean(Overstory_BA_m2, na.rm = TRUE)), 2),
     
     .groups = "drop"
   ) %>% 
   pivot_longer(
-    cols = matches("Seedling|Sapling|Pole|Overstory"),
+    cols = matches("Pole|Overstory"),
     names_to = c("SizeClass", ".value"),
-    names_pattern = "(Seedling|Sapling|Pole|Overstory)_(Species|Count|Density_[a-z]+|BA_[a-z0-9]+)"
+    names_pattern = "(|Pole|Overstory)_(Species|Count|Density_[a-z]+|BA_[a-z0-9]+)"
   ) %>% 
-  mutate(Legend  = ifelse(Genus == "Carya",
-                          "Fire Tolerant",
-                     ifelse(Genus %in% c("Liriodendron", "Liquidambar"),
-                            "Fire Intolerant",
-                                   ifelse(Genus %in% c("Pinus", "Quercus"),
-                                          "Fire Adapted", "Unknown")))
-         ) %>%
+  # mutate(Legend  = ifelse(Genus == "Carya",
+  #                         "Fire Tolerant",
+  #                    ifelse(Genus %in% c("Liriodendron", "Liquidambar"),
+  #                           "Fire Intolerant",
+  #                                  ifelse(Genus %in% c("Pinus", "Quercus"),
+  #                                         "Fire Adapted", "Unknown")))
+  #        ) %>%
   mutate(
     SizeClass = factor(
       SizeClass,
       levels = c(
         "Overstory",
-        "Pole",
-        "Sapling",
-        "Seedling"
-      )),
-    Genus = factor(
-      Genus,
-      levels = c(
-        "Pinus",
-        "Quercus",
-        "Carya",
-        "Liriodendron",
-        "Liquidambar",
-        "Carex"
-      )),
-    Legend = factor(
-      Legend,
-      levels = c(
-        "Fire Adapted",
-        "Fire Tolerant",
-        "Fire Intolerant",
-        "Unknown"
-        )),
-    BA_ft2  = replace_na(BA_ft2, 0),
-    BA_m2   = replace_na(BA_m2, 0)
+        "Pole"
+      ))
+    # Genus = factor(
+    #   Genus,
+    #   levels = c(
+    #     "Pinus",
+    #     "Quercus",
+    #     "Carya",
+    #     "Liriodendron",
+    #     "Liquidambar",
+    #     "Carex"
+    #   )),
+    # Legend = factor(
+    #   Legend,
+    #   levels = c(
+    #     "Fire Adapted",
+    #     "Fire Tolerant",
+    #     "Fire Intolerant",
+    #     "Unknown"
+    #     )),
     )
 ```
 
 ### Seedlings {.hidden}
 
 ```{r}
-p_trees_seedlings <- Trees_graph %>% 
+p_trees_seedlings <- Seedlings_graph %>% 
   filter(
     Status %in% c(
       "L"
@@ -839,18 +923,15 @@ p_trees_seedlings <- Trees_graph %>%
     SizeClass %in% c(
       "Seedling"
       #"Sapling",
-      #"Pole",
-      #"Overstory"
       )) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ,Genus, Species, Status
     ) %>% 
   mutate(
     Total_Density_ac = sum(Density_ac),
-    Total_Density_ha = sum(Density_ha),
-    Species = paste(na.omit(unique(Species)), collapse = "; "),
+    Total_Density_ha = sum(Density_ha)
     ) %>% 
   filter(
     Total_Density_ac != 0
@@ -859,7 +940,7 @@ p_trees_seedlings <- Trees_graph %>%
   ggplot() +
   geom_bar(
     aes(
-      x = SampleEventDate_Year, 
+      x = SampleEvent_Date_Year, 
       y = Total_Density_ac, 
       fill = Genus
       ),
@@ -888,12 +969,12 @@ p_trees_seedlings <- Trees_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     )
 
-#p_trees_seedlings
+p_trees_seedlings
 ```
 
 ```{r}
@@ -926,7 +1007,7 @@ kable(Objectives %>%
 ```
 
 ```{r}
-p_trees_saplings <- Trees_graph %>% 
+p_trees_saplings <- Seedlings_graph %>% 
   filter(
     Status %in% c(
       "L"
@@ -935,17 +1016,14 @@ p_trees_saplings <- Trees_graph %>%
     SizeClass %in% c(
       #"Seedling",
       "Sapling"
-      #"Pole",
-      #"Overstory"
       )) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ,Genus, Species, Status) %>% 
   mutate(
     Total_Density_ac = sum(Density_ac),
-    Total_Density_ha = sum(Density_ha),
-    Species = paste(na.omit(unique(Species)), collapse = "; ")
+    Total_Density_ha = sum(Density_ha)
     ) %>% 
   filter(
     Total_Density_ac != 0
@@ -954,7 +1032,7 @@ p_trees_saplings <- Trees_graph %>%
   ggplot() +
   geom_bar(
     aes(
-      x = SampleEventDate_Year,
+      x = SampleEvent_Date_Year,
       y = Total_Density_ac,
       fill = Genus
       ),
@@ -974,7 +1052,7 @@ p_trees_saplings <- Trees_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
   ) +
-  scale_fill_manual(values = c("#FF4040", "#FF8C00", "#e9e322", "#00B2EE", "#756BB1", "#666666")) +
+  #scale_fill_manual(values = c("#FF4040", "#FF8C00", "#e9e322", "#00B2EE", "#756BB1", "#666666")) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -987,7 +1065,7 @@ p_trees_saplings <- Trees_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     ) +
@@ -997,7 +1075,7 @@ p_trees_saplings <- Trees_graph %>%
     color = "forestgreen"
     )
 
-#p_trees_saplings
+p_trees_saplings
 ```
 
 ```{r}
@@ -1037,20 +1115,18 @@ p_trees_poles <- Trees_graph %>%
       #"D"
       ),
     SizeClass %in% c(
-      #"Seedling",
-      #"Sapling",
       "Pole"
       #"Overstory"
       )) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    ,Status, Legend
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
+    ,Status, Genus
     ) %>% 
   mutate(
     Total_Density_ac = sum(Density_ac),
-    Total_Density_ha = sum(Density_ha),
-    Species = paste(na.omit(unique(Species)), collapse = "; ")
+    Total_Density_ha = sum(Density_ha)
+    #Species = paste(na.omit(unique(Species)), collapse = "; ")
     ) %>% 
   filter(
     Total_Density_ac != 0
@@ -1058,9 +1134,9 @@ p_trees_poles <- Trees_graph %>%
   
   ggplot(
     aes(
-      x = SampleEventDate_Year,
+      x = SampleEvent_Date_Year,
       y = Total_Density_ac,
-      color = Legend)
+      color = Genus)
   ) +
   geom_line() +
   geom_point() +
@@ -1075,7 +1151,7 @@ p_trees_poles <- Trees_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
     ) +
-  scale_color_manual(values = c("#FF4040", "#e9e322", "#00B2EE", "#666666")) +
+  #scale_color_manual(values = c("#FF4040", "#e9e322", "#00B2EE", "#666666")) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -1088,12 +1164,12 @@ p_trees_poles <- Trees_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     )
 
-#p_trees_poles
+p_trees_poles
 ```
 
 ```{r}
@@ -1134,14 +1210,12 @@ p_trees_overstory_BA <- Trees_graph %>%
       "D"
       ),
     SizeClass %in% c(
-      #"Seedling",
-      #"Sapling",
       #"Pole",
       "Overstory"
       )) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     #,Genus, Status
     ) %>% 
   mutate(
@@ -1156,14 +1230,13 @@ p_trees_overstory_BA <- Trees_graph %>%
     ) %>% 
   filter(
     Total_Density_ac != 0,
-    SampleEventDate_Year %in% target_year
+    SampleEvent_Date_Year %in% target_year
     )
 
-source("C:/Users/alalor/OneDrive - DOI/R/NER/scripts/4_Reports/Gingrich Stocking Chart.R")
 plot.gingrich.imperial(
   tpa = p_trees_overstory_BA$Total_Density_ac,
   ba = p_trees_overstory_BA$Total_BA_ft2,
-  label = p_trees_overstory_BA$SampleEventDate_Year,
+  label = p_trees_overstory_BA$SampleEvent_Date_Year,
   color = TRUE,
   type = "p",
   main = paste(target_park, target_ProjectUnit, "\nOverstory Stand Structure")
@@ -1177,22 +1250,22 @@ plot.gingrich.imperial(
 ```{r}
 Cover_graph <- Cover %>% 
   filter(
-    AdministrationUnit_Name == target_park,
-    Type == target_type,
-    Purpose == target_purpose,
+    AdminUnit_Name == target_park,
+    Macroplot_Type == target_type,
+    Macroplot_Purpose == target_purpose,
     Macroplot_UV1 == target_ProjectUnit,
     Macroplot_UV2 == target_MonitoringType
     ) %>% 
   mutate(
-    SampleEventDate_Year = as.numeric(SampleEventDate_Year)
+    SampleEvent_Date_Year = as.numeric(SampleEvent_Date_Year)
     ) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type,
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    ,Preferred_Lifeform, Genus, Nativity, Species.Symbol
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type,
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
+    ,Preferred_Lifeform, Genus, ScientificName, Nativity
     ) %>%
   dplyr::summarise(
-    n_plots = n_distinct(Macroplot),
+    n_plots = n_distinct(Macroplot_Name),
     Avg_Ht_m = round(mean(Avg_Ht_m, na.rm = TRUE), 1),
     Avg_Ht_ft = round(mean(Avg_Ht_ft, na.rm = TRUE), 1),
     Abundance = sum(Hits, na.rm = TRUE),
@@ -1238,7 +1311,7 @@ Cover_graph <- Cover %>%
 #       #"Unknown"
 #       )
 #     ) %>% 
-#   select(SampleEventDate_Year, Species.Symbol, Abundance) %>%
+#   select(SampleEvent_Date_Year, Species.Symbol, Abundance) %>%
 #   tidyr::pivot_wider(
 #     names_from = Species.Symbol,
 #     values_from = Abundance,
@@ -1247,14 +1320,14 @@ Cover_graph <- Cover %>%
 # 
 # shannon <- wide_diversity %>%
 #   mutate(
-#     Shannon_Index = diversity(select(., -SampleEventDate_Year),
+#     Shannon_Index = diversity(select(., -SampleEvent_Date_Year),
 #                         index = "shannon")
 #   ) %>%
-#   select(SampleEventDate_Year, Shannon_Index)
+#   select(SampleEvent_Date_Year, Shannon_Index)
 # 
 # 
 # p_diversity <- shannon %>% 
-#   ggplot(aes(x = SampleEventDate_Year, y = Shannon_Index)) +
+#   ggplot(aes(x = SampleEvent_Date_Year, y = Shannon_Index)) +
 #   geom_line() +
 #   geom_point() +
 #   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -1281,7 +1354,7 @@ Cover_graph <- Cover %>%
 #     panel.grid.minor = element_blank()
 #     )  +
 #   geom_vline(
-#     xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+#     xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
 #     linetype = "dashed", 
 #     color = "red"
 #     )
@@ -1308,8 +1381,8 @@ Cover_graph <- Cover %>%
 #       )
 #     ) %>% 
 #   group_by(
-#     AdministrationUnit_Name, Purpose, Type, 
-#     Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+#     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+#     Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
 #     #,Preferred_Lifeform, Genus, Nativity
 #     ) %>% 
 #   mutate(
@@ -1319,7 +1392,7 @@ Cover_graph <- Cover %>%
 #   
 #   
 # p_diversity <- sdi_results %>% 
-#   ggplot(aes(x = SampleEventDate_Year, y = Shannon_Index)) +
+#   ggplot(aes(x = SampleEvent_Date_Year, y = Shannon_Index)) +
 #   geom_line() +
 #   geom_point() +
 #   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -1345,7 +1418,7 @@ Cover_graph <- Cover %>%
 #     panel.grid.minor = element_blank()
 #     )  +
 #   geom_vline(
-#     xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+#     xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
 #     linetype = "dashed", 
 #     color = "red"
 #     )
@@ -1380,8 +1453,8 @@ p_cover_classic <- Cover_graph %>%
       )
     ) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     #,Preferred_Lifeform, Genus, Nativity
     ) %>% 
   mutate(
@@ -1389,7 +1462,7 @@ p_cover_classic <- Cover_graph %>%
     ) %>%  
 
   
-  ggplot(aes(x = SampleEventDate_Year, y = Total_Cover)) +
+  ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
   geom_line() +
   geom_point() +
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -1416,7 +1489,7 @@ p_cover_classic <- Cover_graph %>%
     panel.grid.minor = element_blank()
     )  +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     ) +
@@ -1450,12 +1523,12 @@ p_cover_lifeform <- Cover_graph %>%
       )
     ) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ,Preferred_Lifeform
     ,Genus
+    ,ScientificName
     ,Nativity
-    ,Species.Symbol
     ) %>% 
   dplyr::summarise(
     Total_Cover = sum(PctCover, na.rm = TRUE),
@@ -1465,13 +1538,13 @@ p_cover_lifeform <- Cover_graph %>%
   ggplot() +
   geom_col(
     aes(
-      x = SampleEventDate_Year,
+      x = SampleEvent_Date_Year,
       y = Total_Cover,
       fill = Preferred_Lifeform
       ),
     # position_dodge means the bars will display side by side
-    #position = "stack", stat = "identity"
-    position = position_dodge2(preserve = "single"), stat = "identity"
+    position = "stack", stat = "identity"
+    #position = position_dodge2(preserve = "single"), stat = "identity"
   ) +
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   labs(
@@ -1497,12 +1570,12 @@ p_cover_lifeform <- Cover_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     )
 
-#p_cover_lifeform
+p_cover_lifeform
 ```
 
 ```{r}
@@ -1546,12 +1619,12 @@ p_cover_nativity <- Cover_graph %>%
       )
     ) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     #,Preferred_Lifeform
     #,Genus
+    #,ScientificName
     ,Nativity
-    #,Species.Symbol
     ) %>% 
   dplyr::summarise(
     Total_Cover = sum(PctCover, na.rm = TRUE),
@@ -1563,7 +1636,7 @@ p_cover_nativity <- Cover_graph %>%
   ggplot() +
   geom_col(
     aes(
-      x = SampleEventDate_Year,
+      x = SampleEvent_Date_Year,
       y = Avg_Ht_ft,
       fill = Nativity
       ),
@@ -1596,12 +1669,12 @@ p_cover_nativity <- Cover_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     )
 
-#p_cover_nativity
+p_cover_nativity
 ```
 
 ```{r}
@@ -1624,7 +1697,7 @@ p_disturbance_merge / p_cover_merge +
   plot_layout(heights = c(0.2, 1.4))
 ```
 
-### Cover Oaks  {.hidden}
+### Cover Oaks {.hidden}
 
 ```{r}
 p_cover_oaks <- Cover_graph %>% 
@@ -1646,8 +1719,8 @@ p_cover_oaks <- Cover_graph %>%
     Genus == "Quercus"
     ) %>% 
   group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ,Preferred_Lifeform
     ,Genus
     ,Nativity
@@ -1659,7 +1732,7 @@ p_cover_oaks <- Cover_graph %>%
     ) %>%  
   
   ggplot(aes(
-      x = SampleEventDate_Year, 
+      x = SampleEvent_Date_Year, 
       y = Total_Cover, 
       fill = Genus
       )) +
@@ -1688,7 +1761,7 @@ p_cover_oaks <- Cover_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
     )
