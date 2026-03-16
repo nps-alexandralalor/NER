@@ -101,6 +101,44 @@ Cover <- read.csv(paste0(path_data, "Data_Cover_Points.csv"))
 # Shrubs <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
 ```
 
+# Overview
+
+The current vegetation association of Richmond's forest is a Northern Coastal Plain Mixed Oak / Heath Forest [@noauthor_natureserve_nodate]. Recommendations for forest characteristics will be aimed at maintaining this community type.
+
+# Monitoring Objectives
+
+```{r}
+Objectives <- data.frame(
+  "Num" = c(1,2,3,4,5,6),
+  "Objective" = c(
+    "1. Maintain fine fuel loading (litter?, 1-hr, 10-hr, and 100-hr fuels) at < 2.4 tons/acre",
+    "2. Maintain duff depth to < 1.5 inch",
+    "3. Increase sapling density to 1,000 stems/acre or greater",
+    "4. xeric:mesic pole-sized (2.5-15cm DBH) tree density objective...",
+    "5. Maintain a stocking density of overstory trees (>15cm DBH) between 30-70%",
+    "6. >75% cover of native grasses and forbs"
+    ))
+
+target_FineFuelLoading <- 2.4
+target_Duff <- 1.5
+target_Sapling <- 1000
+target_PoleDensity <- 380 * .5
+target_Cover <- 75
+
+kable(Objectives %>% 
+        select(Objective)
+      )
+```
+
+#### Justifications
+
+1.  The fuel model most representative of this vegetation association is Timber Litter 6 (TL6) [@scott_standard_2005]. Timber Litter fuel models are primarily driven by dead and down woody fuel, and TL6 specifically represents moderate load broadleaf litter. To moderate fire spread potential, fine fuel loading should be at or below what is expected for each fuel model.
+2.  To promote oak and pine regeneration, duff depth should be maintained at low levels to allow seedlings with shallow root systems to establish in mineral soil [@jenkins_yellow_2011].
+3.  Young trees can be categorized by height class. In this report we define "seedlings" as \<1m tall and "saplings" as \>1m tall but \<2.5cm DBH (DBH = diameter at height of 1.3m). We will focus on sapling tree density metrics because larger size classes are more competitive and better predictors of advanced regeneration [@harris_increasing_2022].
+4.  Pole-sized trees are classified as between 2.5cm and 15cm DBH. Species composition of pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments. Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021].
+5.  Overstory trees are classified as \>15cm DBH. These are the mature trees which make up the overall forest structure. To promote open canopy woodlands, tree stocking densities should be maintained within 30-70% [@ginrich_measuring_1967; @kabrick_silvicultural_2014]
+6.  Diversity objective...
+
 ### Target Values {.hidden}
 
 ```{r}
@@ -147,42 +185,6 @@ year_max <- as.numeric(format(Sys.Date(), "%Y"))
 date_max <- as.Date(paste0(year_max, "-12-31"))
 year_min <- as.numeric((min(MetadataReport_SampleEvents$SampleEventDate_Year)) - 1)
 date_min <- as.Date(paste0(year_min, "-12-31"))
-```
-
-# Monitoring Objectives
-
-### Resources
-
-The current vegetation association of Richmond's forest is a Northern Coastal Plain Mixed Oak / Heath Forest [@noauthor_natureserve_nodate]. Recommendations for forest characteristics will be aimed at maintaining this community type.
-
-1.  The fuel model most representative of this vegetation association is TL6 [@scott_standard_2005]. "Timber Litter" (TL) fuel models are primarily driven by dead and down woody fuel, and TL6 specifically represents moderate load broadleaf litter. To moderate fire spread potential, fine fuel loading should be at or below what is expected for each fuel model.
-2.  To promote oak and pine regeneration, duff depth should be maintained at 1.5 inches or below [@jenkins_yellow_2011].
-3.  Advanced regeneration potential can be indicated by competitive seedlings. The size class of seedlings most likely to survive are those which are \>1m in height (referred to here as "saplings").
-4.  Pole-sized trees are classified as between 2.5cm and 15cm diameter measured at a height of 1.3m (DBH). Species composition of pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments. Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021].
-5.  Overstory trees are classifed as \>15cm DBH. These are the mature trees which make up the overall forest structure. Oaks need abundant light and sun to have successful regeneration. To maintain open canopy woodlands, tree stocking density should be maintained within 30-70% [@ginrich_measuring_1967; @kabrick_silvicultural_2014]
-6.  Diversity objective...
-
-```{r}
-Objectives <- data.frame(
-  Objective = c(
-    "1. Maintain fine fuel loading (litter?, 1-hr, 10-hr, and 100-hr fuels) at < 2.4 tons/acre",
-    "2. Maintain duff depth to < 1.5 inch",
-    "4. Maintain a stocking density of overstory trees (>15cm DBH) between 30-70%",
-    "5. xeric:mesic pole-sized (2.5-15cm DBH) tree density objective...",
-    "6. diversity of native grasses and forbs objective..."
-    ))
-
-kable(Objectives)
-```
-
-### Target Values {.hidden}
-
-```{r}
-target_FineFuelLoading <- 2.4
-target_Duff <- 1.5
-target_Sapling <- 100
-target_PoleDensity <- 380 * .5
-target_Cover <- 2.4 * 1.75
 ```
 
 ## Overview {.hidden}
@@ -381,6 +383,13 @@ FuelsDuff_graph <- Fuels %>%
 ### Fine Fuels (with Litter)
 
 ```{r}
+kable(Objectives %>% 
+      filter(Num == 1) %>% 
+      select(Objective)
+      )
+```
+
+```{r}
 p_fuels <- Fuels_graph %>% 
   filter(
     FuelClass %in% c(
@@ -468,6 +477,13 @@ p_disturbance_merge / p_fuels_merge +
 ### Fine Fuels (without Litter)
 
 ```{r}
+kable(Objectives %>% 
+      filter(Num == 1) %>% 
+      select(Objective)
+      )
+```
+
+```{r}
 p_fuels <- Fuels_graph %>% 
   filter(
     FuelClass %in% c(
@@ -552,6 +568,13 @@ p_disturbance_merge / p_fuels_merge +
 ```
 
 ### Duff Depth
+
+```{r}
+kable(Objectives %>% 
+      filter(Num == 2) %>% 
+      select(Objective)
+      )
+```
 
 ```{r}
 p_fuels <- FuelsDuff_graph %>% 
@@ -896,6 +919,13 @@ p_disturbance_merge / p_trees_merge +
 ### Saplings
 
 ```{r}
+kable(Objectives %>% 
+      filter(Num == 3) %>% 
+      select(Objective)
+      )
+```
+
+```{r}
 p_trees_saplings <- Trees_graph %>% 
   filter(
     Status %in% c(
@@ -924,13 +954,15 @@ p_trees_saplings <- Trees_graph %>%
   ggplot() +
   geom_bar(
     aes(
-      x = SampleEventDate_Year, 
-      y = Total_Density_ac, 
+      x = SampleEventDate_Year,
+      y = Total_Density_ac,
       fill = Genus
       ),
     # position_dodge means the bars will display side by side
-    position = position_dodge2(preserve = "single"), stat = "identity") +
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+    position = "stack", stat = "identity"
+    #,position = position_dodge2(preserve = "single"), stat = "identity"
+    ) +
+ facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   labs(
     x = "Year",
     y = "Stems / Acre",
@@ -942,7 +974,7 @@ p_trees_saplings <- Trees_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
   ) +
-  scale_fill_manual(values = c("#FF4040", "#EE6A50", "#FF8C00", "#00B2EE", "#009ACD", "#666666")) +
+  scale_fill_manual(values = c("#FF4040", "#FF8C00", "#e9e322", "#00B2EE", "#756BB1", "#666666")) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -991,6 +1023,13 @@ p_disturbance_merge / p_trees_merge +
 ### Pole-Sized
 
 ```{r}
+kable(Objectives %>% 
+      filter(Num == 4) %>% 
+      select(Objective)
+      )
+```
+
+```{r}
 p_trees_poles <- Trees_graph %>% 
   filter(
     Status %in% c(
@@ -1006,7 +1045,7 @@ p_trees_poles <- Trees_graph %>%
   group_by(
     AdministrationUnit_Name, Purpose, Type, 
     Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    ,Genus, Species, Status
+    ,Status, Legend
     ) %>% 
   mutate(
     Total_Density_ac = sum(Density_ac),
@@ -1016,15 +1055,15 @@ p_trees_poles <- Trees_graph %>%
   filter(
     Total_Density_ac != 0
     ) %>% 
-    
-  ggplot() +
-  geom_bar(
+  
+  ggplot(
     aes(
-      x = SampleEventDate_Year, 
-      y = Total_Density_ac, 
-      fill = Genus
-      ),
-    position = "stack", stat = "identity") +
+      x = SampleEventDate_Year,
+      y = Total_Density_ac,
+      color = Legend)
+  ) +
+  geom_line() +
+  geom_point() +
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   labs(
     x = "Year",
@@ -1036,7 +1075,7 @@ p_trees_poles <- Trees_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
     ) +
-  #scale_fill_manual(values = c("Fire Adapted" = "#EE6A50", "Fire Tolerant" = "#FF8C00", "Fire Intolerant" = "#00B2EE", "Unknown" = "#666666")) +
+  scale_color_manual(values = c("#FF4040", "#e9e322", "#00B2EE", "#666666")) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -1078,6 +1117,13 @@ p_disturbance_merge / p_trees_merge +
 ```
 
 ### Overstory - Gingrich Stocking Graph
+
+```{r}
+kable(Objectives %>% 
+      filter(Num == 5) %>% 
+      select(Objective)
+      )
+```
 
 ```{r gingrich-plot, fig.width=10, fig.height=8}
 
@@ -1124,7 +1170,7 @@ plot.gingrich.imperial(
 )
 ```
 
-## Cover {.hidden}
+## Cover
 
 ### Prep {.hidden}
 
@@ -1305,17 +1351,23 @@ Cover_graph <- Cover %>%
 #     )
 ```
 
-### 2025 Report - Cover
+### Native Grasses and Forbs
 
-**Objective #2:** \>75% increase in native grasses after four burns
+```{r}
+kable(Objectives %>% 
+      filter(Num == 6) %>% 
+      select(Objective)
+      )
+```
 
 ```{r}
 p_cover_classic <- Cover_graph %>% 
   filter(
     Preferred_Lifeform %in% c(
       #"Nonvascular", "Lichenous", 
-      "Graminoid", "Grass-like"
-      #"Forb/herb", "Fern", "Vine",
+      "Graminoid", "Grass-like",
+      "Forb/herb", "Fern"
+      #,"Vine",
       #"Shrub", "Subshrub",
       #"Tree",
       #"Substrate"
@@ -1344,13 +1396,14 @@ p_cover_classic <- Cover_graph %>%
   labs(
     x = "Year",
     y = "% Cover",
-    title = paste(target_park, target_type, "Native Grass Cover")
+    title = paste(target_park, target_type, "Native Grass and Forb Cover")
     ) +
   scale_x_continuous(
     limits = c(year_min, year_max),
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
     ) +
+  ylim(0, 100) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -1366,101 +1419,14 @@ p_cover_classic <- Cover_graph %>%
     xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
     linetype = "dashed", 
     color = "red"
+    ) +
+  geom_hline(
+    yintercept = target_Cover, 
+    linetype = "dashed", 
+    color = "forestgreen"
     )
 
 p_cover_classic
-```
-
-### Cover Points
-
-Same data as presented above, but broken down by species
-
-```{r}
-p_cover_points <- Cover_graph %>% 
-  filter(
-    Preferred_Lifeform %in% c(
-      #"Nonvascular", "Lichenous", 
-      "Graminoid", "Grass-like"
-      #"Forb/herb", "Fern", "Vine",
-      #"Shrub", "Subshrub",
-      #"Tree",
-      #"Substrate"
-      ),
-    Nativity %in% c(
-      "Native"
-      #"Non-Native",
-      #"Invasive",
-      #"Unknown"
-      )
-    ) %>% 
-  group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    ,Preferred_Lifeform
-    ,Genus
-    ,Nativity
-    ,Species.Symbol
-    ) %>% 
-  dplyr::summarise(
-    Total_Cover = sum(PctCover, na.rm = TRUE),
-    .groups = "drop"
-    ) %>%  
-  
-  ggplot(aes(
-      x = SampleEventDate_Year, 
-      y = Total_Cover, 
-      fill = Genus
-      )) +
-  geom_col() +
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
-  labs(
-    x = "Year",
-    y = "% Cover",
-    title = paste(target_park, target_type, "Native Grass Cover")
-    ) +
-  scale_x_continuous(
-    limits = c(year_min, year_max),
-    breaks = seq(year_min, year_max, by = 1),
-    expand = expansion(mult = c(0, 0))
-    ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
-    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
-    axis.title = element_text(size = 12, face="bold"),
-    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-    axis.text.y = element_text(size = 8),
-    panel.grid.minor = element_blank()
-    ) +
-  geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
-    linetype = "dashed", 
-    color = "red"
-    )
-
-#p_cover_points
-```
-
-```{r}
-p_disturbance_merge <- p_disturbance +
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
-        )+
-  labs(
-    title = paste(target_park, target_type, "Native Grass Cover"),
-    fill = "Disturbance"
-       )
-
-p_cover_merge <- p_cover_points +
-  theme(plot.title = element_blank())
-
-p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
 ```
 
 ### Cover Lifeform
@@ -1496,12 +1462,17 @@ p_cover_lifeform <- Cover_graph %>%
     .groups = "drop"
     ) %>%  
   
-  ggplot(aes(
-      x = SampleEventDate_Year, 
-      y = Total_Cover, 
+  ggplot() +
+  geom_col(
+    aes(
+      x = SampleEventDate_Year,
+      y = Total_Cover,
       fill = Preferred_Lifeform
-      )) +
-  geom_col() +
+      ),
+    # position_dodge means the bars will display side by side
+    #position = "stack", stat = "identity"
+    position = position_dodge2(preserve = "single"), stat = "identity"
+  ) +
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   labs(
     x = "Year",
@@ -1554,13 +1525,13 @@ p_disturbance_merge / p_cover_merge +
   plot_layout(heights = c(0.2, 1.4))
 ```
 
-### Cover Nativity
+### Cover Height
 
 ```{r}
 p_cover_nativity <- Cover_graph %>% 
   filter(
     Preferred_Lifeform %in% c(
-      "Nonvascular", "Lichenous", 
+      #"Nonvascular", "Lichenous", 
       "Graminoid", "Grass-like",
       "Forb/herb", "Fern", "Vine",
       "Shrub", "Subshrub",
@@ -1577,34 +1548,42 @@ p_cover_nativity <- Cover_graph %>%
   group_by(
     AdministrationUnit_Name, Purpose, Type, 
     Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    ,Preferred_Lifeform
-    ,Genus
+    #,Preferred_Lifeform
+    #,Genus
     ,Nativity
-    ,Species.Symbol
+    #,Species.Symbol
     ) %>% 
   dplyr::summarise(
     Total_Cover = sum(PctCover, na.rm = TRUE),
+    Avg_Ht_m = mean(Avg_Ht_m),
+    Avg_Ht_ft = mean(Avg_Ht_ft),
     .groups = "drop"
     ) %>%  
   
-  ggplot(aes(
-      x = SampleEventDate_Year, 
-      y = Total_Cover, 
+  ggplot() +
+  geom_col(
+    aes(
+      x = SampleEventDate_Year,
+      y = Avg_Ht_ft,
       fill = Nativity
-      )) +
-  geom_col() +
+      ),
+    # position_dodge means the bars will display side by side
+    #position = "stack", stat = "identity"
+    position = position_dodge2(preserve = "single"), stat = "identity"
+  ) +
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   labs(
     x = "Year",
-    y = "% Cover",
-    fill = "Lifeform",
-    title = paste(target_park, target_type, "Native Cover")
+    y = "Height (ft)",
+    fill = "Nativity",
+    title = paste(target_park, target_type, "Understory Height")
     ) +
   scale_x_continuous(
     limits = c(year_min, year_max),
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
     ) +
+  ylim(0, 6) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -1645,7 +1624,7 @@ p_disturbance_merge / p_cover_merge +
   plot_layout(heights = c(0.2, 1.4))
 ```
 
-### Cover Oaks
+### Cover Oaks  {.hidden}
 
 ```{r}
 p_cover_oaks <- Cover_graph %>% 
@@ -1737,114 +1716,7 @@ p_disturbance_merge / p_cover_merge +
   plot_layout(heights = c(0.2, 1.4))
 ```
 
-### Cover {.hidden}
-
-```{r}
-p_cover<- Cover_graph %>% 
-  filter(
-    Preferred_Lifeform %in% c(
-      #"Nonvascular", "Lichenous", 
-      #"Graminoid", "Grass-like",
-      "Forb/herb", "Fern", "Vine",
-      "Shrub" #"Subshrub",
-      #"Tree",
-      #"Substrate"
-      ),
-    Nativity %in% c(
-      "Native",
-      "Non-Native",
-      "Invasive",
-      "Unknown"
-      )
-    ) %>% 
-  group_by(
-    AdministrationUnit_Name, Purpose, Type, 
-    Macroplot_UV1, Macroplot_UV2, MonStatus, SampleEventDate_Year
-    ,Preferred_Lifeform
-    ,Genus
-    ,Nativity
-    ,Species.Symbol
-    ) %>% 
-  dplyr::summarise(
-    Total_Cover = sum(PctCover, na.rm = TRUE),
-    .groups = "drop"
-    ) %>%  
-  
-  ggplot(aes(
-      x = SampleEventDate_Year, 
-      y = Total_Cover, 
-      fill = Genus
-      )) +
-  geom_col() +
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
-  labs(
-    x = "Year",
-    y = "% Cover",
-    fill = "Genus",
-    title = paste(target_park, target_type, "Cover")
-    ) +
-  scale_x_continuous(
-    limits = c(year_min, year_max),
-    breaks = seq(year_min, year_max, by = 1),
-    expand = expansion(mult = c(0, 0))
-    ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
-    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
-    axis.title = element_text(size = 12, face="bold"),
-    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-    axis.text.y = element_text(size = 8),
-    panel.grid.minor = element_blank()
-    ) +
-  geom_vline(
-    xintercept = (MetadataReport_Disturbances$DisturbanceDate_Year) - 0.5, 
-    linetype = "dashed", 
-    color = "red"
-    )
-
-```
-
-```{r}
-p_disturbance_merge <- p_disturbance +
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
-        )+
-  labs(
-    title = paste(target_park, target_type, "Cover"),
-    fill = "Disturbance"
-       )
-
-p_cover_merge <- p_cover +
-  theme(plot.title = element_blank())
-
-p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
-```
-
-## Herbs Species Comp {.hidden}
-
-```{r}
-# HerbsSpComp_graph <- HerbsSpComp %>%
-#   filter(AdministrationUnit_Name == target_park,
-#          Type == target_type) %>%
-#   # group_by(AdministrationUnit_Name, Purpose, Type, MacroPlot.UV1, MonStatus, SampleEventDate_Year, Nativity) %>%
-#   dplyr::summarise(n_species_ByNativity = mean(n_species_ByNativity),
-#                    .groups = "drop")
-```
-
-```{r}
-# HerbsSpComp_graph %>%
-#   ggplot(aes(x = SampleEventDate_Year, y = n_species_ByNativity, fill = Nativity)) +
-#   geom_bar(position = "stack", stat = "identity")
-```
-
-# Discussion {.hidden}
+# Discussion
 
 # References
 
