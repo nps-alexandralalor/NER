@@ -1,5 +1,5 @@
 ---
-title: Richmond National Battlefield Park Report - Forest Plots
+title: Shenandoah National Park Report - Forest Plots
 author: NPS Northeast Region Fire Effects Monitoring Program
 output:
   html_document:
@@ -128,8 +128,8 @@ target_year <- c(2025)
       select(Macroplot_UV1, Macroplot_UV2) %>% 
       unique()
 
-target_ProjectUnit <- c("Big Meadows West")
-target_MonitoringType <- c("Modified Disturbed")
+target_ProjectUnit <- c("Jarman Gap")
+target_MonitoringType <- c("Pine Oak", "Xeric Oak")
 
 
     MetadataReport_SampleEvents <- MetadataReport %>%
@@ -478,7 +478,7 @@ p_fuels <- Fuels_graph %>%
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_FuelLoad, fill = FuelClass)) +
   geom_line() +
   geom_point() +
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  facet_wrap(Macroplot_UV2 ~ Macroplot_UV1, ncol = 2) +
   labs(
     x = "Year",
     y = "Tons / Acre",
@@ -564,7 +564,7 @@ p_fuels <- FuelsDuff_graph %>%
   ggplot() +
   geom_bar(aes(x = SampleEvent_Date_Year, y = FuelDepth, fill = FuelClass),
            position = "stack", stat = "identity") + 
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  facet_wrap(Macroplot_UV2 ~ Macroplot_UV1, ncol = 2) +
   labs(
     x = "Year",
     y = "Depth (inches)",
@@ -652,7 +652,7 @@ p_fuels <- Fuels_graph %>%
   ggplot() +
   geom_bar(aes(x = SampleEvent_Date_Year, y = FuelLoad, fill = FuelClass),
            position = "stack", stat = "identity") + 
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  facet_wrap(Macroplot_UV2 ~ Macroplot_UV1, ncol = 2) +
   labs(
     x = "Year",
     y = "Tons / Acre",
@@ -846,7 +846,7 @@ p_trees_seedlings <- Seedlings_graph %>%
       fill = Genus
       ),
     position = "stack", stat = "identity") +
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  facet_wrap(Macroplot_UV2 ~ Macroplot_UV1, ncol = 2) +
   labs(
     x = "Year",
     y = "Stems / Acre",
@@ -948,7 +948,7 @@ p_trees_saplings <- Seedlings_graph %>%
     position = "stack", stat = "identity"
     #,position = position_dodge2(preserve = "single"), stat = "identity"
     ) +
- facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+ facet_wrap(Macroplot_UV2 ~ Macroplot_UV1, ncol = 2) +
   labs(
     x = "Year",
     y = "Stems / Acre",
@@ -987,24 +987,24 @@ p_trees_saplings <- Seedlings_graph %>%
 ```
 
 ```{r}
-# p_disturbance_merge <- p_disturbance +
-#   theme(axis.text.x = element_blank(),
-#         axis.title.x = element_blank(),
-#         axis.ticks.x = element_blank(),
-#         legend.position = "right",
-#         plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
-#         plot.title = element_text(size = 15, face="bold", hjust = 0.5)
-#         )+
-#   labs(
-#     title = paste(target_park, target_type, "Sapling Tree Density"),
-#     fill = "Disturbance"
-#        )
-# 
-# p_trees_merge <- p_trees_saplings +
-#   theme(plot.title = element_blank())
-# 
-# p_disturbance_merge / p_trees_merge +
-#   plot_layout(heights = c(0.2, 1.4))
+p_disturbance_merge <- p_disturbance +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "right",
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
+        )+
+  labs(
+    title = paste(target_park, target_type, "Sapling Tree Density"),
+    fill = "Disturbance"
+       )
+
+p_trees_merge <- p_trees_saplings +
+  theme(plot.title = element_blank())
+
+p_disturbance_merge / p_trees_merge +
+  plot_layout(heights = c(0.2, 1.4))
 ```
 
 ### Pole-Sized
@@ -1051,7 +1051,7 @@ p_trees_poles <- Trees_graph %>%
   ) +
   geom_line() +
   geom_point() +
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  facet_wrap(Macroplot_UV2 ~ Macroplot_UV1, ncol = 2) +
   labs(
     x = "Year",
     y = "Stems / Acre",
@@ -1146,7 +1146,7 @@ p_trees_overstory_BA <- Trees_graph %>%
 plot.gingrich.imperial(
   tpa = p_trees_overstory_BA$Total_Density_ac,
   ba = p_trees_overstory_BA$Total_BA_ft2,
-  label = p_trees_overstory_BA$SampleEvent_Date_Year,
+  label = p_trees_overstory_BA$Macroplot_UV2,
   color = TRUE,
   type = "p",
   main = paste(target_park, target_ProjectUnit, "\nOverstory Stand Structure")
@@ -1193,7 +1193,7 @@ p_trees_overstory <- Trees_graph %>%
     position = "stack", stat = "identity"
     #position = position_dodge2(preserve = "single"), stat = "identity"
   ) +
-  facet_wrap(Macroplot_UV1 ~ Status, ncol = 2) +
+  facet_wrap(Macroplot_UV2 ~ Macroplot_UV1, ncol = 2) +
   labs(
     x = "Year",
     y = "Stems / Acre",
@@ -1452,7 +1452,7 @@ p_cover_classic <- Cover_graph %>%
              color = Nativity)) +
   geom_line() +
   geom_point() +
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  facet_wrap(Macroplot_UV2 ~ Macroplot_UV1, ncol = 2) +
   labs(
     x = "Year",
     y = "% Cover",
@@ -1554,7 +1554,7 @@ p_cover_lifeform <- Cover_graph %>%
     position = "stack", stat = "identity"
     #position = position_dodge2(preserve = "single"), stat = "identity"
   ) +
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  facet_wrap(Macroplot_UV2 ~ Macroplot_UV1, ncol = 2) +
   labs(
     x = "Year",
     y = "% Cover",
@@ -1662,7 +1662,7 @@ p_cover_height <- Cover_graph %>%
     #position = "stack", stat = "identity"
     position = position_dodge2(preserve = "single"), stat = "identity"
   ) +
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  facet_wrap(Macroplot_UV2 ~ Macroplot_UV1, ncol = 2) +
   labs(
     x = "Year",
     y = "Height (ft)",
