@@ -369,21 +369,23 @@ HerbsPoints_CATO <- read.csv(paste0(path_data, "CATO/CATO_Data_Cover - Points (m
 HerbsPoints_CUVA <- read.csv(paste0(path_data, "CUVA/CUVA_Data_Cover - Points (metric).csv"))
 HerbsPoints_DEWA <- read.csv(paste0(path_data, "DEWA/DEWA_Data_Cover - Points (metric).csv"))
 HerbsPoints_FRSP <- read.csv(paste0(path_data, "FRSP/FRSP_Data_Cover - Points (metric).csv"))
-HerbsPoints_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Cover - Points (metric).csv"))
+#HerbsPoints_GATE <- read.csv(paste0(path_data, "GATE/GATE_Data_Cover - Points (metric).csv"))
 HerbsPoints_GETT <- read.csv(paste0(path_data, "GETT/GETT_Data_Cover - Points (metric).csv"))
 HerbsPoints_MONO <- read.csv(paste0(path_data, "MONO/MONO_Data_Cover - Points (metric).csv"))
 HerbsPoints_NERI <- read.csv(paste0(path_data, "NERI/NERI_Data_Cover - Points (metric).csv"))
-HerbsPoints_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Cover - Points (metric).csv"))
+#HerbsPoints_PRWI <- read.csv(paste0(path_data, "PRWI/PRWI_Data_Cover - Points (metric).csv"))
 HerbsPoints_RICH <- read.csv(paste0(path_data, "RICH/RICH_Data_Cover - Points (metric).csv"))
 HerbsPoints_SARA <- read.csv(paste0(path_data, "SARA/SARA_Data_Cover - Points (metric).csv"))
 HerbsPoints_SHEN <- read.csv(paste0(path_data, "SHEN/SHEN_Data_Cover - Points (metric).csv"))
 HerbsPoints_VAFO <- read.csv(paste0(path_data, "VAFO/VAFO_Data_Cover - Points (metric).csv"))
 
 # Merge data
-HerbsPoints <- rbind(HerbsPoints_ANTI, HerbsPoints_APCO, HerbsPoints_CATO, HerbsPoints_CUVA, HerbsPoints_DEWA, HerbsPoints_FRSP, HerbsPoints_GATE, HerbsPoints_GETT, HerbsPoints_MONO, HerbsPoints_NERI, HerbsPoints_PRWI, HerbsPoints_RICH, HerbsPoints_SARA, HerbsPoints_SHEN, HerbsPoints_VAFO)
+HerbsPoints <- rbind(HerbsPoints_ANTI, HerbsPoints_APCO, HerbsPoints_CATO, HerbsPoints_CUVA, HerbsPoints_DEWA, HerbsPoints_FRSP,  HerbsPoints_GETT, HerbsPoints_MONO, HerbsPoints_NERI,  HerbsPoints_RICH, HerbsPoints_SARA, HerbsPoints_SHEN, HerbsPoints_VAFO)
+#HerbsPoints_GATE, HerbsPoints_PRWI
 
 # Remove data
-remove(HerbsPoints_ANTI, HerbsPoints_APCO, HerbsPoints_CATO, HerbsPoints_CUVA, HerbsPoints_DEWA, HerbsPoints_FRSP, HerbsPoints_GATE, HerbsPoints_GETT, HerbsPoints_MONO, HerbsPoints_NERI, HerbsPoints_PRWI, HerbsPoints_RICH, HerbsPoints_SARA, HerbsPoints_SHEN, HerbsPoints_VAFO)
+remove(HerbsPoints_ANTI, HerbsPoints_APCO, HerbsPoints_CATO, HerbsPoints_CUVA, HerbsPoints_DEWA, HerbsPoints_FRSP, HerbsPoints_GETT, HerbsPoints_MONO, HerbsPoints_NERI, HerbsPoints_RICH, HerbsPoints_SARA, HerbsPoints_SHEN, HerbsPoints_VAFO)
+#HerbsPoints_GATE, HerbsPoints_PRWI
 
 # Save file
 write.csv(HerbsPoints, paste0(path_data, "ALL/ALL_Data_Cover - Points (metric).csv"), quote = FALSE, row.names = FALSE)

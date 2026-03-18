@@ -62,8 +62,8 @@ library(fs)
 
 ```{r}
 ## Adjust File Paths
-path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
-#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+#path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 path_data <- paste0(path_file, "ALL/ALL_")
 path_save <- paste0(path_file, "ALL/Calculations/ALL_")
 ```
@@ -204,14 +204,14 @@ MetadataReport_Reads <- MetadataReport_all %>%
 -   TimeSince / Suffix (0, 1, 2, 5, 10, 20)
 
 ```{r}
-MonStatus <- MetadataReport_Reads %>% 
-  select(MonitoringStatus_Name) %>% 
+MonStatus <- MetadataReport_Reads %>%
+  select(MonitoringStatus_Name) %>%
   filter(!is.na(MonitoringStatus_Name))
 MonStatus <- unique(MonStatus)
 
 # Create column with consistent naming
 MonStatus <- MonStatus %>%
-  mutate(MonStatus_new = ifelse(MonitoringStatus_Name %in%  c("Pre", "PRE", "Preyr00", "Measure", "2001Density", "2001Measure", "2002Density", "2002Measure", "2003Density", "2003Measure", "2004Measure"), "00 Pre", 
+  mutate(MonStatus_new = ifelse(MonitoringStatus_Name %in%  c("Pre", "PRE", "Preyr00", "Measure", "2001Density", "2001Measure", "2002Density", "2002Measure", "2003Density", "2003Measure", "2004Measure"), "00 Pre",
                                 ifelse(MonitoringStatus_Name %in% c("Pre 2", "Pre 02"), "00 PR1",
                                        ifelse(MonitoringStatus_Name %in% c("Pre 3"), "00 PR2",
                                               ifelse(MonitoringStatus_Name %in% c("Pre 4"), "00 PR3",
@@ -220,7 +220,7 @@ MonStatus <- MonStatus %>%
                                                                    ifelse(MonitoringStatus_Name %in% c("01yr01"), "01 Yr 01",
                                                                           ifelse(MonitoringStatus_Name %in% c("01Yr02"), "01 Yr 02",
                                                                                  ifelse(MonitoringStatus_Name %in% c("01Yr03"), "01 Yr 03",
-                                                                                        ifelse(MonitoringStatus_Name %in% c("00 Post (Initial CBI)", "01 Post (Extended CBI)", "01 Post (Initial CBI)", "Severity"), "01 Post 00", MonStatus)))))))))))
+                                                                                        ifelse(MonitoringStatus_Name %in% c("00 Post (Initial CBI)", "01 Post (Extended CBI)", "01 Post (Initial CBI)", "02 Post (Extended CBI)", "03 Post (Extended CBI)", "Severity"), "01 Post 00", MonitoringStatus_Name)))))))))))
 
 #order <- seq(1, nrow(MonStatus))
 
@@ -234,7 +234,7 @@ MonStatus <- MonStatus %>%
   mutate(Status = ifelse(Status %in%  c("PR1", "PR2", "PR3", "PR4"), "Pre", Status)) %>%
   # make columns numeric
   mutate(Entry = as.numeric(Entry),
-         TimeSince = as.numeric(TimeSince)) %>% 
+         TimeSince = as.numeric(TimeSince)) %>%
   select(!MonStatus_new)
 ```
 
@@ -265,7 +265,7 @@ MetadataReport_Disturbances <- merge(MetadataReport_Disturbances, Disturbances, 
 MetadataReport_Reads <- merge(MetadataReport_Reads, MonStatus, by = c("MonitoringStatus_Name"), all = T)
 
 # Merge all
-MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %>% 
+MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %>%
   arrange(AdminUnit_Name, Macroplot_Name, SampleEvent_Date)
 ```
 
@@ -288,3 +288,8 @@ write.csv(MetadataReport_all, paste0(path_save, "MetadataReport.csv"), quote = F
 -   FuelType (PIPO, PIED, etc.)
 
 ## Species Report
+
+```{r}
+SpeciesReport_all <- SpeciesReport
+write.csv(SpeciesReport_all, paste0(path_save, "SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
+```
