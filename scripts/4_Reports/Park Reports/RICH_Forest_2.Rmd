@@ -38,6 +38,7 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 # install.packages("ggplot2")
 # install.packages("RefManageR")
 # install.packages("vegan")
+# install.packages("downloadthis")
 ```
 
 ```{r}
@@ -51,13 +52,18 @@ library(ggplot2)
 library(stringr)
 library(DT)
 library(fs)
+# ggplot2 is used for graphing. gganimate creates graph animations patchwork stitches graphs together
 library(ggplot2)
 #library(gganimate)
-#library(patchwork)
+library(patchwork)
+library(RColorBrewer)
+# zotero reference manager
 library(RefManageR)
 # shannon diversity index
 library(vegan)
 library(here)
+# download button
+library(downloadthis)
 ```
 
 ### References
@@ -81,8 +87,8 @@ bib <- ReadZotero(
 
 ```{r}
 ## Adjust File Paths
-path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
-#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+#path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
+path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 path_data <- paste0(path_file, "ALL/Calculations/ALL_")
 path_save <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/graphs"
 ## Source Code for Gingrich Stocking Chart
@@ -94,6 +100,7 @@ source(paste0(here(), "/scripts/4_Reports/Gingrich Stocking Chart.R"))
 ```{r}
 # Load in data
 MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
+SpeciesReport <- read.csv(paste0(path_data, "SpeciesReport.csv"))
 Fuels <- read.csv(paste0(path_data, "Data_Fuels.csv"))
 Trees <- read.csv(paste0(path_data, "Data_Trees.csv"))
 Seedlings <- read.csv(paste0(path_data, "Data_Seedlings.csv"))
@@ -102,44 +109,6 @@ Cover <- read.csv(paste0(path_data, "Data_Cover_Points.csv"))
 # PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
 # Shrubs <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
 ```
-
-# Overview
-
-The current vegetation association of Richmond's forest is a Northern Coastal Plain Mixed Oak / Heath Forest [@noauthor_natureserve_nodate]. Recommendations for forest characteristics will be aimed at maintaining this community type.
-
-# Monitoring Objectives
-
-```{r}
-Objectives <- data.frame(
-  "Num" = c(1,2,3,4,5,6),
-  "Objective" = c(
-    "1. Maintain fine fuel loading (litter?, 1-hr, 10-hr, and 100-hr fuels) at < 2.4 tons/acre",
-    "2. Maintain duff depth to < 1.5 inch",
-    "3. Increase sapling density to 1,000 stems/acre or greater",
-    "4. xeric:mesic pole-sized (2.5-15cm DBH) tree density objective...",
-    "5. Maintain a stocking density of overstory trees (>15cm DBH) between 30-70%",
-    "6. >75% cover of native grasses and forbs"
-    ))
-
-target_FineFuelLoading <- 2.4
-target_Duff <- 1.5
-target_Sapling <- 1000
-target_PoleDensity <- 380 * .5
-target_Cover <- 75
-
-kable(Objectives %>% 
-        select(Objective)
-      )
-```
-
-#### Justifications
-
-1.  The fuel model most representative of this vegetation association is Timber Litter 6 (TL6) [@scott_standard_2005]. Timber Litter fuel models are primarily driven by dead and down woody fuel, and TL6 specifically represents moderate load broadleaf litter. To moderate fire spread potential, fine fuel loading should be at or below what is expected for each fuel model.
-2.  To promote oak and pine regeneration, duff depth should be maintained at low levels to allow seedlings with shallow root systems to establish in mineral soil [@jenkins_yellow_2011].
-3.  Young trees can be categorized by height class. In this report we define "seedlings" as \<1m tall and "saplings" as \>1m tall but \<2.5cm DBH (DBH = diameter at height of 1.3m). We will focus on sapling tree density metrics because larger size classes are more competitive and better predictors of advanced regeneration [@harris_increasing_2022].
-4.  Pole-sized trees are classified as between 2.5cm and 15cm DBH. Species composition of pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments. Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021].
-5.  Overstory trees are classified as \>15cm DBH. These are the mature trees which make up the overall forest structure. To promote open canopy woodlands, tree stocking densities should be maintained within 30-70% [@ginrich_measuring_1967; @kabrick_silvicultural_2014]
-6.  Diversity objective...
 
 ### Target Values {.hidden}
 
@@ -159,7 +128,7 @@ target_year <- c(2025)
       select(Macroplot_UV1, Macroplot_UV2) %>% 
       unique()
 
-target_ProjectUnit <- c("Cold Harbor")
+target_ProjectUnit <- c("Cold Harbor II")
 target_MonitoringType <- c("Pine Oak")
 
 
@@ -189,6 +158,95 @@ year_min <- as.numeric((min(MetadataReport_SampleEvents$SampleEvent_Date_Year)) 
 date_min <- as.Date(paste0(year_min, "-12-31"))
 ```
 
+### Add Species Info
+
+```{r}
+SpeciesReport_merge <- SpeciesReport %>% 
+  filter(LocalSpecies_UV1 %in% c("fire adapted", "fire tolerant", "fire intolerant"),
+         LocalSpecies_PreferedLifeForm %in% c("Tree")) %>% 
+  mutate(ScientificName = MasterSpecies_ScientificName) %>% 
+  select(ScientificName, LocalSpecies_UV1)
+
+Trees <- merge(Trees, SpeciesReport_merge, by = c("ScientificName"), all.x = TRUE) %>% 
+  mutate(LocalSpecies_UV1 = ifelse(is.na(LocalSpecies_UV1), "unknown", LocalSpecies_UV1))
+
+Seedlings <- merge(Seedlings, SpeciesReport_merge, by = c("ScientificName"), all.x = TRUE) %>% 
+  mutate(LocalSpecies_UV1 = ifelse(is.na(LocalSpecies_UV1), "unknown", LocalSpecies_UV1))
+
+###################################################################################
+
+Species_trees <- SpeciesReport %>% 
+  filter(
+        ReportType == paste0("AdminUnit: ", target_park, " - Full Species Report"),
+        LocalSpecies_PreferedLifeForm == "Tree"
+      ) %>% 
+  mutate(
+    "Genus" = MasterSpecies_Genus,
+    "Scientific Name" = MasterSpecies_ScientificName,
+    "Fire Adaptedness" = LocalSpecies_UV1
+  ) %>% 
+  separate(LocalSpecies_CommonName, into = "Common Name", sep = ";") %>% 
+  select("Genus", "Scientific Name", "Common Name", "Fire Adaptedness")
+
+
+# vector of tree genera
+genera <- Species_trees$Genus
+
+palette <- c(
+  brewer.pal(12,"Set3"),
+  brewer.pal(12,"Paired"),
+  brewer.pal(8,"Dark2"),
+  brewer.pal(9,"Set1"),
+  brewer.pal(8,"Set2")
+)
+
+cols <- palette[1:length(genera)]
+cols <- colorspace::darken(cols, 0.15)
+genus_colors <- setNames(cols, genera)
+
+# color for NA
+na_color <- "grey70"
+```
+
+# Project Unit: `r target_ProjectUnit`
+
+# Overview
+
+The current vegetation association of Richmond's forest is a Northern Coastal Plain Mixed Oak / Heath Forest [@noauthor_natureserve_nodate]. Recommendations for forest characteristics will be aimed at maintaining this community type.
+
+# Monitoring Objectives
+
+```{r}
+Objectives <- data.frame(
+  "Num" = c(1,2,3,4,5,6),
+  "Objective" = c(
+    "1. Maintain fine fuel loading (litter?, 1-hr, 10-hr, and 100-hr fuels) at < 2.4 tons/acre",
+    "2. Maintain duff depth to ≤1.5 inch",
+    "3. Increase sapling density to ≥1,000 stems/acre",
+    "4. Reduce pole-sized tree density of mesic fire-intolerant/fire-tolerant species relative to xeric fire-adapted species",
+    "5. Maintain a stocking density of overstory trees between 30-70%",
+    "6. Maintain or increase native grass and forb cover to ≥50%"
+    ))
+
+target_FineFuelLoading <- 2.4
+target_Duff <- 1.5
+target_Sapling <- 1000
+target_Cover <- 50
+
+kable(Objectives %>% 
+        select(Objective)
+      )
+```
+
+#### Justifications
+
+1.  The fuel model most representative of this vegetation association is Timber Litter 6 (TL6) [@scott_standard_2005]. Timber Litter fuel models are primarily driven by dead and down woody fuel, and TL6 specifically represents moderate load broadleaf litter. To moderate fire spread potential, fine fuel loading should be at or below what is expected for each fuel model.
+2.  To promote oak and pine regeneration, duff depth should be maintained at low levels to allow seedlings with shallow root systems to establish in mineral soil [@jenkins_yellow_2011].
+3.  Young trees can be categorized by height class. In this report we define "seedlings" as \<1m tall and "saplings" as \>1m tall but \<2.5cm DBH (DBH = diameter at height of 1.3m). We will focus on sapling tree density metrics because larger size classes are more competitive and better predictors of advanced regeneration [@harris_increasing_2022].
+4.  Pole-sized trees are classified as between 2.5cm and 15cm DBH. Species composition of pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments. Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021].
+5.  Overstory trees are classified as \>15cm DBH. These are the mature trees which make up the overall forest structure. To promote open canopy woodlands, tree stocking densities should be maintained within 30-70% [@ginrich_measuring_1967; @kabrick_silvicultural_2014; @hanberry_open_2020; @pile_knapp_managing_2024]
+6.  Diversity objective...
+
 ## Overview {.hidden}
 
 ### Prep {.hidden}
@@ -215,37 +273,41 @@ Disturbances_graph <- MetadataReport_Disturbances %>%
 ### Disturbance History
 
 ```{r}
-p_disturbance <- MetadataReport_Disturbances %>%
-  ggplot(aes(x = Disturbance_Date, y = Macroplot_Num)) +
-  geom_line(aes(group = Macroplot_Num),
-            data = Disturbances_graph) +
-  geom_point(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
-             data = Disturbances_graph, shape = 21) +
-  geom_line(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
-            data = Disturbances_graph) +
-  geom_point(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
-             data = Disturbances_graph, shape = 21, size = 2.5) +
-  facet_grid( ~ Macroplot_UV2) +
-  labs(title = "Disturbance History",
-       y = "",
-       x = "Year",
-       fill = "") +
-  scale_x_date(
-    limits = c(date_min, date_max),
-    date_breaks = "1 year",
-    date_labels = "%Y",
-    expand = expansion(mult = c(0, 0))
-  ) +
-  theme_light() +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-        plot.title = element_text(size = 15, face="bold", hjust = 0.5),
-        axis.title = element_text(size = 12, face="bold"),
-        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-        axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1),
-        legend.position = "top")
+if(nrow(MetadataReport_Disturbances) == 0) {
+  p_disturbance <- ggplot()
+} else {
+  p_disturbance <- MetadataReport_Disturbances %>%
+    ggplot(aes(x = Disturbance_Date, y = Macroplot_Num)) +
+    geom_line(aes(group = Macroplot_Num),
+              data = Disturbances_graph) +
+    geom_point(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
+               data = Disturbances_graph, shape = 21) +
+    geom_line(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
+              data = Disturbances_graph) +
+    geom_point(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
+               data = Disturbances_graph, shape = 21, size = 2.5) +
+    facet_grid( ~ Macroplot_UV2) +
+    labs(title = "Disturbance History",
+         y = "",
+         x = "Year",
+         fill = "") +
+    scale_x_date(
+      limits = c(date_min, date_max),
+      date_breaks = "1 year",
+      date_labels = "%Y",
+      expand = expansion(mult = c(0, 0))
+    ) +
+    theme_light() +
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+          plot.title = element_text(size = 15, face="bold", hjust = 0.5),
+          axis.title = element_text(size = 12, face="bold"),
+          axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+          axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+          axis.text.y = element_blank(),
+          axis.ticks.y = element_blank(),
+          axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1),
+          legend.position = "top")
+}
 
 #p_disturbance
 ```
@@ -452,7 +514,7 @@ p_fuels <- Fuels_graph %>%
     color = "forestgreen"
     )
 
-p_fuels
+#p_fuels
 #ggsave("fuels_classic.jpg", p_fuels_classic, path = path_save, width = 12, height = 8, dpi = 300)
 ```
 
@@ -462,8 +524,9 @@ p_disturbance_merge <- p_disturbance +
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
-        )+
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
+        ) +
   labs(
     title = paste(target_park, target_type, "Fuel Loading"),
     fill = "Disturbance"
@@ -546,7 +609,7 @@ p_fuels <- Fuels_graph %>%
     color = "forestgreen"
     )
 
-p_fuels
+#p_fuels
 ```
 
 ```{r}
@@ -555,7 +618,8 @@ p_disturbance_merge <- p_disturbance +
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
         )+
   labs(
     title = paste(target_park, target_type, "Fuel Loading"),
@@ -632,7 +696,7 @@ p_fuels <- FuelsDuff_graph %>%
     size = 0.7
     )
 
-p_fuels
+#p_fuels
 ```
 
 ```{r}
@@ -641,7 +705,8 @@ p_disturbance_merge <- p_disturbance +
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
         )+
   labs(
     title = paste(target_park, target_type, "Fuel Loading"),
@@ -721,7 +786,8 @@ p_fuels <- Fuels_graph %>%
 #         axis.title.x = element_blank(),
 #         axis.ticks.x = element_blank(),
 #         legend.position = "right",
-#         plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
+#         plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+#         plot.title = element_text(size = 15, face="bold", hjust = 0.5)
 #         )+
 #   labs(
 #     title = paste(target_park, target_type, "Fuel Loading"),
@@ -754,17 +820,20 @@ Seedlings_graph <- Seedlings %>%
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    ,Genus, Status
+    ,Genus
+    ,ScientificName
+    ,Status
+    ,LocalSpecies_UV1
     ) %>%
   dplyr::summarise(
     n_plots = n_distinct(Macroplot_Name),
     
-    Seedling_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
+    #Seedling_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
     Seedling_Count  = sum(Seedling_Count),
     Seedling_Density_ac = sum(Seedling_Dens_ac, na.rm = TRUE),
     Seedling_Density_ha = sum(Seedling_Dens_ha, na.rm = TRUE),
     
-    Sapling_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
+    #Sapling_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
     Sapling_Count = sum(Sapling_Count),
     Sapling_Density_ac = sum(Sapling_Dens_ac, na.rm = TRUE),
     Sapling_Density_ha = sum(Sapling_Dens_ha, na.rm = TRUE),
@@ -840,7 +909,10 @@ Trees_graph <- Trees %>%
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    ,Genus, Status
+    ,Genus
+    ,ScientificName
+    ,Status
+    ,LocalSpecies_UV1
     ) %>%
   dplyr::summarise(
     n_plots = n_distinct(Macroplot_Name),
@@ -855,14 +927,14 @@ Trees_graph <- Trees %>%
     # Sapling_Density_ac = round(mean(Sapling_Dens_ac, na.rm = TRUE)),
     # Sapling_Density_ha = round(mean(Sapling_Dens_ha, na.rm = TRUE)),
     
-    Pole_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
+    #Pole_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
     Pole_Count = sum(Pole_Count),
     Pole_Density_ac = sum(Pole_Dens_ac, na.rm = TRUE),
     Pole_Density_ha = sum(Pole_Dens_ha, na.rm = TRUE),
     Pole_BA_ft2 = round((mean(Pole_BA_ft2, na.rm = TRUE)), 2),
     Pole_BA_m2 = round((mean(Pole_BA_m2, na.rm = TRUE)), 2),
     
-    Overstory_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
+    #Overstory_Species = paste(na.omit(unique(ScientificName)), collapse = "; "),
     Overstory_Count = sum(Overstory_Count),
     Overstory_Density_ac = sum(Overstory_Dens_ac, na.rm = TRUE),
     Overstory_Density_ha = sum(Overstory_Dens_ha, na.rm = TRUE),
@@ -889,7 +961,7 @@ Trees_graph <- Trees %>%
       levels = c(
         "Overstory",
         "Pole"
-      ))
+      )),
     # Genus = factor(
     #   Genus,
     #   levels = c(
@@ -900,15 +972,15 @@ Trees_graph <- Trees %>%
     #     "Liquidambar",
     #     "Carex"
     #   )),
-    # Legend = factor(
-    #   Legend,
-    #   levels = c(
-    #     "Fire Adapted",
-    #     "Fire Tolerant",
-    #     "Fire Intolerant",
-    #     "Unknown"
-    #     )),
-    )
+    LocalSpecies_UV1 = factor(
+      LocalSpecies_UV1,
+      levels = c(
+        "fire adapted",
+        "fire tolerant",
+        "fire intolerant",
+        "unknown"
+        ))
+  )
 ```
 
 ### Seedlings {.hidden}
@@ -927,7 +999,8 @@ p_trees_seedlings <- Seedlings_graph %>%
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    ,Genus, Species, Status
+    ,Genus
+    #,ScientificName
     ) %>% 
   mutate(
     Total_Density_ac = sum(Density_ac),
@@ -956,7 +1029,6 @@ p_trees_seedlings <- Seedlings_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
   ) +
-  #scale_fill_manual(values = c("#FF4040", "#EE6A50", "#FF8C00", "#00B2EE", "#009ACD", "#666666")) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -974,27 +1046,28 @@ p_trees_seedlings <- Seedlings_graph %>%
     color = "red"
     )
 
-p_trees_seedlings
+#p_trees_seedlings
 ```
 
 ```{r}
-p_disturbance_merge <- p_disturbance +
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
-        )+
-  labs(
-    title = paste(target_park, target_type, "Seedling Tree Density"),
-    fill = "Disturbance"
-       )
-
-p_trees_merge <- p_trees_seedlings +
-  theme(plot.title = element_blank())
-
-p_disturbance_merge / p_trees_merge +
-  plot_layout(heights = c(0.2, 1.4))
+# p_disturbance_merge <- p_disturbance +
+#   theme(axis.text.x = element_blank(),
+#         axis.title.x = element_blank(),
+#         axis.ticks.x = element_blank(),
+#         legend.position = "right",
+#         plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+#         plot.title = element_text(size = 15, face="bold", hjust = 0.5)
+#         )+
+#   labs(
+#     title = paste(target_park, target_type, "Seedling Tree Density"),
+#     fill = "Disturbance"
+#        )
+# 
+# p_trees_merge <- p_trees_seedlings +
+#   theme(plot.title = element_blank())
+# 
+# p_disturbance_merge / p_trees_merge +
+#   plot_layout(heights = c(0.2, 1.4))
 ```
 
 ### Saplings
@@ -1020,7 +1093,9 @@ p_trees_saplings <- Seedlings_graph %>%
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    ,Genus, Species, Status) %>% 
+    ,Genus
+    #,ScientificName
+    ) %>% 
   mutate(
     Total_Density_ac = sum(Density_ac),
     Total_Density_ha = sum(Density_ha)
@@ -1045,14 +1120,14 @@ p_trees_saplings <- Seedlings_graph %>%
     x = "Year",
     y = "Stems / Acre",
     title = paste(target_park, target_type, "Sapling Tree Density"),
-    caption = expression("*40 stems/acre is equivalent to 1 sapling found in a sample area of 50m"^2)
+    caption = expression("*80 stems/ac (200 stems/ha) is equivalent to 1 sapling found in a sample area of 50m"^2)
   ) +
   scale_x_continuous(
     limits = c(year_min, year_max),
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
   ) +
-  #scale_fill_manual(values = c("#FF4040", "#FF8C00", "#e9e322", "#00B2EE", "#756BB1", "#666666")) +
+  scale_fill_manual(values = genus_colors, na.value = na_color, drop = FALSE) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -1075,7 +1150,7 @@ p_trees_saplings <- Seedlings_graph %>%
     color = "forestgreen"
     )
 
-p_trees_saplings
+#p_trees_saplings
 ```
 
 ```{r}
@@ -1084,7 +1159,8 @@ p_disturbance_merge <- p_disturbance +
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
         )+
   labs(
     title = paste(target_park, target_type, "Sapling Tree Density"),
@@ -1121,7 +1197,9 @@ p_trees_poles <- Trees_graph %>%
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    ,Status, Genus
+    ,Genus
+    #,ScientificName
+    #,LocalSpecies_UV1
     ) %>% 
   mutate(
     Total_Density_ac = sum(Density_ac),
@@ -1136,7 +1214,8 @@ p_trees_poles <- Trees_graph %>%
     aes(
       x = SampleEvent_Date_Year,
       y = Total_Density_ac,
-      color = Genus)
+      color = Genus,
+      )
   ) +
   geom_line() +
   geom_point() +
@@ -1144,14 +1223,15 @@ p_trees_poles <- Trees_graph %>%
   labs(
     x = "Year",
     y = "Stems / Acre",
-    title = paste(target_park, target_type, "Pole Tree Density")
+    title = paste(target_park, target_type, "Pole Tree Density"),
+    color = element_blank()
     ) +
   scale_x_continuous(
     limits = c(year_min, year_max),
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
     ) +
-  #scale_color_manual(values = c("#FF4040", "#e9e322", "#00B2EE", "#666666")) +
+  scale_color_manual(values = genus_colors, na.value = na_color, drop = FALSE) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -1169,7 +1249,7 @@ p_trees_poles <- Trees_graph %>%
     color = "red"
     )
 
-p_trees_poles
+#p_trees_poles
 ```
 
 ```{r}
@@ -1178,7 +1258,8 @@ p_disturbance_merge <- p_disturbance +
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
         )+
   labs(
     title = paste(target_park, target_type, "Pole Tree Density"),
@@ -1223,14 +1304,10 @@ p_trees_overstory_BA <- Trees_graph %>%
     Total_Density_ha = sum(Density_ha),
     Total_BA_ft2 = sum(BA_ft2),
     Total_BA_m2 = sum(BA_m2)
-    # k_english = 0.005454,
-    # k_metric = 0.00007854,
-    # QMD_english = round((sqrt((Total_BA_ft2)/(k_english * Total_Density_ac))),1),
-    # QMD_metric = round((sqrt((Total_BA_m2)/(k_metric * Total_Density_ha))), 1)
     ) %>% 
   filter(
     Total_Density_ac != 0,
-    SampleEvent_Date_Year %in% target_year
+    SampleEvent_Date_Year %in% max(Trees_graph$SampleEvent_Date_Year)
     )
 
 plot.gingrich.imperial(
@@ -1291,7 +1368,7 @@ Cover_graph <- Cover %>%
       )))
 ```
 
-### Diversity
+### Diversity {.hidden}
 
 ```{r}
 # wide_diversity <- Cover_graph %>%
@@ -1440,8 +1517,8 @@ p_cover_classic <- Cover_graph %>%
       #"Nonvascular", "Lichenous", 
       "Graminoid", "Grass-like",
       "Forb/herb", "Fern"
-      #,"Vine",
-      #"Shrub", "Subshrub",
+      ,"Vine"
+      #,"Shrub", "Subshrub",
       #"Tree",
       #"Substrate"
       ),
@@ -1499,7 +1576,28 @@ p_cover_classic <- Cover_graph %>%
     color = "forestgreen"
     )
 
-p_cover_classic
+#p_cover_classic
+```
+
+```{r}
+p_disturbance_merge <- p_disturbance +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "right",
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
+        )+
+  labs(
+    title = paste(target_park, target_type, "Native Grass and Forb Cover"),
+    fill = "Disturbance"
+       )
+
+p_cover_merge <- p_cover_classic +
+  theme(plot.title = element_blank())
+
+p_disturbance_merge / p_cover_merge +
+  plot_layout(heights = c(0.2, 1.4))
 ```
 
 ### Cover Lifeform
@@ -1508,12 +1606,12 @@ p_cover_classic
 p_cover_lifeform <- Cover_graph %>% 
   filter(
     Preferred_Lifeform %in% c(
-      #"Nonvascular", "Lichenous", 
-      "Graminoid", "Grass-like",
-      "Forb/herb", "Fern", "Vine",
-      "Shrub" #"Subshrub",
-      #"Tree",
-      #"Substrate"
+      "Nonvascular", "Lichenous"
+      ,"Graminoid", "Grass-like"
+      ,"Forb/herb", "Fern", "Vine"
+      ,"Shrub" ,"Subshrub"
+      ,"Tree"
+      #,"Substrate"
       ),
     Nativity %in% c(
       "Native",
@@ -1526,9 +1624,9 @@ p_cover_lifeform <- Cover_graph %>%
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ,Preferred_Lifeform
-    ,Genus
-    ,ScientificName
-    ,Nativity
+    #,Genus
+    #,ScientificName
+    #,Nativity
     ) %>% 
   dplyr::summarise(
     Total_Cover = sum(PctCover, na.rm = TRUE),
@@ -1558,6 +1656,15 @@ p_cover_lifeform <- Cover_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
     ) +
+  # scale_fill_manual(values = c("Graminoid" = "green",
+  #                               "Grass-like" = "green",
+  #                               "Forb/herb" = "blue",
+  #                               "Fern" = "blue",
+  #                               "Vine" = "blue",
+  #                               "Shrub" = "orange",
+  #                               "Subshrub" = "orange",
+  #                               "Tree" = "red",
+  #                               "Substrate" = "brown")) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -1575,7 +1682,7 @@ p_cover_lifeform <- Cover_graph %>%
     color = "red"
     )
 
-p_cover_lifeform
+#p_cover_lifeform
 ```
 
 ```{r}
@@ -1584,7 +1691,8 @@ p_disturbance_merge <- p_disturbance +
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
         )+
   labs(
     title = paste(target_park, target_type, "Cover"),
@@ -1601,15 +1709,15 @@ p_disturbance_merge / p_cover_merge +
 ### Cover Height
 
 ```{r}
-p_cover_nativity <- Cover_graph %>% 
+p_cover_height <- Cover_graph %>% 
   filter(
     Preferred_Lifeform %in% c(
-      #"Nonvascular", "Lichenous", 
-      "Graminoid", "Grass-like",
-      "Forb/herb", "Fern", "Vine",
-      "Shrub", "Subshrub",
-      "Tree"
-      #"Substrate"
+      #"Nonvascular", "Lichenous"
+      "Graminoid", "Grass-like"
+      ,"Forb/herb", "Fern", "Vine"
+      ,"Shrub" ,"Subshrub"
+      ,"Tree"
+      #,"Substrate"
       ),
     Nativity %in% c(
       "Native",
@@ -1621,10 +1729,10 @@ p_cover_nativity <- Cover_graph %>%
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    #,Preferred_Lifeform
+    ,Preferred_Lifeform
     #,Genus
     #,ScientificName
-    ,Nativity
+    #,Nativity
     ) %>% 
   dplyr::summarise(
     Total_Cover = sum(PctCover, na.rm = TRUE),
@@ -1638,7 +1746,7 @@ p_cover_nativity <- Cover_graph %>%
     aes(
       x = SampleEvent_Date_Year,
       y = Avg_Ht_ft,
-      fill = Nativity
+      fill = Preferred_Lifeform
       ),
     # position_dodge means the bars will display side by side
     #position = "stack", stat = "identity"
@@ -1648,7 +1756,7 @@ p_cover_nativity <- Cover_graph %>%
   labs(
     x = "Year",
     y = "Height (ft)",
-    fill = "Nativity",
+    fill = "Lifeform",
     title = paste(target_park, target_type, "Understory Height")
     ) +
   scale_x_continuous(
@@ -1674,7 +1782,7 @@ p_cover_nativity <- Cover_graph %>%
     color = "red"
     )
 
-p_cover_nativity
+#p_cover_height
 ```
 
 ```{r}
@@ -1683,115 +1791,38 @@ p_disturbance_merge <- p_disturbance +
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
         )+
   labs(
-    title = paste(target_park, target_type, "Native Cover"),
+    title = paste(target_park, target_type, "Understory Height"),
     fill = "Disturbance"
        )
 
-p_cover_merge <- p_cover_nativity +
+p_cover_merge <- p_cover_height +
   theme(plot.title = element_blank())
 
 p_disturbance_merge / p_cover_merge +
   plot_layout(heights = c(0.2, 1.4))
 ```
 
-### Cover Oaks {.hidden}
-
 ```{r}
-p_cover_oaks <- Cover_graph %>% 
-  filter(
-    Preferred_Lifeform %in% c(
-      #"Nonvascular", "Lichenous", 
-      #"Graminoid", "Grass-like",
-      #"Forb/herb", "Fern", "Vine",
-      #"Shrub", "Subshrub",
-      "Tree"
-      #"Substrate"
-      ),
-    Nativity %in% c(
-      "Native",
-      "Non-Native",
-      "Invasive"
-      #"Unknown"
-      ),
-    Genus == "Quercus"
-    ) %>% 
-  group_by(
-    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
-    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    ,Preferred_Lifeform
-    ,Genus
-    ,Nativity
-    #,Species.Symbol
-    ) %>% 
-  dplyr::summarise(
-    Total_Cover = sum(PctCover, na.rm = TRUE),
-    .groups = "drop"
-    ) %>%  
-  
-  ggplot(aes(
-      x = SampleEvent_Date_Year, 
-      y = Total_Cover, 
-      fill = Genus
-      )) +
-  geom_col() +
-  facet_wrap( ~ Macroplot_UV1, ncol = 1) +
-  labs(
-    x = "Year",
-    y = "% Cover",
-    fill = "Lifeform",
-    title = paste(target_park, target_type, "Oak Cover")
-    ) +
-  scale_x_continuous(
-    limits = c(year_min, year_max),
-    breaks = seq(year_min, year_max, by = 1),
-    expand = expansion(mult = c(0, 0))
-    ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
-    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
-    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
-    axis.title = element_text(size = 12, face="bold"),
-    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
-    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-    axis.text.y = element_text(size = 8),
-    panel.grid.minor = element_blank()
-    ) +
-  geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
-    color = "red"
-    )
-
-#p_cover_oaks
-```
-
-```{r}
-p_disturbance_merge <- p_disturbance +
-  theme(axis.text.x = element_blank(),
-        axis.title.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        legend.position = "right",
-        plot.margin = margin(t = 5, r = 5, b = 0, l = 5)
-        )+
-  labs(
-    title = paste(target_park, target_type, "Oak Cover"),
-    fill = "Disturbance"
-       )
-
-p_cover_merge <- p_cover_oaks +
-  theme(plot.title = element_blank())
-
-p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
+#downloadButton("download_boxplot", "Download Plot")
 ```
 
 # Discussion
 
 # References
+
+## Tree List
+
+```{r}
+Species_trees <- Species_trees %>% 
+  arrange(`Scientific Name`)
+kable(Species_trees[,c("Scientific Name","Common Name","Fire Adaptedness")])
+```
+
+## Literature Cited
 
 ```{r}
 WriteBib(bib, file = "zotero_refs.bib")
