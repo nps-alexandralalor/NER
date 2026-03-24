@@ -19,6 +19,7 @@ output:
 link-citations: true
 bibliography: zotero_refs.bib
 csl: chicago-author-date-17th-edition.csl
+output_dir: output/
 ---
 
 # Annual Report {.hidden}
@@ -90,7 +91,7 @@ bib <- ReadZotero(
 #path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 path_data <- paste0(path_file, "ALL/Calculations/ALL_")
-path_save <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/graphs"
+path_save <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/graphs/"
 ## Source Code for Gingrich Stocking Chart
 source(paste0(here(), "/scripts/4_Reports/Gingrich Stocking Chart.R"))
 ```
@@ -129,7 +130,7 @@ target_year <- c(2025)
       unique()
 
 target_ProjectUnit <- c("Jarman Gap")
-target_MonitoringType <- c("Pine Oak", "Xeric Oak")
+target_MonitoringType <- c("Xeric Oak")
 
 
     MetadataReport_SampleEvents <- MetadataReport %>%
@@ -161,25 +162,44 @@ date_min <- as.Date(paste0(year_min, "-12-31"))
 ### Add Species Info
 
 ```{r}
-# SpeciesReport_merge <- SpeciesReport %>% 
-#   filter(LocalSpecies_UV1 %in% c("fire adapted", "fire tolerant", "fire intolerant"),
-#          LocalSpecies_PreferedLifeForm %in% c("Tree")) %>% 
-#   mutate(ScientificName = MasterSpecies_ScientificName) %>% 
-#   select(ScientificName, LocalSpecies_UV1)
-# 
-# Trees <- merge(Trees, SpeciesReport_merge, by = c("ScientificName"), all.x = TRUE) %>% 
-#   mutate(LocalSpecies_UV1 = ifelse(is.na(LocalSpecies_UV1), "unknown", LocalSpecies_UV1))
-# 
-# Seedlings <- merge(Seedlings, SpeciesReport_merge, by = c("ScientificName"), all.x = TRUE) %>% 
-#   mutate(LocalSpecies_UV1 = ifelse(is.na(LocalSpecies_UV1), "unknown", LocalSpecies_UV1))
-# 
-# ###################################################################################
-# 
+# Isolate all trees which are in the plots analyzed
+Species_trees_protocol <- Trees %>% 
+  filter(
+    AdminUnit_Name == target_park,
+    Macroplot_Type == target_type,
+    Macroplot_Purpose == target_purpose,
+    Macroplot_UV1 == target_ProjectUnit,
+    Macroplot_UV2 == target_MonitoringType
+    ) %>% 
+  select(ScientificName)
+
+Species_seedlings_protocol <- Seedlings %>% 
+  filter(
+    AdminUnit_Name == target_park,
+    Macroplot_Type == target_type,
+    Macroplot_Purpose == target_purpose,
+    Macroplot_UV1 == target_ProjectUnit,
+    Macroplot_UV2 == target_MonitoringType
+    ) %>% 
+  select(ScientificName)
+
+Species_trees_filter <- rbind(Species_trees_protocol, 
+                              Species_seedlings_protocol) %>% 
+  drop_na() %>% 
+  unique() %>% 
+  filter(ScientificName != "Unknown")
+
+# target species object
+target_species <- Species_trees_filter$ScientificName
+
+
+# filter target species from master list
 Species_trees <- SpeciesReport %>%
   filter(
         ReportType == paste0("AdminUnit: ", target_park, " - Full Species Report"),
         LocalSpecies_PreferedLifeForm == "Tree"
       ) %>%
+  filter(MasterSpecies_ScientificName %in% target_species) %>% 
   mutate(
     "Genus" = MasterSpecies_Genus,
     "Scientific Name" = MasterSpecies_ScientificName
@@ -1099,10 +1119,21 @@ p_disturbance_merge <- p_disturbance +
        )
 
 p_trees_merge <- p_trees_poles +
-  theme(plot.title = element_blank())
+  theme(plot.title = element_blank(),
+        strip.text = element_blank())
 
 p_disturbance_merge / p_trees_merge +
   plot_layout(heights = c(0.2, 1.4))
+```
+
+```{r}
+# # save when ready
+# p <-
+#   p_disturbance_merge / p_trees_merge +
+#   plot_layout(heights = c(0.2, 1.4))
+# 
+# ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "pole.jpg"), 
+#        plot = p, width = 6, height = 4, units = "in", dpi = 300)
 ```
 
 ### Overstory - Gingrich Stocking Graph
