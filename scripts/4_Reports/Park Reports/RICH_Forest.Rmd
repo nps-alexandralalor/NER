@@ -16,6 +16,13 @@ output:
   word_document:
     toc: true
     toc_depth: 2
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(
+    inputFile,
+    encoding = encoding,
+    output_dir = "reports"
+  )
+})
 link-citations: true
 bibliography: zotero_refs.bib
 csl: chicago-author-date-17th-edition.csl
