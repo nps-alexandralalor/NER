@@ -1,6 +1,6 @@
 ---
-title: Richmond National Battlefield Park Report - Forest Plots
-author: NPS Northeast Region Fire Effects Monitoring Program
+title: Fire Effects Monitoring Report
+author: NPS Northeast Region Fire Ecology Program
 output:
   html_document:
     theme: readable
@@ -10,19 +10,6 @@ output:
     toc_float:
       smooth_scroll: true
     code_download: true
-  pdf_document:
-    toc: true
-    toc_depth: 2
-  word_document:
-    toc: true
-    toc_depth: 2
-knit: (function(inputFile, encoding) {
-  rmarkdown::render(
-    inputFile,
-    encoding = encoding,
-    output_dir = "reports"
-  )
-})
 link-citations: true
 bibliography: zotero_refs.bib
 csl: chicago-author-date-17th-edition.csl
@@ -97,7 +84,7 @@ bib <- ReadZotero(
 #path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
 path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
 path_data <- paste0(path_file, "ALL/Calculations/ALL_")
-path_save <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/graphs/"
+path_save <- paste0(here(), "/output/graphs/")
 ## Source Code for Gingrich Stocking Chart
 source(paste0(here(), "/scripts/4_Reports/Gingrich Stocking Chart.R"))
 ```
@@ -121,7 +108,7 @@ Cover <- read.csv(paste0(path_data, "Data_Cover_Points.csv"))
 
 ```{r}
 target_park <- c("RICH")
-target_type <- c("Forest")
+target_type <- c("Grassland")
 target_purpose <- c("Fire Monitoring Handbook")
 target_year <- c(2025)
 
@@ -135,8 +122,8 @@ target_year <- c(2025)
       select(Macroplot_UV1, Macroplot_UV2) %>% 
       unique()
 
-target_ProjectUnit <- c("Cold Harbor I")
-target_MonitoringType <- c("Pine Oak")
+target_ProjectUnit <- c("Malvern Hill")
+target_MonitoringType <- c("Warm Season")
 
 
     MetadataReport_SampleEvents <- MetadataReport %>%
@@ -198,6 +185,8 @@ Species_trees_filter <- rbind(Species_trees_protocol,
 # target species object
 target_species <- Species_trees_filter$ScientificName
 
+remove(Species_trees_protocol, Species_seedlings_protocol, Species_trees_filter)
+
 
 # filter target species from master list
 Species_trees <- SpeciesReport %>%
@@ -212,7 +201,8 @@ Species_trees <- SpeciesReport %>%
     "Fire Adaptedness" = LocalSpecies_UV1
   ) %>%
   separate(LocalSpecies_CommonName, into = "Common Name", sep = ";") %>%
-  select("Genus", "Scientific Name", "Common Name", "Fire Adaptedness")
+  select("Genus", "Scientific Name", "Common Name", "Fire Adaptedness") %>% 
+  arrange(`Scientific Name`)
 
 
 # vector of tree genera
@@ -234,7 +224,7 @@ genus_colors <- setNames(cols, genera)
 na_color <- "grey70"
 ```
 
-# Project Unit: `r target_ProjectUnit`
+# `r target_park` `r target_year` `r target_type` Plots: `r target_ProjectUnit` (`r target_MonitoringType`)  
 
 # Overview
 
@@ -268,10 +258,10 @@ kable(Objectives %>%
 
 1.  The fuel model most representative of this vegetation association is Timber Litter 6 (TL6) [@scott_standard_2005]. Timber Litter fuel models are primarily driven by dead and down woody fuel, and TL6 specifically represents moderate load broadleaf litter. To moderate fire spread potential, fine fuel loading should be at or below what is expected for each fuel model.
 2.  To promote oak and pine regeneration, duff depth should be maintained at low levels to allow seedlings with shallow root systems to establish in mineral soil [@jenkins_yellow_2011].
-3.  Young trees can be categorized by height class. In this report we define "seedlings" as \<1m tall and "saplings" as \>1m tall but \<2.5cm DBH (DBH = diameter at height of 1.3m). We will focus on sapling tree density metrics because larger size classes are more competitive and better predictors of advanced regeneration [@harris_increasing_2022].
+3.  In this report we define "seedlings" as \<1m tall and "saplings" as \>1m tall but \<2.5cm DBH (DBH = diameter at height of 1.3m). Saplings are more competitive and better predictors of advanced regeneration [@harris_increasing_2022], so objectives focus specifically on sapling density.
 4.  Pole-sized trees are classified as between 2.5cm and 15cm DBH. Species composition of pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments. Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021].
 5.  Overstory trees are classified as \>15cm DBH. These are the mature trees which make up the overall forest structure. To promote open canopy woodlands, tree stocking densities should be maintained within 30-70% [@ginrich_measuring_1967; @kabrick_silvicultural_2014; @hanberry_open_2020; @pile_knapp_managing_2024]
-6.  Diversity objective...
+6.  Native forb and grass understory is expected to increase with the removal of litter and opening of canopies.
 
 ## Overview {.hidden}
 
@@ -343,7 +333,7 @@ if(nrow(MetadataReport_Disturbances) == 0) {
 ### Prep {.hidden}
 
 ```{r}
-Fuels_graph <- Fuels %>% 
+FuelLoad_graph <- Fuels %>% 
   filter(
     AdminUnit_Name == target_park,
     Macroplot_Type == target_type,
@@ -423,7 +413,7 @@ Fuels_graph <- Fuels %>%
 ```
 
 ```{r}
-FuelsDuff_graph <- Fuels %>% 
+FuelDepth_graph <- Fuels %>% 
   filter(
     AdminUnit_Name == target_park,
     Macroplot_Type == target_type,
@@ -480,10 +470,10 @@ kable(Objectives %>%
 ```
 
 ```{r}
-if(nrow(Fuels_graph) == 0) {
-  p_fuels <- "No data available for this selection."
+if(nrow(FuelLoad_graph) == 0) {
+  p_data <- "No data available for this selection."
 } else {
-  p_fuels <- Fuels_graph %>% 
+  p_data <- FuelLoad_graph %>% 
   filter(
     FuelClass %in% c(
       #"1000-hr",
@@ -520,7 +510,7 @@ if(nrow(Fuels_graph) == 0) {
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
   ) +
-  ylim(0, 8) +
+  ylim(0, NA) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -544,7 +534,7 @@ if(nrow(Fuels_graph) == 0) {
     )
 }
 
-#p_fuels
+#p_data
 ```
 
 ```{r}
@@ -561,25 +551,32 @@ p_disturbance_merge <- p_disturbance +
     fill = "Disturbance"
        )
 
-p_fuels_merge <- p_fuels +
+p_data_merge <- p_data +
   theme(plot.title = element_blank())
 
-if(is.character(p_fuels)) {
-  p_fuels
+if(is.character(p_data)) {
+  p <- p_data
 } else {
-p_disturbance_merge / p_fuels_merge +
-  plot_layout(heights = c(0.2, 1.4))
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
 }
+
+p
 ```
 
 ```{r}
 # save when ready
-p <-
-  p_disturbance_merge / p_fuels_merge +
-  plot_layout(heights = c(0.2, 1.4))
-
-ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "Fuels Fine.jpg"),
+if(is.character(p)) {
+  p
+} else {
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Fuels Fine.jpg"),
        plot = p, width = 6, height = 4, units = "in", dpi = 300)
+}
+
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Fuels Fine")
+  )
 ```
 
 ### Duff Depth
@@ -592,10 +589,10 @@ kable(Objectives %>%
 ```
 
 ```{r}
-if(nrow(FuelsDuff_graph) == 0) {
-  p_fuels <- "No data available for this selection."
+if(nrow(FuelDepth_graph) == 0) {
+  p_data <- "No data available for this selection."
 } else {
-p_fuels <- FuelsDuff_graph %>% 
+p_data <- FuelDepth_graph %>% 
   filter(
     FuelClass %in% c(
       "Litter",
@@ -649,7 +646,7 @@ p_fuels <- FuelsDuff_graph %>%
     )
 }
 
-#p_fuels
+#p_data
 ```
 
 ```{r}
@@ -666,34 +663,41 @@ p_disturbance_merge <- p_disturbance +
     fill = "Disturbance"
        )
 
-p_fuels_merge <- p_fuels +
+p_data_merge <- p_data +
   theme(plot.title = element_blank())
 
-if(is.character(p_fuels)) {
-  p_fuels
+if(is.character(p_data)) {
+  p <- p_data
 } else {
-p_disturbance_merge / p_fuels_merge +
-  plot_layout(heights = c(0.2, 1.4))
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
 }
+
+p
 ```
 
 ```{r}
 # save when ready
-p <-
-  p_disturbance_merge / p_fuels_merge +
-  plot_layout(heights = c(0.2, 1.4))
-
-ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "Fuels Duff.jpg"),
+if(is.character(p)) {
+  p
+} else {
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Fuels Duff.jpg"),
        plot = p, width = 6, height = 4, units = "in", dpi = 300)
+}
+
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Fuels Duff")
+  )
 ```
 
 ### All Fuels {.hidden}
 
 ```{r}
-if(nrow(Fuels_graph) == 0) {
-  p_fuels <- "No data available for this selection."
+if(nrow(FuelLoad_graph) == 0) {
+  p_data <- "No data available for this selection."
 } else {
-p_fuels <- Fuels_graph %>% 
+p_data <- FuelLoad_graph %>% 
   filter(
     FuelClass %in% c(
       #"1000-hr",
@@ -748,7 +752,7 @@ p_fuels <- Fuels_graph %>%
     )
 }
 
-#p_fuels
+#p_data
 ```
 
 ```{r}
@@ -765,25 +769,32 @@ p_disturbance_merge <- p_disturbance +
     fill = "Disturbance"
        )
 
-p_fuels_merge <- p_fuels +
+p_data_merge <- p_data +
   theme(plot.title = element_blank())
 
-if(is.character(p_fuels)) {
-  p_fuels
+if(is.character(p_data)) {
+  p <- p_data
 } else {
-p_disturbance_merge / p_fuels_merge +
-  plot_layout(heights = c(0.2, 1.4))
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
 }
+
+p
 ```
 
 ```{r}
 # save when ready
-p <-
-  p_disturbance_merge / p_fuels_merge +
-  plot_layout(heights = c(0.2, 1.4))
-
-ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "Fuels All.jpg"),
+if(is.character(p)) {
+  p
+} else {
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Fuels All.jpg"),
        plot = p, width = 6, height = 4, units = "in", dpi = 300)
+}
+
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Fuels All")
+  )
 ```
 
 ## Trees
@@ -827,13 +838,6 @@ Seedlings_graph <- Seedlings %>%
     names_to = c("SizeClass", ".value"),
     names_pattern = "(Seedling|Sapling)_(Species|Count|Density_[a-z]+)"
   ) %>% 
-  # mutate(Legend  = ifelse(Genus == "Carya",
-  #                         "Fire Tolerant",
-  #                    ifelse(Genus %in% c("Liriodendron", "Liquidambar"),
-  #                           "Fire Intolerant",
-  #                                  ifelse(Genus %in% c("Pinus", "Quercus"),
-  #                                         "Fire Adapted", "Unknown")))
-  #        ) %>%
   mutate(
     SizeClass = factor(
       SizeClass,
@@ -841,24 +845,6 @@ Seedlings_graph <- Seedlings %>%
         "Sapling",
         "Seedling"
       ))
-    # Genus = factor(
-    #   Genus,
-    #   levels = c(
-    #     "Pinus",
-    #     "Quercus",
-    #     "Carya",
-    #     "Liriodendron",
-    #     "Liquidambar",
-    #     "Carex"
-    #   )),
-    # Legend = factor(
-    #   Legend,
-    #   levels = c(
-    #     "Fire Adapted",
-    #     "Fire Tolerant",
-    #     "Fire Intolerant",
-    #     "Unknown"
-    #     ))
     )
 ```
 
@@ -910,24 +896,6 @@ Trees_graph <- Trees %>%
         "Overstory",
         "Pole"
       ))
-    # Genus = factor(
-    #   Genus,
-    #   levels = c(
-    #     "Pinus",
-    #     "Quercus",
-    #     "Carya",
-    #     "Liriodendron",
-    #     "Liquidambar",
-    #     "Carex"
-    #   )),
-    # LocalSpecies_UV1 = factor(
-    #   LocalSpecies_UV1,
-    #   levels = c(
-    #     "fire adapted",
-    #     "fire tolerant",
-    #     "fire intolerant",
-    #     "unknown"
-    #     ))
   )
 ```
 
@@ -935,9 +903,9 @@ Trees_graph <- Trees %>%
 
 ```{r}
 if(nrow(Seedlings_graph) == 0) {
-  p_trees_seedlings <- "No data available for this selection."
+  p_data <- "No data available for this selection."
 } else {
-p_trees_seedlings <- Seedlings_graph %>% 
+p_data <- Seedlings_graph %>% 
   filter(
     Status %in% c(
       "L"
@@ -956,9 +924,9 @@ p_trees_seedlings <- Seedlings_graph %>%
     Total_Density_ac = sum(Density_ac),
     Total_Density_ha = sum(Density_ha)
     ) %>% 
-  filter(
-    Total_Density_ac != 0
-    ) %>% 
+  # filter(
+  #   Total_Density_ac != 0
+  #   ) %>% 
     
   ggplot() +
   geom_bar(
@@ -997,7 +965,7 @@ p_trees_seedlings <- Seedlings_graph %>%
     )
 }
 
-#p_trees_seedlings
+#p_data
 ```
 
 ```{r}
@@ -1014,25 +982,32 @@ p_disturbance_merge <- p_disturbance +
     fill = "Disturbance"
        )
 
-p_trees_merge <- p_trees_seedlings +
+p_data_merge <- p_data +
   theme(plot.title = element_blank())
 
-if(is.character(p_trees_seedlings)) {
-  p_trees_seedlings
+if(is.character(p_data)) {
+  p <- p_data
 } else {
-p_disturbance_merge / p_trees_merge +
-  plot_layout(heights = c(0.2, 1.4))
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
 }
+
+p
 ```
 
 ```{r}
 # save when ready
-p <-
-  p_disturbance_merge / p_trees_merge +
-  plot_layout(heights = c(0.2, 1.4))
-
-ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "Trees Seedlings.jpg"),
+if(is.character(p)) {
+  p
+} else {
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Trees Seedlings.jpg"),
        plot = p, width = 6, height = 4, units = "in", dpi = 300)
+}
+
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Trees Seedlings")
+  )
 ```
 
 ### Saplings
@@ -1046,9 +1021,9 @@ kable(Objectives %>%
 
 ```{r}
 if(nrow(Seedlings_graph) == 0) {
-  p_trees_saplings <- "No data available for this selection."
+  p_data <- "No data available for this selection."
 } else {
-p_trees_saplings <- Seedlings_graph %>% 
+p_data <- Seedlings_graph %>% 
   filter(
     Status %in% c(
       "L"
@@ -1067,9 +1042,9 @@ p_trees_saplings <- Seedlings_graph %>%
     Total_Density_ac = sum(Density_ac),
     Total_Density_ha = sum(Density_ha)
     ) %>% 
-  filter(
-    Total_Density_ac != 0
-    ) %>% 
+  # filter(
+  #   Total_Density_ac != 0
+  #   ) %>% 
     
   ggplot() +
   geom_bar(
@@ -1118,7 +1093,7 @@ p_trees_saplings <- Seedlings_graph %>%
     )
 }
 
-#p_trees_saplings
+#p_data
 ```
 
 ```{r}
@@ -1135,25 +1110,32 @@ p_disturbance_merge <- p_disturbance +
     fill = "Disturbance"
        )
 
-p_trees_merge <- p_trees_saplings +
+p_data_merge <- p_data +
   theme(plot.title = element_blank())
 
-if(is.character(p_trees_saplings)) {
-  p_trees_saplings
+if(is.character(p_data)) {
+  p <- p_data
 } else {
-p_disturbance_merge / p_trees_merge +
-  plot_layout(heights = c(0.2, 1.4))
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
 }
+
+p
 ```
 
 ```{r}
 # save when ready
-p <-
-  p_disturbance_merge / p_trees_merge +
-  plot_layout(heights = c(0.2, 1.4))
-
-ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "Trees Saplings.jpg"),
+if(is.character(p)) {
+  p
+} else {
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Trees Saplings.jpg"),
        plot = p, width = 6, height = 4, units = "in", dpi = 300)
+}
+
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Trees Saplings")
+  )
 ```
 
 ### Pole-Sized
@@ -1167,9 +1149,9 @@ kable(Objectives %>%
 
 ```{r}
 if(nrow(Trees_graph) == 0) {
-  p_trees_poles <- "No data available for this selection."
+  p_data <- "No data available for this selection."
 } else {
-p_trees_poles <- Trees_graph %>% 
+p_data <- Trees_graph %>% 
   filter(
     Status %in% c(
       "L"
@@ -1184,16 +1166,14 @@ p_trees_poles <- Trees_graph %>%
     Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
     ,Genus
     #,ScientificName
-    #,LocalSpecies_UV1
     ) %>% 
   mutate(
     Total_Density_ac = sum(Density_ac),
     Total_Density_ha = sum(Density_ha)
-    #Species = paste(na.omit(unique(Species)), collapse = "; ")
     ) %>% 
-  filter(
-    Total_Density_ac != 0
-    ) %>% 
+  # filter(
+  #   Total_Density_ac != 0
+  #   ) %>% 
   
   ggplot(
     aes(
@@ -1208,8 +1188,7 @@ p_trees_poles <- Trees_graph %>%
   labs(
     x = "Year",
     y = "Stems / Acre",
-    title = paste(target_park, target_type, "Pole Tree Density"),
-    color = element_blank()
+    title = paste(target_park, target_type, "Pole Tree Density")
     ) +
   scale_x_continuous(
     limits = c(year_min, year_max),
@@ -1217,6 +1196,7 @@ p_trees_poles <- Trees_graph %>%
     expand = expansion(mult = c(0, 0))
     ) +
   scale_color_manual(values = genus_colors, na.value = na_color, drop = FALSE) +
+  ylim(0, NA) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -1235,7 +1215,7 @@ p_trees_poles <- Trees_graph %>%
     )
 }
 
-#p_trees_poles
+#p_data
 ```
 
 ```{r}
@@ -1252,25 +1232,32 @@ p_disturbance_merge <- p_disturbance +
     fill = "Disturbance"
        )
 
-p_trees_merge <- p_trees_poles +
+p_data_merge <- p_data +
   theme(plot.title = element_blank())
 
-if(is.character(p_trees_poles)) {
-  p_trees_poles
+if(is.character(p_data)) {
+  p <- p_data
 } else {
-p_disturbance_merge / p_trees_merge +
-  plot_layout(heights = c(0.2, 1.4))
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
 }
+
+p
 ```
 
 ```{r}
 # save when ready
-p <-
-  p_disturbance_merge / p_trees_merge +
-  plot_layout(heights = c(0.2, 1.4))
-
-ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "Trees Poles.jpg"),
+if(is.character(p)) {
+  p
+} else {
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Trees Poles.jpg"),
        plot = p, width = 6, height = 4, units = "in", dpi = 300)
+}
+
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Trees Poles")
+  )
 ```
 
 ### Overstory - Gingrich Stocking Graph
@@ -1284,9 +1271,9 @@ kable(Objectives %>%
 
 ```{r gingrich-plot, fig.width=10, fig.height=8}
 if(nrow(Trees_graph) == 0) {
-  p_trees_overstory_BA <- "No data available for this selection."
+  p_data <- "No data available for this selection."
 } else {
-p_trees_overstory_BA <- Trees_graph %>% 
+p_data <- Trees_graph %>% 
   filter(
     Status %in% c(
       "L"
@@ -1313,9 +1300,9 @@ p_trees_overstory_BA <- Trees_graph %>%
     )
 
 plot.gingrich.imperial(
-  tpa = p_trees_overstory_BA$Total_Density_ac,
-  ba = p_trees_overstory_BA$Total_BA_ft2,
-  label = p_trees_overstory_BA$SampleEvent_Date_Year,
+  tpa = p_data$Total_Density_ac,
+  ba = p_data$Total_BA_ft2,
+  label = p_data$SampleEvent_Date_Year,
   color = TRUE,
   type = "p",
   main = paste(target_park, target_ProjectUnit, "\nOverstory Stand Structure")
@@ -1325,18 +1312,18 @@ plot.gingrich.imperial(
 
 ```{r include=FALSE}
 # save when ready
-if(is.character(p_trees_overstory_BA)) {
-  p_trees_overstory_BA
+if(is.character(p_data)) {
+  p_data
 } else {
 jpeg(
-  filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "Trees Overstory.jpg"),
+  filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Trees Overstory.jpg"),
   width = 10, height = 8, units = "in", res = 300
 )
 
 plot.gingrich.imperial(
-  tpa = p_trees_overstory_BA$Total_Density_ac,
-  ba = p_trees_overstory_BA$Total_BA_ft2,
-  label = p_trees_overstory_BA$SampleEvent_Date_Year,
+  tpa = p_data$Total_Density_ac,
+  ba = p_data$Total_BA_ft2,
+  label = p_data$SampleEvent_Date_Year,
   color = TRUE,
   type = "p",
   main = paste(target_park, target_ProjectUnit, "\nOverstory Stand Structure")
@@ -1538,9 +1525,9 @@ kable(Objectives %>%
 
 ```{r}
 if(nrow(Cover_graph) == 0) {
-  p_cover_classic <- "No data available for this selection."
+  p_data <- "No data available for this selection."
 } else {
-p_cover_classic <- Cover_graph %>% 
+p_data <- Cover_graph %>% 
   filter(
     Preferred_Lifeform %in% c(
       #"Nonvascular", "Lichenous", 
@@ -1582,7 +1569,7 @@ p_cover_classic <- Cover_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
     ) +
-  ylim(0, 100) +
+  ylim(0, NA) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -1606,11 +1593,10 @@ p_cover_classic <- Cover_graph %>%
     )
 }
 
-#p_cover_classic
+#p_data
 ```
 
 ```{r}
-
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
         axis.title.x = element_blank(),
@@ -1624,34 +1610,41 @@ p_disturbance_merge <- p_disturbance +
     fill = "Disturbance"
        )
 
-p_cover_merge <- p_cover_classic +
+p_data_merge <- p_data +
   theme(plot.title = element_blank())
 
-if(is.character(p_cover_classic)) {
-  p_cover_classic
+if(is.character(p_data)) {
+  p <- p_data
 } else {
-p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
 }
+
+p
 ```
 
 ```{r}
 # save when ready
-p <-
-  p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
-
-ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "Cover Classic.jpg"),
+if(is.character(p)) {
+  p
+} else {
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Classic.jpg"),
        plot = p, width = 6, height = 4, units = "in", dpi = 300)
+}
+
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Native Herbs")
+  )
 ```
 
 ### Cover Lifeform
 
 ```{r}
 if(nrow(Cover_graph) == 0) {
-  p_cover_lifeform <- "No data available for this selection."
+  p_data <- "No data available for this selection."
 } else {
-p_cover_lifeform <- Cover_graph %>% 
+p_data <- Cover_graph %>% 
   filter(
     Preferred_Lifeform %in% c(
       "Nonvascular", "Lichenous"
@@ -1731,7 +1724,7 @@ p_cover_lifeform <- Cover_graph %>%
     )
 }
 
-#p_cover_lifeform
+#p_data
 ```
 
 ```{r}
@@ -1748,34 +1741,41 @@ p_disturbance_merge <- p_disturbance +
     fill = "Disturbance"
        )
 
-p_cover_merge <- p_cover_lifeform +
+p_data_merge <- p_data +
   theme(plot.title = element_blank())
 
-if(is.character(p_cover_lifeform)) {
-  p_cover_lifeform
+if(is.character(p_data)) {
+  p <- p_data
 } else {
-p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
 }
+
+p
 ```
 
 ```{r}
 # save when ready
-p <-
-  p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
-
-ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "Cover Lifeform.jpg"),
+if(is.character(p)) {
+  p
+} else {
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Lifeform.jpg"),
        plot = p, width = 6, height = 4, units = "in", dpi = 300)
+}
+
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Lifeform")
+  )
 ```
 
 ### Cover Height
 
 ```{r}
 if(nrow(Cover_graph) == 0) {
-  p_cover_height <- "No data available for this selection."
+  p_data <- "No data available for this selection."
 } else {
-p_cover_height <- Cover_graph %>% 
+p_data <- Cover_graph %>% 
   filter(
     Preferred_Lifeform %in% c(
       #"Nonvascular", "Lichenous"
@@ -1849,7 +1849,7 @@ p_cover_height <- Cover_graph %>%
     )
 }
 
-#p_cover_height
+#p_data
 ```
 
 ```{r}
@@ -1866,25 +1866,32 @@ p_disturbance_merge <- p_disturbance +
     fill = "Disturbance"
        )
 
-p_cover_merge <- p_cover_height +
+p_data_merge <- p_data +
   theme(plot.title = element_blank())
 
-if(is.character(p_cover_height)) {
-  p_cover_height
+if(is.character(p_data)) {
+  p <- p_data
 } else {
-p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
 }
+
+p
 ```
 
 ```{r}
 # save when ready
-p <-
-  p_disturbance_merge / p_cover_merge +
-  plot_layout(heights = c(0.2, 1.4))
-
-ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_MonitoringType, "Cover Height.jpg"),
+if(is.character(p)) {
+  p
+} else {
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Height.jpg"),
        plot = p, width = 6, height = 4, units = "in", dpi = 300)
+}
+
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Height")
+  )
 ```
 
 # Discussion
@@ -1894,9 +1901,16 @@ ggsave(filename = paste(path_save, target_park, target_ProjectUnit, target_Monit
 ## Tree List
 
 ```{r}
-Species_trees <- Species_trees %>% 
-  arrange(`Scientific Name`)
-kable(Species_trees[,c("Scientific Name","Common Name","Fire Adaptedness")])
+Species_trees_table <- Species_trees %>% 
+  select(!Genus) %>% 
+  kbl() %>% 
+  kable_styling("striped", full_width = FALSE)
+
+# Apply colors only where needed
+Species_trees_table %>% 
+  row_spec(which(tolower(Species_trees$`Fire Adaptedness`) == "fire adapted"), background = "lightsalmon") %>% 
+  row_spec(which(tolower(Species_trees$`Fire Adaptedness`) == "fire tolerant"), background = "bisque") %>% 
+  row_spec(which(tolower(Species_trees$`Fire Adaptedness`) == "fire intolerant"), background = "paleturquoise")
 ```
 
 ## Literature Cited
