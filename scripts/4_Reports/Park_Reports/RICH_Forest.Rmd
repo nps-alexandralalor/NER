@@ -1,6 +1,6 @@
 ---
-title: Fire Effects Monitoring Report
-author: NPS Northeast Region Fire Ecology Program
+title: "Fire Effects Monitoring Report"
+author: "NPS Northeast Region Fire Ecology Program"
 output:
   html_document:
     theme: readable
@@ -10,9 +10,12 @@ output:
     toc_float:
       smooth_scroll: true
     code_download: true
+  pdf_document:
+    toc: false
+    toc_depth: '2'
 link-citations: true
 bibliography: zotero_refs.bib
-csl: chicago-author-date-17th-edition.csl
+csl: "chicago-author-date-17th-edition.csl"
 ---
 
 # Annual Report {.hidden}
@@ -99,7 +102,7 @@ Fuels <- read.csv(paste0(path_data, "Data_Fuels.csv"))
 Trees <- read.csv(paste0(path_data, "Data_Trees.csv"))
 Seedlings <- read.csv(paste0(path_data, "Data_Seedlings.csv"))
 Cover <- read.csv(paste0(path_data, "Data_Cover_Points.csv"))
-# Cover_SpComp <- read.csv(paste0(path_data, "Data_Cover_SpComp.csv"))
+Cover_SpComp <- read.csv(paste0(path_data, "Data_Cover_SpComp.csv"))
 # PostBurn <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
 # Shrubs <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
 ```
@@ -108,7 +111,7 @@ Cover <- read.csv(paste0(path_data, "Data_Cover_Points.csv"))
 
 ```{r}
 target_park <- c("RICH")
-target_type <- c("Grassland")
+target_type <- c("Forest")
 target_purpose <- c("Fire Monitoring Handbook")
 target_year <- c(2025)
 
@@ -122,8 +125,8 @@ target_year <- c(2025)
       select(Macroplot_UV1, Macroplot_UV2) %>% 
       unique()
 
-target_ProjectUnit <- c("Malvern Hill")
-target_MonitoringType <- c("Warm Season")
+target_ProjectUnit <- c("Cold Harbor II")
+target_MonitoringType <- c("Pine Oak")
 
 
     MetadataReport_SampleEvents <- MetadataReport %>%
@@ -155,7 +158,7 @@ date_min <- as.Date(paste0(year_min, "-12-31"))
 ### Add Species Info
 
 ```{r}
-# Isolate all trees which are in the plots analyzed
+# Isolate all species which are in the plots analyzed
 Species_trees_protocol <- Trees %>% 
   filter(
     AdminUnit_Name == target_park,
@@ -176,16 +179,72 @@ Species_seedlings_protocol <- Seedlings %>%
     ) %>% 
   select(ScientificName)
 
+Species_points_protocol <- Cover %>% 
+  filter(
+    AdminUnit_Name == target_park,
+    Macroplot_Type == target_type,
+    Macroplot_Purpose == target_purpose,
+    Macroplot_UV1 == target_ProjectUnit,
+    Macroplot_UV2 == target_MonitoringType
+    ) %>% 
+  select(ScientificName)
+
+Species_comp_protocol <- Cover_SpComp %>% 
+  filter(
+    AdminUnit_Name == target_park,
+    Macroplot_Type == target_type,
+    Macroplot_Purpose == target_purpose,
+    Macroplot_UV1 == target_ProjectUnit,
+    Macroplot_UV2 == target_MonitoringType
+    ) %>% 
+  select(ScientificName)
+
+###################################################################################
+
+# filter for all species
+Species_filter <- rbind(Species_trees_protocol, 
+                        Species_seedlings_protocol,
+                        Species_points_protocol,
+                        Species_comp_protocol
+                        ) %>% 
+  drop_na() %>% 
+  unique() %>% 
+  filter(!ScientificName %in% c("Unknown"))
+
+# Filter for tree species
 Species_trees_filter <- rbind(Species_trees_protocol, 
                               Species_seedlings_protocol) %>% 
   drop_na() %>% 
   unique() %>% 
   filter(ScientificName != "Unknown")
 
-# target species object
-target_species <- Species_trees_filter$ScientificName
+###################################################################################
 
-remove(Species_trees_protocol, Species_seedlings_protocol, Species_trees_filter)
+# target species object
+target_Species <- Species_filter$ScientificName
+target_TreeSpecies <- Species_trees_filter$ScientificName
+
+remove(Species_trees_protocol, Species_seedlings_protocol, Species_points_protocol, Species_comp_protocol, Species_trees_filter, Species_filter)
+
+###################################################################################
+
+# filter target species from master list
+Species_all <- SpeciesReport %>%
+  filter(
+        ReportType == paste0("AdminUnit: ", target_park, " - Full Species Report"),
+        LocalSpecies_PreferedLifeForm != "Undefined"
+      ) %>%
+  mutate(
+      Nativity = ifelse(LocalSpecies_Nativity == "True", "Native",
+                           ifelse(LocalSpecies_Invasive == "True", "Invasive", "Unknown"))) %>% 
+  filter(MasterSpecies_ScientificName %in% target_Species) %>% 
+  mutate(
+    "Genus" = MasterSpecies_Genus,
+    "Scientific Name" = MasterSpecies_ScientificName
+  ) %>%
+  separate(LocalSpecies_CommonName, into = "Common Name", sep = ";") %>%
+  select("Genus", "Scientific Name", "Common Name", "Nativity") %>% 
+  arrange(`Scientific Name`)
 
 
 # filter target species from master list
@@ -194,16 +253,18 @@ Species_trees <- SpeciesReport %>%
         ReportType == paste0("AdminUnit: ", target_park, " - Full Species Report"),
         LocalSpecies_PreferedLifeForm == "Tree"
       ) %>%
-  filter(MasterSpecies_ScientificName %in% target_species) %>% 
+  filter(MasterSpecies_ScientificName %in% target_TreeSpecies) %>% 
   mutate(
     "Genus" = MasterSpecies_Genus,
     "Scientific Name" = MasterSpecies_ScientificName,
-    "Fire Adaptedness" = LocalSpecies_UV1
+    "Fire Adaptedness" = LocalSpecies_UV1,
+    "Strategy" = LocalSpecies_UV2
   ) %>%
   separate(LocalSpecies_CommonName, into = "Common Name", sep = ";") %>%
-  select("Genus", "Scientific Name", "Common Name", "Fire Adaptedness") %>% 
+  select("Genus", "Scientific Name", "Common Name", "Fire Adaptedness", "Strategy") %>% 
   arrange(`Scientific Name`)
 
+###################################################################################
 
 # vector of tree genera
 genera <- Species_trees$Genus
@@ -224,7 +285,7 @@ genus_colors <- setNames(cols, genera)
 na_color <- "grey70"
 ```
 
-# `r target_park` `r target_year` `r target_type` Plots: `r target_ProjectUnit` (`r target_MonitoringType`)  
+# `r target_park` `r target_year` `r target_type` Plots: `r target_ProjectUnit` (`r target_MonitoringType`)
 
 # Overview
 
@@ -236,11 +297,11 @@ The current vegetation association of Richmond's forest is a Northern Coastal Pl
 Objectives <- data.frame(
   "Num" = c(1,2,3,4,5,6),
   "Objective" = c(
-    "1. Maintain fine fuel loading (1-hr, 10-hr, and 100-hr fuels) at < 2.4 tons/acre",
+    "1. Maintain fine fuel loading (litter, 1-100hr fuels) at < 2.4 tons/acre",
     "2. Maintain duff depth to ≤1.5 inch",
     "3. Increase sapling density to ≥1,000 stems/acre",
-    "4. Reduce pole-sized tree density of mesic fire-intolerant/fire-tolerant species relative to xeric fire-adapted species",
-    "5. Maintain a stocking density of overstory trees between 30-70%",
+    "4. Reduce pole-sized tree density of mesic fire-intolerant species relative to xeric fire-adapted species",
+    "5. Maintain a stocking density of overstory trees between 30-75%",
     "6. Maintain or increase native grass and forb cover to ≥50%"
     ))
 
@@ -248,6 +309,8 @@ target_FineFuelLoading <- 2.4
 target_Duff <- 1.5
 target_Sapling <- 1000
 target_Cover <- 50
+target_OverstoryLow <- 30
+target_OverstoryHigh <- 75
 
 kable(Objectives %>% 
         select(Objective)
@@ -328,6 +391,8 @@ if(nrow(MetadataReport_Disturbances) == 0) {
 #p_disturbance
 ```
 
+\newpage
+
 ## Surface Fuels
 
 ### Prep {.hidden}
@@ -401,7 +466,7 @@ FuelLoad_graph <- Fuels %>%
       ThousHr_FuelLoad        = "1000-hr",
       ThousHrRott_FuelLoad    = "1000-hr Rotten",
       ThousHrSound_FuelLoad   = "1000-hr Sound",
-      Fine_FuelLoad           = "Fine",
+      Fine_FuelLoad           = "1-100hr",
       HunHr_FuelLoad          = "100-hr",
       TenHr_FuelLoad          = "10-hr",
       OneHr_FuelLoad          = "1-hr",
@@ -460,6 +525,8 @@ FuelDepth_graph <- Fuels %>%
   )
 ```
 
+\newpage
+
 ### Fine Fuels
 
 ```{r}
@@ -479,14 +546,21 @@ if(nrow(FuelLoad_graph) == 0) {
       #"1000-hr",
       #"1000-hr Rotten",
       #"1000-hr Sound",
-      "Fine"
+      "1-100hr",
       #"100-hr",
       #"10-hr",
       #"1-hr",
       #"Litter/Duff",
-      #"Litter",
+      "Litter"
       #"Duff"
   )) %>% 
+  mutate(
+    FuelClass = factor(
+      FuelClass,
+      levels = c(
+        "Litter",
+        "1-100hr"
+      ))) %>% 
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
@@ -495,9 +569,12 @@ if(nrow(FuelLoad_graph) == 0) {
     Total_FuelLoad = sum(FuelLoad)
     ) %>% 
   
-  ggplot(aes(x = SampleEvent_Date_Year, y = Total_FuelLoad, fill = FuelClass)) +
-  geom_line() +
-  geom_point() +
+  ggplot(aes(x = SampleEvent_Date_Year, y = FuelLoad, color = FuelClass)) +
+  geom_line(position = "stack") +
+  geom_point(position = "stack") +
+  # ggplot() +
+  # geom_bar(aes(x = SampleEvent_Date_Year, y = FuelLoad, fill = FuelClass),
+  #          position = "stack", stat = "identity") + 
   facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   labs(
     x = "Year",
@@ -578,6 +655,8 @@ download_this(p, icon = NULL,
   output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Fuels Fine")
   )
 ```
+
+\newpage
 
 ### Duff Depth
 
@@ -691,6 +770,8 @@ download_this(p, icon = NULL,
   )
 ```
 
+\newpage
+
 ### All Fuels {.hidden}
 
 ```{r}
@@ -703,7 +784,7 @@ p_data <- FuelLoad_graph %>%
       #"1000-hr",
       "1000-hr Rotten",
       "1000-hr Sound",
-      #"Fine"
+      #"1-100hr"
       "100-hr",
       "10-hr",
       "1-hr"
@@ -796,6 +877,8 @@ download_this(p, icon = NULL,
   output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Fuels All")
   )
 ```
+
+\newpage
 
 ## Trees
 
@@ -898,6 +981,8 @@ Trees_graph <- Trees %>%
       ))
   )
 ```
+
+\newpage
 
 ### Seedlings {.hidden}
 
@@ -1009,6 +1094,8 @@ download_this(p, icon = NULL,
   output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Trees Seedlings")
   )
 ```
+
+\newpage
 
 ### Saplings
 
@@ -1138,6 +1225,8 @@ download_this(p, icon = NULL,
   )
 ```
 
+\newpage
+
 ### Pole-Sized
 
 ```{r}
@@ -1188,7 +1277,8 @@ p_data <- Trees_graph %>%
   labs(
     x = "Year",
     y = "Stems / Acre",
-    title = paste(target_park, target_type, "Pole Tree Density")
+    title = paste(target_park, target_type, "Pole Tree Density"),
+    caption = expression("*16 stems/ac (40 stems/ha) is equivalent to 1 tree found in a sample area of 500m"^2)
     ) +
   scale_x_continuous(
     limits = c(year_min, year_max),
@@ -1259,6 +1349,8 @@ download_this(p, icon = NULL,
   output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Trees Poles")
   )
 ```
+
+\newpage
 
 ### Overstory - Gingrich Stocking Graph
 
@@ -1332,6 +1424,8 @@ plot.gingrich.imperial(
 dev.off()
 }
 ```
+
+\newpage
 
 ## Cover
 
@@ -1514,6 +1608,8 @@ Cover_graph <- Cover %>%
 #     )
 ```
 
+\newpage
+
 ### Native Grasses and Forbs
 
 ```{r}
@@ -1637,6 +1733,8 @@ download_this(p, icon = NULL,
   output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Native Herbs")
   )
 ```
+
+\newpage
 
 ### Cover Lifeform
 
@@ -1769,7 +1867,9 @@ download_this(p, icon = NULL,
   )
 ```
 
-### Cover Height
+\newpage
+
+### Cover Height {.hidden}
 
 ```{r}
 if(nrow(Cover_graph) == 0) {
@@ -1894,7 +1994,9 @@ download_this(p, icon = NULL,
   )
 ```
 
-# Discussion
+# Discussion {.hidden}
+
+\newpage
 
 # References
 
@@ -1907,11 +2009,24 @@ Species_trees_table <- Species_trees %>%
   kable_styling("striped", full_width = FALSE)
 
 # Apply colors only where needed
-Species_trees_table %>% 
-  row_spec(which(tolower(Species_trees$`Fire Adaptedness`) == "fire adapted"), background = "lightsalmon") %>% 
-  row_spec(which(tolower(Species_trees$`Fire Adaptedness`) == "fire tolerant"), background = "bisque") %>% 
-  row_spec(which(tolower(Species_trees$`Fire Adaptedness`) == "fire intolerant"), background = "paleturquoise")
+Species_trees_table %>%
+  row_spec(which(Species_trees$`Fire Adaptedness` == "fire adapted" & Species_trees$`Strategy` == "Pyrophyte"), 
+           background = "coral2") %>% 
+  row_spec(which(Species_trees$`Fire Adaptedness` == "fire adapted" & is.na(Species_trees$`Strategy`)), 
+           background = "lightsalmon1") %>% 
+  row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & Species_trees$`Strategy` == "Pyrophyte"), 
+           background = "lightsalmon1") %>% 
+  row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & Species_trees$`Strategy` == "Intermediate"), 
+           background = "bisque") %>% 
+  row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & is.na(Species_trees$`Strategy`)), 
+           background = "bisque") %>% 
+  row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & Species_trees$`Strategy` == "Mesophyte"), 
+           background = "lightskyblue1") %>% 
+  row_spec(which(Species_trees$`Fire Adaptedness` == "fire intolerant" & Species_trees$`Strategy` == "Mesophyte"), 
+           background = "skyblue3")
 ```
+
+\newpage
 
 ## Literature Cited
 
