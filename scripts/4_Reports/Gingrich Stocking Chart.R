@@ -156,8 +156,8 @@
   wood<-stocking.imperial(dia=dia,b=b,a=a,percent=30,amd.coef=amd.coef)
   cwood<-stocking.imperial(dia=dia,b=b,a=a,percent=90,amd.coef=amd.coef)
   
-  low<-stocking.imperial(dia=dia, b=b, a=a, percent=30, amd.coef=amd.coef)
-  high<-stocking.imperial(dia=dia, b=b, a=a, percent=75, amd.coef=amd.coef)
+  low<-stocking.imperial(dia=dia, b=b, a=a, percent=target_OverstoryLow, amd.coef=amd.coef)
+  high<-stocking.imperial(dia=dia, b=b, a=a, percent=target_OverstoryHigh, amd.coef=amd.coef)
   
   under$x<-append(under$x,full$x)
   under$y<-append(under$y,full$y)
