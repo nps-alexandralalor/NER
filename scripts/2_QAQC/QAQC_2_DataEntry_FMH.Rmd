@@ -554,6 +554,38 @@ This code conducts quality control checks on duff litter (DL) surface fuels data
 
 It checks for errors in: headers, fuel constants, offset values, sample locations, transects, litter values, and duff values.
 
+### Fuel DL Complete
+
+[Problem:]{.underline} Sample points are missing from data.
+
+-   **Incomplete data (invalid):** If protocols have fewer data points than expected, select data may be missing (e.g. data exists for 4 fuels transects but only 3 transects were entered). [Make sure to find and enter this data.]{.underline}
+
+-   **Incomplete data (valid):** Protocols may intentionally have fewer data points than expected (e.g. it was decided that certain plots would only have 3 fuels transects instead of 4). [Make sure this is noted in the comment field of the protocol header]{.underline}.
+
+[Procedure:]{.underline}
+
+-   Group by Macroplot_Name and SampleEvent_Date. Calculate number of data points per plot. Check that data_points = 40
+
+```{r}
+# Filter NA values. Add number of data points and store in new column
+data_temp <- FuelsDuffLitt_data %>%
+  filter(!is.na(LittDep)) %>%
+  filter(!is.na(DuffDep)) %>% 
+  group_by(Macroplot_Name, SampleEvent_Date) %>% 
+  dplyr::summarise("data_points" = n())
+
+# Set parameters 
+data <- merge(FuelsDuffLitt_data, data_temp, by = c("Macroplot_Name","SampleEvent_Date"), all = T)
+query <- "Fuel DL" 
+query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Sample Locations")
+values_data <- data$data_points
+values_valid <- 40
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_FuelsDuffLitt_Complete <- qaqc(data, query, query_message, values_check)
+```
+
 ### Fuel DL Header
 
 [Problem:]{.underline} Incorrect header information entered for FMH plots.
@@ -806,9 +838,9 @@ errors_FuelsDuffLitt_Zero <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Save to master error list 
-errors_FuelsDuffLitt <- rbind(errors_FuelsDuffLitt_Header, errors_blank, errors_FuelsDuffLitt_FuelConst, errors_blank, errors_FuelsDuffLitt_OffSet, errors_blank, errors_FuelsDuffLitt_SampLoc, errors_blank, errors_FuelsDuffLitt_Transect, errors_blank, errors_FuelsDuffLitt_Values, errors_blank, errors_FuelsDuffLitt_Zero)
+errors_FuelsDuffLitt <- rbind(errors_FuelsDuffLitt_Complete, errors_blank, errors_FuelsDuffLitt_Header, errors_blank, errors_FuelsDuffLitt_FuelConst, errors_blank, errors_FuelsDuffLitt_OffSet, errors_blank, errors_FuelsDuffLitt_SampLoc, errors_blank, errors_FuelsDuffLitt_Transect, errors_blank, errors_FuelsDuffLitt_Values, errors_blank, errors_FuelsDuffLitt_Zero)
 
-remove(errors_FuelsDuffLitt_Header, errors_FuelsDuffLitt_FuelConst, errors_FuelsDuffLitt_OffSet, errors_FuelsDuffLitt_SampLoc, errors_FuelsDuffLitt_Transect, errors_FuelsDuffLitt_Values, errors_FuelsDuffLitt_Zero)
+remove(errors_FuelsDuffLitt_Complete, errors_FuelsDuffLitt_Header, errors_FuelsDuffLitt_FuelConst, errors_FuelsDuffLitt_OffSet, errors_FuelsDuffLitt_SampLoc, errors_FuelsDuffLitt_Transect, errors_FuelsDuffLitt_Values, errors_FuelsDuffLitt_Zero)
 ```
 
 ```{r}
@@ -826,6 +858,36 @@ path_errors
 This code conducts quality control checks on fine woody debris (FWD) surface fuels data within the "Surface Fuels - Fine" data set.
 
 It checks for errors in: headers, azimuth, fuel constants, slope, transects, and One/Ten/Hundred Hour count values.
+
+### Fuel Fine Complete
+
+[Problem:]{.underline} Sample points are missing from data.
+
+-   **Incomplete data (invalid):** If protocols have fewer data points than expected, select data may be missing (e.g. data exists for 4 fuels transects but only 3 transects were entered). [Make sure to find and enter this data.]{.underline}
+
+-   **Incomplete data (valid):** Protocols may intentionally have fewer data points than expected (e.g. it was decided that certain plots would only have 3 fuels transects instead of 4). [Make sure this is noted in the comment field of the protocol header]{.underline}.
+
+[Procedure:]{.underline}
+
+-   Group by Macroplot_Name and SampleEvent_Date. Calculate number of data points per plot. Check that data_points = 4
+
+```{r}
+# Filter NA values. Add number of data points and store in new column
+data_temp <- FuelsFine_data %>% 
+  group_by(Macroplot_Name, SampleEvent_Date) %>% 
+  dplyr::summarise("data_points" = n())
+
+# Set parameters 
+data <- merge(FuelsFine_data, data_temp, by = c("Macroplot_Name","SampleEvent_Date"), all = T)
+query <- "Fuel Fine"
+query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Transects")
+values_data <- data$data_points
+values_valid <- 4
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_FuelsFine_Complete <- qaqc(data, query, query_message, values_check)
+```
 
 ### Fuel Fine Header
 
@@ -1175,9 +1237,9 @@ remove(errors_FuelsFine_OneHr, errors_FuelsFine_TenHr, errors_FuelsFine_HunHr)
 
 ```{r}
 # Save to master error list 
-errors_FuelsFine <- rbind(errors_FuelsFine_Header, errors_blank, errors_FuelsFine_Azimuth, errors_blank, errors_FuelsFine_FuelConst, errors_blank, errors_FuelsFine_Slope, errors_blank, errors_FuelsFine_Transect, errors_blank, errors_FuelsFine_Values)
+errors_FuelsFine <- rbind(errors_FuelsFine_Complete, errors_blank, errors_FuelsFine_Header, errors_blank, errors_FuelsFine_Azimuth, errors_blank, errors_FuelsFine_FuelConst, errors_blank, errors_FuelsFine_Slope, errors_blank, errors_FuelsFine_Transect, errors_blank, errors_FuelsFine_Values)
 
-remove(errors_FuelsFine_Header, errors_FuelsFine_Azimuth, errors_FuelsFine_FuelConst, errors_FuelsFine_Slope, errors_FuelsFine_Transect, errors_FuelsFine_Values)
+remove(errors_FuelsFine_Complete, errors_FuelsFine_Header, errors_FuelsFine_Azimuth, errors_FuelsFine_FuelConst, errors_FuelsFine_Slope, errors_FuelsFine_Transect, errors_FuelsFine_Values)
 ```
 
 ```{r}
@@ -1195,6 +1257,38 @@ path_errors
 This code conducts quality control checks on post burn data within the "Post Burn Severity" data set.
 
 It checks for errors in: headers, points, tape distance, transect, substrate, and vegetation values.
+
+### PBSev Complete
+
+[Problem:]{.underline} Sample points are missing from data.
+
+-   **Incomplete data (invalid):** If protocols have fewer data points than expected, select data may be missing (e.g. data exists for 4 fuels transects but only 3 transects were entered). [Make sure to find and enter this data.]{.underline}
+
+-   **Incomplete data (valid):** Protocols may intentionally have fewer data points than expected (e.g. it was decided that certain plots would only have 3 fuels transects instead of 4). [Make sure this is noted in the comment field of the protocol header]{.underline}.
+
+[Procedure:]{.underline}
+
+-   Group by Macroplot_Name and SampleEvent_Date. Calculate number of data points per plot. Check that data_points = 40
+
+```{r}
+# Filter NA values. Add number of data points and store in new column
+data_temp <- PostBurn_data %>% 
+  filter(!is.na(Veg)) %>%
+  filter(!is.na(Sub)) %>%
+  group_by(Macroplot_Name, SampleEvent_Date) %>% 
+  dplyr::summarise("data_points" = n())
+
+# Set parameters 
+data <- merge(PostBurn_data, data_temp, by = c("Macroplot_Name","SampleEvent_Date"), all = T)
+query <- "PBSev" 
+query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Sample Locations")
+values_data <- data$data_points
+values_valid <- 40
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_PostBurn_Complete <- qaqc(data, query, query_message, values_check)
+```
 
 ### PBSev Header
 
@@ -1437,9 +1531,9 @@ remove(errors_PostBurn_Sub, errors_PostBurn_Veg)
 
 ```{r}
 # Save to master error list
-errors_PostBurn <- rbind(errors_PostBurn_Header, errors_blank, errors_PostBurn_Point, errors_blank, errors_PostBurn_TapeDist, errors_blank, errors_PostBurn_Transect, errors_blank, errors_PostBurn_Values)
+errors_PostBurn <- rbind(errors_PostBurn_Complete, errors_blank, errors_PostBurn_Header, errors_blank, errors_PostBurn_Point, errors_blank, errors_PostBurn_TapeDist, errors_blank, errors_PostBurn_Transect, errors_blank, errors_PostBurn_Values)
 
-remove(errors_PostBurn_Header, errors_PostBurn_Point, errors_PostBurn_TapeDist, errors_PostBurn_Transect, errors_PostBurn_Values)
+remove(errors_PostBurn_Complete, errors_PostBurn_Header, errors_PostBurn_Point, errors_PostBurn_TapeDist, errors_PostBurn_Transect, errors_PostBurn_Values)
 ```
 
 ```{r}
