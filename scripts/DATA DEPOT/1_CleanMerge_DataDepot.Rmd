@@ -51,7 +51,6 @@ library(stringr)
 # adjust file paths
 path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 #path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-file_version <- "v2"
 ```
 
 ### Parks
@@ -74,27 +73,30 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
   # load data
   temp_df <- read.csv(paste0(path_data, "ffi_", target_park, "_data_export_", protocol, ".csv"))
-
+  
   
   # clean data
   temp_df <- temp_df %>%
   # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim))
+    mutate(across(where(is.character), str_trim)) %>% 
+    add_column(AdminUnit_Name = target_park, .before = "ProjectUnit_Name")
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -105,7 +107,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -116,16 +118,19 @@ for(i in parks) {
   # clean data
   temp_df <- temp_df %>%
   # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim))
+    mutate(across(where(is.character), str_trim)) %>% 
+    add_column(AdminUnit_Name = target_park, .before = "ProjectUnit_Name")
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 # Cover
@@ -142,7 +147,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -156,13 +161,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -173,7 +180,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -187,13 +194,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## cover_line_intercept
@@ -208,7 +217,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -222,13 +231,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -239,7 +250,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -253,13 +264,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## cover_points
@@ -274,7 +287,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -288,13 +301,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -305,7 +320,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -319,13 +334,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## cover_species_composition
@@ -340,7 +357,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -354,13 +371,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -371,7 +390,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -385,13 +404,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 # Surface Fuels
@@ -408,7 +429,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -422,13 +443,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -439,7 +462,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -453,13 +476,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## surface_fuels_duff_litter
@@ -474,7 +499,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -488,13 +513,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -505,7 +532,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -519,13 +546,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## surface_fuels_fine
@@ -540,7 +569,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -554,13 +583,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -571,7 +602,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -585,13 +616,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## surface_fuels_piles
@@ -606,7 +639,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -620,13 +653,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -637,7 +672,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -651,13 +686,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## surface_fuels_thousand_hr
@@ -672,7 +709,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -686,13 +723,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -703,7 +742,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -717,13 +756,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## surface_fuels_vegetation
@@ -738,7 +779,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -752,13 +793,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -769,7 +812,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -783,13 +826,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 # Trees
@@ -806,7 +851,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -820,13 +865,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -837,7 +884,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -851,13 +898,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## trees_saplings
@@ -872,7 +921,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -886,13 +935,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -903,7 +954,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -917,13 +968,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## trees_seedlings
@@ -938,7 +991,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
   
   
@@ -952,13 +1005,15 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
 #############################################################################################
 
@@ -969,7 +1024,7 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
   path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
   
   
@@ -983,11 +1038,13 @@ for(i in parks) {
     mutate(across(where(is.character), str_trim))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
   final_df <- rbind(final_df, temp_df)
 }
 
   # save file
-write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
