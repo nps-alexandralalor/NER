@@ -61,16 +61,87 @@ library(stringr)
 
 ```{r}
 # adjust file paths
-#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/Exports Data Depot
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports Data Depot/"
+path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 file_version <- "v2"
-path_save <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs Data Depot/"
+#path_data <- paste0(path_main, "Exports Data Depot/")
+#path_save <- paste0(path_main, "R Outputs Data Depot/")
+```
+
+### Parks
+
+```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+```
+
+```{r}
+protocol <- "project_units"
+
+final_df <- NULL
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  
+  
+  # load data
+  temp_df <- read.csv(paste0(path_data, "ffi_", target_park, "_data_export_", protocol, ".csv"))
+
+  
+  # clean data
+  temp_df <- temp_df %>%
+  # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim))
+  ## replace commas with semicolons
+  temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  
+  
+  final_df <- rbind(final_df, temp_df)
+}
+
+  # save file
+write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
+
+#############################################################################################
+
+final_df <- NULL
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main, "Exports Data Depot/", target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  
+  
+  # load data
+  temp_df <- read.csv(paste0(path_data, "ffi_", target_park, "_data_export_", protocol, ".csv"))
+
+  
+  # clean data
+  temp_df <- temp_df %>%
+  # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim))
+  ## replace commas with semicolons
+  temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+  
+  
+  final_df <- rbind(final_df, temp_df)
+}
+
+  # save file
+write.csv(final_df, paste0(path_save, "ALL_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Create list of files that need to be merged
 
 ```{r}
-folder_names_list <- list.files(path_main)
+folder_names_list <- list.files(path_data)
 
 file_names_df_M <- data.frame(matrix(ncol = 2, nrow = 0))
 colnames(file_names_df_M) <- c("FilePath", "FileName")
@@ -86,7 +157,7 @@ for(i in 1:length(folder_names_list)) {
   
   target_park <- folder_names_list[i]
   
-  folder_path_M <- paste0(path_main, target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
+  folder_path_M <- paste0(path_data, target_park,"/", file_version ,"/Metric_ffi_", target_park, "_data_export/")
   
   file_names_M <- list.files(folder_path_M)
   
@@ -109,7 +180,7 @@ for(i in 1:length(folder_names_list)) {
   
   target_park <- folder_names_list[i]
   
-  folder_path_E <- paste0(path_main, target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
+  folder_path_E <- paste0(path_data, target_park,"/", file_version ,"/English_ffi_", target_park, "_data_export/")
   file_names_E <- list.files(folder_path_E)
   file_path_E <- paste0(folder_path_E, file_names_E)
   
@@ -164,26 +235,16 @@ columns_HerbsPoints_E <- c("MethodData_NumTran (num.)","MethodData_TranLen (ft)"
 
 # PROJECT UNIT REPORT
 
-## Prep
-
-```{r}
-file_M <- file_names_df_M %>% 
-  filter(FileName == "project_units.csv")
-
-file_E <- file_names_df_E %>% 
-  filter(FileName == "project_units.csv")
-
-ProjectUnitReport_M <- data.frame(matrix(ncol = 23, nrow = 0))
-colnames(ProjectUnitReport_M) <- c(columns_ProjectUnit)
-  
-ProjectUnitReport_E <- data.frame(matrix(ncol = 23, nrow = 0))
-colnames(ProjectUnitReport_E) <- c(columns_ProjectUnit)
-```
-
 ## For loop
 
 ```{r}
 # METRIC
+file_M <- file_names_df_M %>% 
+  filter(FileName == "project_units.csv")
+
+ProjectUnitReport_M <- data.frame(matrix(ncol = 23, nrow = 0))
+colnames(ProjectUnitReport_M) <- c(columns_ProjectUnit)
+
 
 for(i in 1:nrow(file_M)) {
   
@@ -194,16 +255,23 @@ for(i in 1:nrow(file_M)) {
   Report_M <- Report_M %>% 
     add_column(AdminUnit_Name = TargetPark, .before = "ProjectUnit_Name")
   
-  Report_M <- Report_M[,columns_ProjectUnit]
+  #Report_M <- Report_M[,columns_ProjectUnit]
   
   ProjectUnitReport_M <- rbind(ProjectUnitReport_M, Report_M)
 }
 
 write.csv(ProjectUnitReport_M, paste0(path_save, "ALL/Metric/ALL_project_units.csv"), quote = FALSE, row.names = FALSE)
-```
 
-```{r}
+#############################################################################################
+#############################################################################################
+
 # ENGLISH
+file_E <- file_names_df_E %>% 
+  filter(FileName == "project_units.csv")
+  
+ProjectUnitReport_E <- data.frame(matrix(ncol = 23, nrow = 0))
+colnames(ProjectUnitReport_E) <- c(columns_ProjectUnit)
+
 
 for(i in 1:nrow(file_E)) {
   
@@ -214,207 +282,62 @@ for(i in 1:nrow(file_E)) {
   Report_E <- Report_E %>% 
     add_column(AdminUnit_Name = TargetPark, .before = "ProjectUnit_Name")
   
-  Report_E <- Report_E[,columns_ProjectUnit]
+  #Report_E <- Report_E[,columns_ProjectUnit]
   
-  ProjectUnitReport_E <- rbind(ProjectUnitReport_E, Report_E_1)
+  ProjectUnitReport_E <- rbind(ProjectUnitReport_E, Report_E)
 }
 
 write.csv(ProjectUnitReport_E, paste0(path_save, "ALL/English/ALL_project_units.csv"), quote = FALSE, row.names = FALSE)
-```
-
-## Long form
-
-```{r}
-# # Load data
-# 
-# # METRIC
-# ProjectUnitReport_ANTI_M <- read.csv(paste0(path_main, 
-#                             "/ANTI/v2/Metric_ffi_ANTI_data_export/ffi_ANTI_data_export_project_units.csv"))
-# ProjectUnitReport_APCO_M <- read.csv(paste0(path_main, 
-#                             "/APCO/v2/Metric_ffi_APCO_data_export/ffi_APCO_data_export_project_units.csv"))
-# ProjectUnitReport_CATO_M <- read.csv(paste0(path_main, 
-#                             "/CATO/v2/Metric_ffi_CATO_data_export/ffi_CATO_data_export_project_units.csv"))
-# ProjectUnitReport_CUVA_M <- read.csv(paste0(path_main, 
-#                             "/CUVA/v2/Metric_ffi_CUVA_data_export/ffi_CUVA_data_export_project_units.csv"))
-# ProjectUnitReport_DEWA_M <- read.csv(paste0(path_main, 
-#                             "/DEWA/v2/Metric_ffi_DEWA_data_export/ffi_DEWA_data_export_project_units.csv"))
-# ProjectUnitReport_FRSP_M <- read.csv(paste0(path_main, 
-#                             "/FRSP/v2/Metric_ffi_FRSP_data_export/ffi_FRSP_data_export_project_units.csv"))
-# ProjectUnitReport_GATE_M <- read.csv(paste0(path_main, 
-#                             "/GATE/v2/Metric_ffi_GATE_data_export/ffi_GATE_data_export_project_units.csv"))
-# ProjectUnitReport_GETT_M <- read.csv(paste0(path_main, 
-#                             "/GETT/v2/Metric_ffi_GETT_data_export/ffi_GETT_data_export_project_units.csv"))
-# ProjectUnitReport_MONO_M <- read.csv(paste0(path_main, 
-#                             "/MONO/v2/Metric_ffi_MONO_data_export/ffi_MONO_data_export_project_units.csv"))
-# ProjectUnitReport_NERI_M <- read.csv(paste0(path_main, 
-#                             "/NERI/v2/Metric_ffi_NERI_data_export/ffi_NERI_data_export_project_units.csv"))
-# ProjectUnitReport_PRWI_M <- read.csv(paste0(path_main, 
-#                             "/PRWI/v2/Metric_ffi_PRWI_data_export/ffi_PRWI_data_export_project_units.csv"))
-# ProjectUnitReport_RICH_M <- read.csv(paste0(path_main, 
-#                             "/RICH/v2/Metric_ffi_RICH_data_export/ffi_RICH_data_export_project_units.csv"))
-# ProjectUnitReport_SARA_M <- read.csv(paste0(path_main, 
-#                             "/SARA/v2/Metric_ffi_SARA_data_export/ffi_SARA_data_export_project_units.csv"))
-# ProjectUnitReport_SHEN_M <- read.csv(paste0(path_main, 
-#                             "/SHEN/v2/Metric_ffi_SHEN_data_export/ffi_SHEN_data_export_project_units.csv"))
-# ProjectUnitReport_VAFO_M <- read.csv(paste0(path_main, 
-#                             "/VAFO/v2/Metric_ffi_VAFO_data_export/ffi_VAFO_data_export_project_units.csv"))
-# 
-# # ENGLISH
-# ProjectUnitReport_ANTI_E <- read.csv(paste0(path_main, 
-#                             "/ANTI/v2/English_ffi_ANTI_data_export/ffi_ANTI_data_export_project_units.csv"))
-# ProjectUnitReport_APCO_E <- read.csv(paste0(path_main, 
-#                             "/APCO/v2/English_ffi_APCO_data_export/ffi_APCO_data_export_project_units.csv"))
-# ProjectUnitReport_CATO_E <- read.csv(paste0(path_main, 
-#                             "/CATO/v2/English_ffi_CATO_data_export/ffi_CATO_data_export_project_units.csv"))
-# ProjectUnitReport_CUVA_E <- read.csv(paste0(path_main, 
-#                             "/CUVA/v2/English_ffi_CUVA_data_export/ffi_CUVA_data_export_project_units.csv"))
-# ProjectUnitReport_DEWA_E <- read.csv(paste0(path_main, 
-#                             "/DEWA/v2/English_ffi_DEWA_data_export/ffi_DEWA_data_export_project_units.csv"))
-# ProjectUnitReport_FRSP_E <- read.csv(paste0(path_main, 
-#                             "/FRSP/v2/English_ffi_FRSP_data_export/ffi_FRSP_data_export_project_units.csv"))
-# ProjectUnitReport_GATE_E <- read.csv(paste0(path_main, 
-#                             "/GATE/v2/English_ffi_GATE_data_export/ffi_GATE_data_export_project_units.csv"))
-# ProjectUnitReport_GETT_E <- read.csv(paste0(path_main, 
-#                             "/GETT/v2/English_ffi_GETT_data_export/ffi_GETT_data_export_project_units.csv"))
-# ProjectUnitReport_MONO_E <- read.csv(paste0(path_main, 
-#                             "/MONO/v2/English_ffi_MONO_data_export/ffi_MONO_data_export_project_units.csv"))
-# ProjectUnitReport_NERI_E <- read.csv(paste0(path_main, 
-#                             "/NERI/v2/English_ffi_NERI_data_export/ffi_NERI_data_export_project_units.csv"))
-# ProjectUnitReport_PRWI_E <- read.csv(paste0(path_main, 
-#                             "/PRWI/v2/English_ffi_PRWI_data_export/ffi_PRWI_data_export_project_units.csv"))
-# ProjectUnitReport_RICH_E <- read.csv(paste0(path_main, 
-#                             "/RICH/v2/English_ffi_RICH_data_export/ffi_RICH_data_export_project_units.csv"))
-# ProjectUnitReport_SARA_E <- read.csv(paste0(path_main, 
-#                             "/SARA/v2/English_ffi_SARA_data_export/ffi_SARA_data_export_project_units.csv"))
-# ProjectUnitReport_SHEN_E <- read.csv(paste0(path_main, 
-#                             "/SHEN/v2/English_ffi_SHEN_data_export/ffi_SHEN_data_export_project_units.csv"))
-# ProjectUnitReport_VAFO_E <- read.csv(paste0(path_main, 
-#                             "/VAFO/v2/English_ffi_VAFO_data_export/ffi_VAFO_data_export_project_units.csv"))
-# 
-# # Add column for park name
-# # METRIC
-# ProjectUnitReport_ANTI_M <- ProjectUnitReport_ANTI_M %>% 
-#     add_column(AdminUnit_Name = "ANTI", .before = "ProjectUnit_Name")
-# ProjectUnitReport_APCO_M <- ProjectUnitReport_APCO_M %>% 
-#     add_column(AdminUnit_Name = "APCO", .before = "ProjectUnit_Name")
-# ProjectUnitReport_CATO_M <- ProjectUnitReport_CATO_M %>% 
-#     add_column(AdminUnit_Name = "CATO", .before = "ProjectUnit_Name")
-# ProjectUnitReport_CUVA_M <- ProjectUnitReport_CUVA_M %>% 
-#     add_column(AdminUnit_Name = "CUVA", .before = "ProjectUnit_Name")
-# ProjectUnitReport_DEWA_M <- ProjectUnitReport_DEWA_M %>% 
-#     add_column(AdminUnit_Name = "DEWA", .before = "ProjectUnit_Name")
-# ProjectUnitReport_FRSP_M <- ProjectUnitReport_FRSP_M %>% 
-#     add_column(AdminUnit_Name = "FRSP", .before = "ProjectUnit_Name")
-# ProjectUnitReport_GATE_M <- ProjectUnitReport_GATE_M %>% 
-#     add_column(AdminUnit_Name = "GATE", .before = "ProjectUnit_Name")
-# ProjectUnitReport_GETT_M <- ProjectUnitReport_GETT_M %>% 
-#     add_column(AdminUnit_Name = "GETT", .before = "ProjectUnit_Name")
-# ProjectUnitReport_MONO_M <- ProjectUnitReport_MONO_M %>% 
-#     add_column(AdminUnit_Name = "MONO", .before = "ProjectUnit_Name")
-# ProjectUnitReport_NERI_M <- ProjectUnitReport_NERI_M %>% 
-#     add_column(AdminUnit_Name = "NERI", .before = "ProjectUnit_Name")
-# ProjectUnitReport_PRWI_M <- ProjectUnitReport_PRWI_M %>% 
-#     add_column(AdminUnit_Name = "PRWI", .before = "ProjectUnit_Name")
-# ProjectUnitReport_RICH_M <- ProjectUnitReport_RICH_M %>% 
-#     add_column(AdminUnit_Name = "RICH", .before = "ProjectUnit_Name")
-# ProjectUnitReport_SARA_M <- ProjectUnitReport_SARA_M %>% 
-#     add_column(AdminUnit_Name = "SARA", .before = "ProjectUnit_Name")
-# ProjectUnitReport_SHEN_M <- ProjectUnitReport_SHEN_M %>% 
-#     add_column(AdminUnit_Name = "SHEN", .before = "ProjectUnit_Name")
-# ProjectUnitReport_VAFO_M <- ProjectUnitReport_VAFO_M %>% 
-#     add_column(AdminUnit_Name = "VAFO", .before = "ProjectUnit_Name")
-# # ENGLISH
-# ProjectUnitReport_ANTI_E <- ProjectUnitReport_ANTI_E %>% 
-#     add_column(AdminUnit_Name = "ANTI", .before = "ProjectUnit_Name")
-# ProjectUnitReport_APCO_E <- ProjectUnitReport_APCO_E %>% 
-#     add_column(AdminUnit_Name = "APCO", .before = "ProjectUnit_Name")
-# ProjectUnitReport_CATO_E <- ProjectUnitReport_CATO_E %>% 
-#     add_column(AdminUnit_Name = "CATO", .before = "ProjectUnit_Name")
-# ProjectUnitReport_CUVA_E <- ProjectUnitReport_CUVA_E %>% 
-#     add_column(AdminUnit_Name = "CUVA", .before = "ProjectUnit_Name")
-# ProjectUnitReport_DEWA_E <- ProjectUnitReport_DEWA_E %>% 
-#     add_column(AdminUnit_Name = "DEWA", .before = "ProjectUnit_Name")
-# ProjectUnitReport_FRSP_E <- ProjectUnitReport_FRSP_E %>% 
-#     add_column(AdminUnit_Name = "FRSP", .before = "ProjectUnit_Name")
-# ProjectUnitReport_GATE_E <- ProjectUnitReport_GATE_E %>% 
-#     add_column(AdminUnit_Name = "GATE", .before = "ProjectUnit_Name")
-# ProjectUnitReport_GETT_E <- ProjectUnitReport_GETT_E %>% 
-#     add_column(AdminUnit_Name = "GETT", .before = "ProjectUnit_Name")
-# ProjectUnitReport_MONO_E <- ProjectUnitReport_MONO_E %>% 
-#     add_column(AdminUnit_Name = "MONO", .before = "ProjectUnit_Name")
-# ProjectUnitReport_NERI_E <- ProjectUnitReport_NERI_E %>% 
-#     add_column(AdminUnit_Name = "NERI", .before = "ProjectUnit_Name")
-# ProjectUnitReport_PRWI_E <- ProjectUnitReport_PRWI_E %>% 
-#     add_column(AdminUnit_Name = "PRWI", .before = "ProjectUnit_Name")
-# ProjectUnitReport_RICH_E <- ProjectUnitReport_RICH_E %>% 
-#     add_column(AdminUnit_Name = "RICH", .before = "ProjectUnit_Name")
-# ProjectUnitReport_SARA_E <- ProjectUnitReport_SARA_E %>% 
-#     add_column(AdminUnit_Name = "SARA", .before = "ProjectUnit_Name")
-# ProjectUnitReport_SHEN_E <- ProjectUnitReport_SHEN_E %>% 
-#     add_column(AdminUnit_Name = "SHEN", .before = "ProjectUnit_Name")
-# ProjectUnitReport_VAFO_E <- ProjectUnitReport_VAFO_E %>% 
-#     add_column(AdminUnit_Name = "VAFO", .before = "ProjectUnit_Name")
-# 
-# 
-# # Merge data
-# # METRIC
-# ProjectUnitReport_M <- rbind(ProjectUnitReport_ANTI_M, ProjectUnitReport_APCO_M, ProjectUnitReport_CATO_M, ProjectUnitReport_CUVA_M, ProjectUnitReport_DEWA_M, ProjectUnitReport_FRSP_M, ProjectUnitReport_GATE_M, ProjectUnitReport_GETT_M, ProjectUnitReport_MONO_M, ProjectUnitReport_NERI_M, ProjectUnitReport_PRWI_M, ProjectUnitReport_RICH_M, ProjectUnitReport_SARA_M, ProjectUnitReport_SHEN_M, ProjectUnitReport_VAFO_M)
-# # ENGLISH
-# ProjectUnitReport_E <- rbind(ProjectUnitReport_ANTI_E, ProjectUnitReport_APCO_E, ProjectUnitReport_CATO_E, ProjectUnitReport_CUVA_E, ProjectUnitReport_DEWA_E, ProjectUnitReport_FRSP_E, ProjectUnitReport_GATE_E, ProjectUnitReport_GETT_E, ProjectUnitReport_MONO_E, ProjectUnitReport_NERI_E, ProjectUnitReport_PRWI_E, ProjectUnitReport_RICH_E, ProjectUnitReport_SARA_E, ProjectUnitReport_SHEN_E, ProjectUnitReport_VAFO_E)
-# 
-# # Remove data
-# # METRIC
-# remove(ProjectUnitReport_ANTI_M, ProjectUnitReport_APCO_M, ProjectUnitReport_CATO_M, ProjectUnitReport_CUVA_M, ProjectUnitReport_DEWA_M, ProjectUnitReport_FRSP_M, ProjectUnitReport_GATE_M, ProjectUnitReport_GETT_M, ProjectUnitReport_MONO_M, ProjectUnitReport_NERI_M, ProjectUnitReport_PRWI_M, ProjectUnitReport_RICH_M, ProjectUnitReport_SARA_M, ProjectUnitReport_SHEN_M, ProjectUnitReport_VAFO_M)
-# # ENGLISH
-# remove(ProjectUnitReport_ANTI_E, ProjectUnitReport_APCO_E, ProjectUnitReport_CATO_E, ProjectUnitReport_CUVA_E, ProjectUnitReport_DEWA_E, ProjectUnitReport_FRSP_E, ProjectUnitReport_GATE_E, ProjectUnitReport_GETT_E, ProjectUnitReport_MONO_E, ProjectUnitReport_NERI_E, ProjectUnitReport_PRWI_E, ProjectUnitReport_RICH_E, ProjectUnitReport_SARA_E, ProjectUnitReport_SHEN_E, ProjectUnitReport_VAFO_E)
-# 
-# # Save file
-# # METRIC
-# write.csv(ProjectUnitReport_M, paste0(path_main, "ALL/Metric/ALL_project_units.csv"), quote = FALSE, row.names = FALSE)
-# # ENGLISH
-# write.csv(ProjectUnitReport_E, paste0(path_main, "ALL/English/ALL_project_units.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 # PROTOCOLS
 
 ## Fuels 1000
 
-### Prep
-
 ```{r}
 file_M <- file_names_df_M %>% 
   filter(FileName == "surface_fuels_thousand_hr.csv")
 
-file_E <- file_names_df_E %>% 
-  filter(FileName == "surface_fuels_thousand_hr.csv")
+Fuels1000_M <- data.frame(matrix(ncol = 73, nrow = 0))
+colnames(Fuels1000_M) <- c(columns_ID,  columns_Macroplot, columns_SampleEvent, columns_MethodData, columns_Fuels1000_M)
 
-Fuels1000_M <- data.frame(matrix(ncol = 23, nrow = 0))
-colnames(Fuels1000_M) <- c()
-  
-Fuels1000_E <- data.frame(matrix(ncol = 23, nrow = 0))
-colnames(Fuels1000_E) <- c()
-```
-
-### For loop
-
-```{r}
-# METRIC
 
 for(i in 1:nrow(file_M)) {
   
   PathData <- file_M[i,1]
   TargetPark <- file_M[i,2]
-  Report_M_1 <- read.csv(PathData)
+  Report_M <- read.csv(PathData)
   
-  Report_M_1 <- Report_M_1 %>% 
-    add_column(AdminUnit_Name = TargetPark, .before = "ProjectUnit_Name")
+  #Report_M <- Report_M[,columns_ProjectUnit]
   
-  Report_M_1 <- Report_M_1[,colnames(Report_M)]
-  
-  Fuels1000_M <- rbind(Fuels1000_M, Report_M_1)
+  Fuels1000_M <- rbind(Fuels1000_M, Report_M)
 }
 
-write.csv(Fuels1000_M, paste0(path_save, "ALL/Metric/ALL_project_units.csv"), quote = FALSE, row.names = FALSE)
+write.csv(Fuels1000_M, paste0(path_save, "ALL/Metric/ALL_surface_fuels_thousand_hr.csv"), quote = FALSE, row.names = FALSE)
+
+#############################################################################################
+#############################################################################################
+
+# ENGLISH
+file_E <- file_names_df_E %>% 
+  filter(FileName == "surface_fuels_thousand_hr.csv")
+  
+Fuels1000_E <- data.frame(matrix(ncol = 73, nrow = 0))
+colnames(Fuels1000_E) <- c(columns_ID,  columns_Macroplot, columns_SampleEvent, columns_MethodData, columns_Fuels1000_E)
+
+
+for(i in 1:nrow(file_E)) {
+  
+  PathData <- file_E[i,1]
+  TargetPark <- file_E[i,2]
+  Report_E <- read.csv(PathData)
+  
+  #Report_E <- Report_E[,columns_ProjectUnit]
+  
+  ProjectUnitReport_E <- rbind(ProjectUnitReport_E, Report_E)
+}
+
+write.csv(Fuels1000_E, paste0(path_save, "ALL/English/ALL_surface_fuels_thousand_hr.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ```{r}
