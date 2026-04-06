@@ -4275,6 +4275,75 @@ This code conducts quality control checks on point line intercept herbaceous dat
 
 It checks for errors in: height, order, points, status, tape, and transect.
 
+### HerbsPoints Complete
+
+[Problem:]{.underline} Sample points are missing from data.
+
+-   **Incomplete data (invalid):** If protocols have fewer data points than expected, select data may be missing (e.g. data exists for 156 points on the herb line but 166 points are expected). [Make sure to find and enter this data.]{.underline}
+
+-   **Incomplete data (valid):** Protocols may intentionally have fewer data points than expected (e.g. it was decided that certain plots would only have 1 herb transect instead of 2). [Make sure this is noted in the comment field of the protocol header]{.underline}.
+
+[Procedure:]{.underline}
+
+-   Filter by Order = 1. Group by Macroplot_Name and SampleEvent_Date. Calculate number of data points per plot. Check that data_points = 100 (Grasslands, Shrublands) or 166 (Forests)
+
+```{r}
+# Filter NA values. Add number of data points and store in new column
+data_temp <- HerbsPoints_data %>%
+  filter(Order == 1,
+         Macroplot_Type %in% c("Grassland", "Shrubland")) %>%
+  group_by(AdminUnit_Name, Macroplot_Name, SampleEvent_Date, Transect) %>% 
+  dplyr::summarise("data_points" = n())
+
+# Set parameters 
+data <- merge(HerbsPoints_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Name", "SampleEvent_Date", "Transect"), all = T) %>% 
+  filter(Macroplot_Type %in% c("Grassland", "Shrubland"))
+query <- "Cvr Pts" 
+query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Transect = ", data$Transect, ". Total Points") 
+values_data <- data$data_points
+values_valid <- 100
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsPoints_Complete_Grassland <- qaqc(data, query, query_message, values_check)
+```
+
+```{r}
+# Filter NA values. Add number of data points and store in new column
+data_temp <- HerbsPoints_data %>%
+  filter(Order == 1,
+         Macroplot_Type %in% c("Forest")) %>%
+  group_by(AdminUnit_Name, Macroplot_Name, SampleEvent_Date, Transect) %>% 
+  dplyr::summarise("data_points" = n())
+
+# Set parameters 
+data <- merge(HerbsPoints_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Name", "SampleEvent_Date", "Transect"), all = T) %>% 
+  filter(Macroplot_Type %in% c("Forest"))
+query <- "Cvr Pts" 
+query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Transect = ", data$Transect, ". Total Points") 
+values_data <- data$data_points
+values_valid <- 166
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_HerbsPoints_Complete_Forest <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Complete Errors {.hidden}
+
+```{r}
+errors_HerbsPoints_Complete <- unique(rbind(errors_HerbsPoints_Complete_Grassland, errors_HerbsPoints_Complete_Forest)) %>% 
+  arrange(AdminUnit_Name)
+
+remove(errors_HerbsPoints_Complete_Grassland, errors_HerbsPoints_Complete_Forest)
+
+if(nrow(errors_HerbsPoints_Complete) > 1) {
+  errors_HerbsPoints_Complete <- errors_HerbsPoints_Complete %>%
+    filter(Error != "No Error")
+} else {
+  errors_HerbsPoints_Complete <- errors_HerbsPoints_Complete}
+```
+
 ### HerbsPoints Header
 
 [Problem:]{.underline} Incorrect header information entered.
@@ -4840,9 +4909,9 @@ errors_HerbsPoints_Zero <- qaqc(data, query, query_message, values_check)
 ### HerbsPoints Errors
 
 ```{r}
-errors_HerbsPoints <- rbind(errors_HerbsPoints_Header, errors_blank, errors_HerbsPoints_Height, errors_blank, errors_HerbsPoints_Order, errors_blank, errors_HerbsPoints_Point, errors_blank, errors_HerbsPoints_Species, errors_blank, errors_HerbsPoints_Status, errors_blank, errors_HerbsPoints_Tape, errors_blank, errors_HerbsPoints_Transect, errors_blank, errors_HerbsPoints_Zero)
+errors_HerbsPoints <- rbind(errors_HerbsPoints_Complete, errors_blank, errors_HerbsPoints_Header, errors_blank, errors_HerbsPoints_Height, errors_blank, errors_HerbsPoints_Order, errors_blank, errors_HerbsPoints_Point, errors_blank, errors_HerbsPoints_Species, errors_blank, errors_HerbsPoints_Status, errors_blank, errors_HerbsPoints_Tape, errors_blank, errors_HerbsPoints_Transect, errors_blank, errors_HerbsPoints_Zero)
 
-remove(errors_HerbsPoints_Header, errors_HerbsPoints_Height, errors_HerbsPoints_Order, errors_HerbsPoints_Point, errors_HerbsPoints_Species, errors_HerbsPoints_Status, errors_HerbsPoints_Tape, errors_HerbsPoints_Transect, errors_HerbsPoints_Zero)
+remove(errors_HerbsPoints_Complete, errors_HerbsPoints_Header, errors_HerbsPoints_Height, errors_HerbsPoints_Order, errors_HerbsPoints_Point, errors_HerbsPoints_Species, errors_HerbsPoints_Status, errors_HerbsPoints_Tape, errors_HerbsPoints_Transect, errors_HerbsPoints_Zero)
 ```
 
 # ALL ERRORS
