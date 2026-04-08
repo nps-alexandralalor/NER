@@ -51,6 +51,8 @@ library(stringr)
 # adjust file paths
 path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 #path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_main_data <- paste0(path_main, "Exports Data Depot/")
+path_main_save <- paste0(path_main, "R Outputs Data Depot/ALL/")
 ```
 
 ### Parks
@@ -64,6 +66,10 @@ parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO
 ## project_units
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "project_units"
 
 final_df <- NULL
@@ -73,8 +79,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -92,6 +98,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -100,6 +107,10 @@ write.csv(final_df, paste0(path_save, protocol, ".csv"), quote = FALSE, row.name
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -107,8 +118,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -126,6 +137,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -138,6 +150,10 @@ write.csv(final_df, paste0(path_save, protocol, ".csv"), quote = FALSE, row.name
 ## cover_frequency
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "cover_frequency"
 
 final_df <- NULL
@@ -147,8 +163,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -165,6 +181,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -173,6 +190,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -180,8 +201,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -198,6 +219,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -208,6 +230,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## cover_line_intercept
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "cover_line_intercept"
 
 final_df <- NULL
@@ -217,8 +243,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -235,6 +261,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -243,6 +270,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -250,8 +281,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -268,6 +299,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -278,6 +310,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## cover_points
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "cover_points"
 
 final_df <- NULL
@@ -287,8 +323,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -305,6 +341,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -313,6 +350,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -320,8 +361,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -338,6 +379,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -348,6 +390,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## cover_species_composition
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "cover_species_composition"
 
 final_df <- NULL
@@ -357,8 +403,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -375,6 +421,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -383,6 +430,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -390,8 +441,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -408,6 +459,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -420,6 +472,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## surface_fuels_alaska_duff_litter
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "surface_fuels_alaska_duff_litter"
 
 final_df <- NULL
@@ -429,8 +485,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -447,6 +503,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -455,6 +512,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -462,8 +523,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -480,6 +541,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -490,6 +552,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## surface_fuels_duff_litter
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "surface_fuels_duff_litter"
 
 final_df <- NULL
@@ -499,8 +565,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -517,6 +583,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -525,6 +592,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -532,8 +603,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -550,6 +621,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -560,6 +632,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## surface_fuels_fine
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "surface_fuels_fine"
 
 final_df <- NULL
@@ -569,8 +645,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -587,6 +663,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -595,6 +672,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -602,8 +683,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -620,6 +701,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -630,6 +712,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## surface_fuels_piles
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "surface_fuels_piles"
 
 final_df <- NULL
@@ -639,8 +725,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -657,6 +743,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -665,6 +752,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -672,8 +763,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -690,6 +781,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -700,6 +792,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## surface_fuels_thousand_hr
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "surface_fuels_thousand_hr"
 
 final_df <- NULL
@@ -709,8 +805,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -727,6 +823,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -735,6 +832,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -742,8 +843,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -760,6 +861,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -770,6 +872,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## surface_fuels_vegetation
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "surface_fuels_vegetation"
 
 final_df <- NULL
@@ -779,8 +885,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -797,6 +903,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -805,6 +912,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -812,8 +923,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -830,6 +941,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -842,6 +954,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## trees_individuals
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "trees_individuals"
 
 final_df <- NULL
@@ -851,8 +967,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -869,6 +985,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -877,6 +994,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -884,8 +1005,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -902,6 +1023,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -912,6 +1034,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## trees_saplings
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "trees_saplings"
 
 final_df <- NULL
@@ -921,8 +1047,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -939,6 +1065,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -947,6 +1074,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -954,8 +1085,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -972,6 +1103,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -982,6 +1114,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 ## trees_seedlings
 
 ```{r}
+#############
+## METRIC  ##
+#############
+
 protocol <- "trees_seedlings"
 
 final_df <- NULL
@@ -991,8 +1127,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/Metric_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/Metric/")
+  path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "Metric/")
   
   
   # load data
@@ -1009,6 +1145,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
@@ -1017,6 +1154,10 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 #############################################################################################
 
+#############
+## ENGLISH ##
+#############
+
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -1024,8 +1165,8 @@ for(i in parks) {
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports Data Depot/", target_park, "/English_ffi_", target_park, "_data_export/")
-  path_save <- paste0(path_main, "R Outputs Data Depot/ALL/English/")
+  path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+  path_save <- paste0(path_main_save, "English/")
   
   
   # load data
@@ -1042,6 +1183,7 @@ for(i in parks) {
   temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
   
   
+  # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
 
