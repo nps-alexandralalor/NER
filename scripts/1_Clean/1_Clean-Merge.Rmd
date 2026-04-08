@@ -80,8 +80,10 @@ library(knitr)
 
 ```{r}
 # adjust file paths
-#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_main_data <- paste0(path_main, "Exports/")
+path_save <- paste0(path_main, "R Outputs/NER/")
 ```
 
 ### Parks {.hidden}
@@ -95,14 +97,14 @@ parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO
 ## Sample Event & Macroplot Report
 
 ```{r}
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -258,10 +260,12 @@ for(i in parks) {
   # replace commas with semicolons
   MetadataReport[] <- lapply(MetadataReport, function(x) gsub(",", ";", x))
   
-  
-  # save file
-  write.csv(MetadataReport, paste0(path_save, target_park, "_MetadataReport.csv"), quote = FALSE, row.names = FALSE) 
+  # add data to master list
+  final_df <- rbind(final_df, MetadataReport)
 }
+
+  # save file
+write.csv(final_df, paste0(path_save, "MetadataReport.csv"), quote = FALSE, row.names = FALSE) 
 ```
 
 # SPECIES
@@ -269,14 +273,14 @@ for(i in parks) {
 ## Species Report
 
 ```{r}
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -324,10 +328,12 @@ for(i in parks) {
   #       # = ReportType # not on data depot outputs
   #       )
 
-  
-  # save file
-  write.csv(SpeciesReport, paste0(path_save, target_park, "_SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
+  # add data to master list
+  final_df <- rbind(final_df, SpeciesReport)
 }
+
+  # save file
+  write.csv(final_df, paste0(path_save, "SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 # PROTOCOLS
@@ -335,14 +341,14 @@ for(i in parks) {
 ## Fuels 1000
 
 ```{r}
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -435,22 +441,25 @@ for(i in parks) {
       )
   
   
-  # save file
-  write.csv(Fuels1000, paste0(path_save, target_park, "_Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
+  # add data to master list
+  final_df <- rbind(final_df, Fuels1000)
 }
+
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Fuels Duff Litt
 
 ```{r}
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -543,22 +552,25 @@ for(i in parks) {
       )
   
   
-  # save file
-  write.csv(FuelsDuffLitt, paste0(path_save, target_park, "_Data_Surface Fuels - Duff_Litter.csv"), quote = FALSE, row.names = FALSE) 
+  # add data to master list
+  final_df <- rbind(final_df, FuelsDuffLitt)
 }
+
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Surface Fuels - Duff_Litter.csv"), quote = FALSE, row.names = FALSE) 
 ```
 
 ## Fuels Fine
 
 ```{r}
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -654,22 +666,25 @@ for(i in parks) {
       )
   
   
-  # save file
-  write.csv(FuelsFine, paste0(path_save, target_park, "_Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE) 
+  # add data to master list
+  final_df <- rbind(final_df, FuelsFine)
 }
+
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE) 
 ```
 
 ## Post Burn
 
 ```{r}
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -764,22 +779,25 @@ for(i in parks) {
       )
   
   
-  # save file
-  write.csv(PostBurn, paste0(path_save, target_park, "_Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE) 
+  # add data to master list
+  final_df <- rbind(final_df, PostBurn)
 }
+
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE) 
 ```
 
 ## Trees
 
 ```{r}
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -917,9 +935,12 @@ for(i in parks) {
       )
   
   
-  # save file
-  write.csv(Trees, paste0(path_save, target_park, "_Data_Trees - Individuals (metric).csv"), quote = FALSE, row.names = FALSE) 
+  # add data to master list
+  final_df <- rbind(final_df, Trees)
 }
+
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Trees - Individuals (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Seedlings
@@ -928,14 +949,14 @@ for(i in parks) {
 # excluding park PRWI because of database exporting issues
 # excluding park APCO because Density - Quadrats (metric) aka Seedlings protocol does not include Area header...
 
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -1043,9 +1064,12 @@ for(i in parks) {
       )
   
   
-  # save file
-  write.csv(Seedlings, paste0(path_save, target_park, "_Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE) 
+  # add data to master list
+  final_df <- rbind(final_df, Seedlings)
 }
+
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Shrubs
@@ -1054,14 +1078,14 @@ for(i in parks) {
 # excluding park PRWI because of database exporting issues
 # excluding park APCO because Density - Belts (metric) aka Shrubs protocol does not include Subbelt, NumSubbelt, or Area header...
 
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -1169,22 +1193,25 @@ for(i in parks) {
       )
   
   
-  # save file
-  write.csv(Shrubs, paste0(path_save, target_park, "_Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE) 
+  # add data to master list
+  final_df <- rbind(final_df, Shrubs)
 }
+
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Herbs Species Comp
 
 ```{r}
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -1286,22 +1313,25 @@ for(i in parks) {
       )
   
   
-  # save file
-  write.csv(HerbsSpComp, paste0(path_save, target_park, "_Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE) 
+  # add data to master list
+  final_df <- rbind(final_df, HerbsSpComp)
 }
+
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE) 
 ```
 
 ## Herbs Points
 
 ```{r}
+final_df <- NULL
 for(i in parks) {
   # select target park
   target_park <- i
   
   
   # adjust file paths
-  path_data <- paste0(path_main, "Exports/", target_park, "/", target_park, "_")
-  path_save <- paste0(path_main, "R Outputs/", target_park, "/")
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
   
   
   # load data
@@ -1408,7 +1438,10 @@ for(i in parks) {
       )
   
   
-  # save file
-  write.csv(HerbsPoints, paste0(path_save, target_park, "_Data_Cover - Points (metric).csv"), quote = FALSE, row.names = FALSE) 
+  # add data to master list
+  final_df <- rbind(final_df, HerbsPoints)
 }
+
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Cover - Points (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
