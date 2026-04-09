@@ -64,76 +64,22 @@ library(here)
 
 ```{r}
 # Create blank data frame as error log template
-errors_blank <- data.frame("SavedQuery" = "", "Macroplot_Name" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Macroplot_Name" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
 
 # Create error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "Macroplot_Name", "Error")
+errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "Error")
 
 ############################################################################################
 ## Source Code
 #Pull in source code that creates QAQC functions and builds an empty error table.
-#source("C:/Users/allie/OneDrive/Desktop/R Projects/NER/scripts/1_QAQC/qaqc_function.R")
-
-
-# QAQC function
-qaqc <- function(data, query, query_message, values_check) {
-
-  # Check if there is data to QAQC
-  if(nrow(data) == 0) {
-  # If there is no data, default to "No Error" data frame
-  errors <- errors_blank %>%
-    mutate("SavedQuery" = query,
-           "Error" = "No Error")
-  # If there is data, perform error check
-} else {
-
-  # Use relevant dataset to look for errors
-  errors <- data %>%
-    # Add columns relevant to error checking
-           # Populate the "SavedQuery" column with the query name
-    mutate("SavedQuery" = query,
-           # Populate the "Error" column with the query message and relevant data
-           "Error" = paste(query_message, "=", values_data),
-           # Create a blank "Fixed" column
-           "Fixed" = "",
-           # Create a blank "Explanation" column
-           "Explanation" = "",
-           # Create a blank "Queryers" column
-           "Queryers" = "") %>%
-    # Filter for data which is "false" (data does not match valid conditions)
-    # NA values are treated as "false" (missing data is not valid)
-    filter(!(values_check %>% replace_na(FALSE))) %>%
-    # Select relevant columns to view errors
-    select(colnames(errors_blank))
-
-  # Next, check if there are duplicate errors
-  errors_temp <- errors %>%
-    get_dupes(errors_group)
-  # Merge duplicate errors
-  errors <- unique(merge(errors, errors_temp, all = T))
-  # If duplicate errors exist, add number of duplicates to error message
-  errors <- errors %>%
-    mutate(Error = ifelse(is.na(dupe_count), Error, paste0("(x", dupe_count, ") ", Error))) %>%
-    select(!"dupe_count")
-}
-
-  # Check if there are no errors
-  if (nrow(errors) == 0) {
-    # If there are no errors, default to "No Error" data frame
-    errors <- errors_blank %>%
-      mutate(SavedQuery = query,
-             Error = "No Error")
-    # If there are errors, keep error log you just created
-  } else {
-    errors <- errors
-  }
-}
+source("C:/Users/allie/OneDrive/Desktop/R Projects/NER/scripts/2_QAQC/qaqc_function.R")
 ```
 
 ### Target Park {.hidden}
 
 ```{r target values, include=FALSE}
 # designate target park(s)
+# parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 target_park <- "APCO"
 ```
 
@@ -143,7 +89,7 @@ target_park <- "APCO"
 # adjust file paths
 path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 #path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_data <- paste0(path_main, "R Outputs/", target_park, "/", target_park, "_")
+path_data <- paste0(path_main, "R Outputs/NER/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 ```
@@ -151,7 +97,14 @@ path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 ### Load Data {.hidden}
 
 ```{r load data, include=FALSE}
-MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
+MetadataReport_all <- read.csv(paste0(path_data, "MetadataReport.csv"))
+```
+
+### Filter
+
+```{r}
+MetadataReport <- MetadataReport_all %>%
+  filter(AdminUnit_Name %in% target_park)
 ```
 
 # Park: [`r target_park`]{style="color:red"}
@@ -643,8 +596,8 @@ errors_all_cf <- errors_all %>%
   mutate(Color = ifelse(SavedQuery == "", NA, "Color"))
 
 # Add conditional formating to ouput
-errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:7]) %>%
-  rule_fill_discrete(columns = 1:6,
+errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:8]) %>%
+  rule_fill_discrete(columns = 1:7,
                      expression = (errors_all_cf$Color),
                      colours = c("Color"="#C6E0B4"),
                      na.value = "#FFFFFF") %>%
