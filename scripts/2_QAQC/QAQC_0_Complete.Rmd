@@ -2,12 +2,12 @@
 title: Complete CSVs
 author: Alexandra Lalor
 output:
+  pdf_document:
+  word_document:
   html_document:
     theme: readable
     highlight: null
     code_download: true
-  word_document:
-  pdf_document:
 ---
 
 # PURPOSE
@@ -33,11 +33,21 @@ This code is intended to quality check all FFI CSV exports for missing data. Mis
 
 ### Export all CSVs
 
-This code uses the Macroplot Report and Sample Event Report from FFI as the reference file for how much data there is "supposed to be". These reports have been combined into a clean "Metadata Report", using the Clean_1_All.Rmd script.
+This code uses the Macroplot Report and Sample Event Report from FFI as the reference file for how much data there is "supposed to be". These reports have been combined into a clean "Metadata Report", using the Clean+Merge.Rmd script.
 
 -   MetadataReport.csv
 
-These protocols are included in the code and have been cleaned using the Clean_1_All.Rmd script.
+These protocols are included in the code and have been cleaned using the Clean+Merge.Rmd script.
+
+-   Cover - Points (metric)
+
+-   Cover - Species Composition (metric)
+
+-   Density - Belts (metric)
+
+-   Density - Quadrats (metric)
+
+-   Post Burn Severity (metric)
 
 -   Surface Fuels - 1000Hr
 
@@ -45,17 +55,7 @@ These protocols are included in the code and have been cleaned using the Clean_1
 
 -   Surface Fuels - Fine
 
--   Post Burn Severity (metric)
-
 -   Trees - Individuals (metric)
-
--   Density - Quadrats (metric)
-
--   Density - Belts (metric)
-
--   Cover - Species Composition (metric)
-
--   Cover - Points (metric)
 
 **If you are using a protocol that is not listed above, you will need to add code to check this data. See the below table for protocols used by your program.**
 
@@ -85,6 +85,8 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 library(tidyverse)
 library(dplyr)
 library(readr)
+# here() helps locate file paths
+library(here)
 # janitor has functions to find duplicates
 library(janitor)
 # writexl is used to create excel output files
@@ -108,7 +110,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Error")
 ############################################################################################
 ## Source Code
 #Pull in source code that creates QAQC functions and builds an empty error table.
-source("C:/Users/allie/OneDrive/Desktop/R Projects/NER/scripts/2_QAQC/qaqc_function.R")
+source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
 ```
 
 ### Target Park {.hidden}
@@ -124,9 +126,9 @@ target_park <- "SHEN"
 
 ```{r import data, include=FALSE}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_data <- paste0(path_main, "R Outputs/NER/")
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_data <- paste0(path_main, "R Outputs/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " CSV Errors")
 ```
@@ -218,7 +220,8 @@ HerbsPoints_data <- HerbsPoints_all %>%
 kable(
   MetadataReport_all %>% 
   group_by(SampleEvent_Protocols) %>% 
-  dplyr::summarize("Usage" = n())
+  dplyr::summarize("Usage" = n(),
+                   "Parks" = paste(na.omit(unique(AdminUnit_Name)), collapse = ", "))
 )
 ```
 
