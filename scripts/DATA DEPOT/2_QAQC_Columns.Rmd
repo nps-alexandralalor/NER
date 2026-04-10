@@ -172,7 +172,7 @@ qaqc <- function(data, query, query_message, values_check) {
 
 ```{r}
 # designate target park(s)
-target_park <- "VAFO"
+target_park <- "SHEN"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -195,6 +195,7 @@ path_errors_name <- paste0(target_park, " Data Depot Errors")
 
 # project unit report
 ProjectUnitReport <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_project_units.csv"))
+SpeciesReport <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data_export_species_info.csv"))
 
 # protocols
 Fuels1000_all <- read_csv(paste0(path_data_english, "ffi_", target_park, "_data_export_surface_fuels_thousand_hr.csv"))
@@ -210,15 +211,17 @@ HerbsPoints_all <- read_csv(paste0(path_data_metric, "ffi_", target_park, "_data
 ```{r}
 columns_ProjectUnit <- c("AdminUnitId", "ProjectUnitId", "MonitoringStatusId", "SampleEventId", "AdminUnit_Name","Protocol","ProjectUnit_Name", "ProjectUnit_Agency", "ProjectUnit_Area", "ProjectUnit_Grid", "ProjectUnit_AreaUnits", "ProjectUnit_DateIn", "ProjectUnit_DateOut", "ProjectUnit_Objective", "ProjectUnit_Description", "ProjectUnit_CreateCode", "ProjectUnit_Comment", "ProjectUnit_UserVariables", "MonitoringStatus_Name", "MonitoringStatus_Prefix", "MonitoringStatus_Base", "MonitoringStatus_Suffix", "MonitoringStatus_Order", "MonitoringStatus_Comment")
 
+columns_SpeciesReport <- c("Species_Id","AdminUnitId","Species_MasterSpeciesId","Species_AuxSpeciesId","Species_LocalSpeciesId","AdminUnit_Name","Species_OrganizationName","Species_MasterOrUserLocal","Species_ITISTaxonomicSerialNumber","Species_SymbolLocal","Species_SymbolMaster","Species_ScientificName","Species_CommonName","Species_CommonNameLocal","Species_Genus","Species_Family","Species_NotBiological","Species_Nativity","Species_NativityLocal","Species_LifeFormName","Species_LifeFormNameLocal","Species_Description","Species_LifeCycleLocal","Species_LifeCycle","Species_UV1","Species_UV2","Species_UV3","Species_UserAdded","Species_Cultural","Species_Invasive","Species_Concern","Species_Retired","Species_Comment","Protocol")
+
 
 
 columns_ID <- c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","MethodDataId","MethodData_Id")
 
 columns_Macroplot <- c("Organization_Name","AdminUnit_Name","Protocol","AdminUnit_Comment","Macroplot_Name","Macroplot_Purpose","Macroplot_LocatedBy","Macroplot_Type","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_DateOut","Macroplot_FutureVisit","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","Macroplot_UV1","Macroplot_UV2","Macroplot_UV3","Macroplot_UV4","Macroplot_UV5","Macroplot_UV6","Macroplot_UV7","Macroplot_UV8")
 
-columns_SampleEvent <- c("SampleEvent_Date","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleEvent_TreatmentUnit","SampleData_Executed")
+columns_SampleEvent <- c("SampleEvent_Date","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_LegacyMonitoringStatus","SampleEvent_TreatmentUnit","SampleData_Executed")
 
-columns_Species <- c("Species_SourceEntityId","Species_LocalSpeciesId","Species_MasterSpeciesId","Species_AuxSpeciesId","Species_ITISTaxonomicSerialNumber","Species_SymbolLocal","Species_Symbol","Species_ScientificName","Species_CommonNameLocal","Species_CommonName","Species_Genus","Species_Family","Species_NotBiological","Species_Nativity","Species_NativityLocal","Species_Invasive","Species_LifeFormName","Species_LifeFormNameLocal","Species_Description","Species_LifeCycle","Species_LifeCycleLocal","Species_Cultural","Species_Concern","Species_Retired","Species_Comment","Species_UV1","Species_UV2","Species_UV3","MethodData_SpeciesId","MethodData_LocalSpeciesId","MethodData_LocalSpeciesSymbol","MethodData_SymbolLocal","MethodData_SppGuid")
+columns_Species <- c("Species_SourceEntityId","Species_LocalSpeciesId","Species_MasterSpeciesId","Species_AuxSpeciesId","Species_ITISTaxonomicSerialNumber","Species_SymbolLocal","Species_SymbolMaster","Species_ScientificName","Species_CommonNameLocal","Species_CommonName","Species_Genus","Species_Family","Species_NotBiological","Species_Nativity","Species_NativityLocal","Species_Invasive","Species_LifeFormName","Species_LifeFormNameLocal","Species_Description","Species_LifeCycle","Species_LifeCycleLocal","Species_Cultural","Species_Concern","Species_Retired","Species_Comment","Species_UV1","Species_UV2","Species_UV3","MethodData_SpeciesId","MethodData_LocalSpeciesId","MethodData_RemoteApp_LocalSpeciesSymbol","MethodData_SppGuid")
 
 columns_MethodData <- c("MethodData_Visited","MethodData_FieldTeam","MethodData_EntryTeam","MethodData_UV1Desc","MethodData_UV2Desc","MethodData_UV3Desc","MethodData_SAComment","MethodData_CreatedDate","MethodData_UpdatedDate","MethodData_DeletedDate","MethodData_Comment","MethodData_UV1","MethodData_UV2","MethodData_UV3","MethodData_Index")
 
@@ -230,8 +233,8 @@ columns_Fuels1000_E <- c("MethodData_NumTran (num.)","MethodData_TranLen (ft)","
 columns_FuelsDuffLitt_M <- c("MethodData_NumTran (num.)","MethodData_Transect (num.)","MethodData_SampLoc (m)","MethodData_OffSet","MethodData_LittDep (cm)","MethodData_DuffDep (cm)","MethodData_FuelbedDep (cm)","MethodData_DLFuConSt")
 columns_FuelsDuffLitt_E <- c("MethodData_NumTran (num.)","MethodData_Transect (num.)","MethodData_SampLoc (ft)","MethodData_OffSet","MethodData_LittDep (in.)","MethodData_DuffDep (in.)","MethodData_FuelbedDep (in.)","MethodData_DLFuConSt")
 
-columns_FuelsFine_M <- c("MethodData_NumTran (num.)","MethodData_OneHrTranLen (m)","MethodData_TenHrTranLen (m)","MethodData_HunHrTranLen (m)","MethodData_Transect (num.)","MethodData_Azimuth (deg)","MethodData_Slope (%)","MethodData_OneHr","MethodData_TenHr","MethodData_HunHr","MethodData_FWDFuConSt")
-columns_FuelsFine_E <- c("MethodData_NumTran (num.)","MethodData_OneHrTranLen (ft)","MethodData_TenHrTranLen (ft)","MethodData_HunHrTranLen (ft)","MethodData_Transect (num.)","MethodData_Azimuth (deg)","MethodData_Slope (%)","MethodData_OneHr","MethodData_TenHr","MethodData_HunHr","MethodData_FWDFuConSt")
+columns_FuelsFine_M <- c("MethodData_NumTran (num.)","MethodData_OneHrTranLen (m)","MethodData_TenHrTranLen (m)","MethodData_HunHrTranLen (m)","MethodData_Transect (num.)","MethodData_Azimuth (°)","MethodData_Slope (%)","MethodData_OneHr","MethodData_TenHr","MethodData_HunHr","MethodData_FWDFuConSt")
+columns_FuelsFine_E <- c("MethodData_NumTran (num.)","MethodData_OneHrTranLen (ft)","MethodData_TenHrTranLen (ft)","MethodData_HunHrTranLen (ft)","MethodData_Transect (num.)","MethodData_Azimuth (°)","MethodData_Slope (%)","MethodData_OneHr","MethodData_TenHr","MethodData_HunHr","MethodData_FWDFuConSt")
 
 columns_Trees_M <- c("MethodData_MacroPlotSize (ha)","MethodData_SnagPlotSize (ha)","MethodData_BrkPntDia (cm)","MethodData_IsVerified","MethodData_QTR (num.)","MethodData_SubFrac (num.)","MethodData_TagNo (num.)","MethodData_Status","MethodData_DBH (cm)","MethodData_Ht (m)","MethodData_CrwnRto (%)","MethodData_CrwnCl","MethodData_CrFuBHt (m)","MethodData_LiCrBHt (m)","MethodData_CrwnRad (m)","MethodData_Age (yrs)","MethodData_GrwthRt (cm)","MethodData_Mort","MethodData_DecayCl","MethodData_LaddBaseHt (m)","MethodData_LaddMaxHt (m)","MethodData_DRC (cm)","MethodData_NuLiStems","MethodData_NuDeStems","MethodData_EqDia (cm)","MethodData_XCoord (m)","MethodData_YCoord (m)","MethodData_CKR","MethodData_CharHt (m)","MethodData_ScorchHt (m)","MethodData_CrScPct (%)","MethodData_DamCd1","MethodData_DamSev1 (num.)","MethodData_DamCd2","MethodData_DamSev2 (num.)","MethodData_DamCd3","MethodData_DamSev3 (num.)","MethodData_DamCd4","MethodData_DamSev4 (num.)","MethodData_DamCd5","MethodData_DamSev5 (num.)","MethodData_Density","MethodData_BasalArea")
 columns_Trees_E <- c("MethodData_MacroPlotSize (ac)","MethodData_SnagPlotSize (ac)","MethodData_BrkPntDia (in.)","MethodData_IsVerified","MethodData_QTR (num.)","MethodData_SubFrac (num.)","MethodData_TagNo (num.)","MethodData_Status","MethodData_DBH (in.)","MethodData_Ht (ft)","MethodData_CrwnRto (%)","MethodData_CrwnCl","MethodData_CrFuBHt (ft)","MethodData_LiCrBHt (ft)","MethodData_CrwnRad (ft)","MethodData_Age (yrs)","MethodData_GrwthRt (cm)","MethodData_Mort","MethodData_DecayCl","MethodData_LaddBaseHt (m)","MethodData_LaddMaxHt (ft)","MethodData_DRC (in.)","MethodData_NuLiStems","MethodData_NuDeStems","MethodData_EqDia (in.)","MethodData_XCoord (ft)","MethodData_YCoord (ft)","MethodData_CKR","MethodData_CharHt (ft)","MethodData_ScorchHt (ft)","MethodData_CrScPct (%)","MethodData_DamCd1","MethodData_DamSev1 (num.)","MethodData_DamCd2","MethodData_DamSev2 (num.)","MethodData_DamCd3","MethodData_DamSev3 (num.)","MethodData_DamCd4","MethodData_DamSev4 (num.)","MethodData_DamCd5","MethodData_DamSev5 (num.)","MethodData_Density","MethodData_BasalArea")
@@ -275,6 +278,40 @@ values_check <- values_data == values_valid
 # Identify errors
 errors_ProjectUnitReport_Columns <- qaqc(data, query, query_message, values_check)
 errors_ProjectUnitReport_Columns <- unique(errors_ProjectUnitReport_Columns)
+```
+
+# SPECIES REPORT
+
+[Procedure:]{.underline}
+
+-   Check that columns match expected
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  mutate(AdminUnit_Name = Species_AdminUnitName,
+         Protocol = "species_report")
+values_data <- names(data)
+values_valid <- c(columns_SpeciesReport)
+MissingColumn1 <- setdiff(values_data, values_valid)
+MissingColumn2 <- setdiff(values_valid, values_data)
+MissingColumn <- c(MissingColumn1, MissingColumn2)
+if(length(MissingColumn) == 0) {
+  MissingColumn <- "none"
+} else {
+  MissingColumn <- paste((MissingColumn), collapse = ", ")
+}
+
+data$MissingColumn <- MissingColumn
+query <- "Column - Names"
+query_message <- "Mismatched/Missing/Extra Columns"
+values_data <- data$MissingColumn
+values_valid <- "none"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Columns <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Columns <- unique(errors_SpeciesReport_Columns)
 ```
 
 # PROTOCOL - SURFACE FUELS
@@ -488,9 +525,9 @@ errors_HerbsPoints_Columns <- unique(errors_HerbsPoints_Columns)
 
 ```{r}
 # Combine
-errors_columns <- unique(rbind(errors_ProjectUnitReport_Columns, errors_Fuels1000_Columns, errors_FuelsDuffLitt_Columns, errors_FuelsFine_Columns, errors_Trees_Columns, errors_HerbsSpComp_Columns, errors_HerbsPoints_Columns))
+errors_columns <- unique(rbind(errors_ProjectUnitReport_Columns, errors_SpeciesReport_Columns, errors_Fuels1000_Columns, errors_FuelsDuffLitt_Columns, errors_FuelsFine_Columns, errors_Trees_Columns, errors_HerbsSpComp_Columns, errors_HerbsPoints_Columns))
 
-remove(errors_ProjectUnitReport_Columns, errors_Fuels1000_Columns, errors_FuelsDuffLitt_Columns, errors_FuelsFine_Columns, errors_Trees_Columns, errors_HerbsSpComp_Columns, errors_HerbsPoints_Columns)
+remove(errors_ProjectUnitReport_Columns, errors_SpeciesReport_Columns, errors_Fuels1000_Columns, errors_FuelsDuffLitt_Columns, errors_FuelsFine_Columns, errors_Trees_Columns, errors_HerbsSpComp_Columns, errors_HerbsPoints_Columns)
 
 if(nrow(errors_columns) > 1) {
   errors_columns <- errors_columns %>%
