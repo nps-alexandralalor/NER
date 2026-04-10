@@ -60,12 +60,8 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 ```{r}
 # install.packages("tidyverse")
-# install.packages("Rtools")
-# install.packages("janitor")
-# install.packages("condformat")
 # install.packages("knitr")
 # install.packages("here")
-# install.packages("EnvStats")
 ```
 
 ```{r}
@@ -80,10 +76,10 @@ library(knitr)
 
 ```{r}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_main_data <- paste0(path_main, "Exports/")
-path_save <- paste0(path_main, "R Outputs/NER/")
+path_save <- paste0(path_main, "R Outputs/")
 ```
 
 ### Parks {.hidden}
