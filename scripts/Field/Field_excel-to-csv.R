@@ -34,13 +34,14 @@ library(here)
 here()
 
 # select target park
-target_park <- "TEST"
+target_park <- "SHEN"
+target_year <- 2026
 
 # load in data and name them based on file path
 # change file path based on user name!
 my_path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/Data Collection/"
-my_path_data <- paste0(my_path_file, target_park, "/Collected/")
-my_path_csv <- paste0(my_path_file, target_park, "/Collected/CSV_Import to FFI/")
+my_path_data <- paste0(my_path_file, target_park, "/", target_year, "/Collected/")
+my_path_csv <- paste0(my_path_file, target_park, "/", target_year, "/Collected/CSV_Import to FFI/")
 
 
 ################################################################################
@@ -159,10 +160,6 @@ for (i in 1:nrow(file_names_df)) {
         filter(!Species %in% substrate) %>%
         distinct(Species, Spp_GUID),
       if (!is.null(Seedlings)) Seedlings %>% 
-        mutate(Species = toupper(Species)) %>% 
-        filter(!Species %in% substrate) %>%
-        distinct(Species, Spp_GUID),
-      if (!is.null(Trees)) Trees %>% 
         mutate(Species = toupper(Species)) %>% 
         filter(!Species %in% substrate) %>%
         distinct(Species, Spp_GUID)
