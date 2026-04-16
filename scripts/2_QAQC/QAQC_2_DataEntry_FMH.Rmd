@@ -73,6 +73,7 @@ library(writexl)
 library(condformat)
 # knitr is used to create output files from R Markdown
 library(knitr)
+library(here)
 ```
 
 ### Create Function {.hidden}
@@ -88,7 +89,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "SampleEvent
 ############################################################################################
 ## Source Code
 #Pull in source code that creates QAQC functions and builds an empty error table.
-source("C:/Users/allie/OneDrive/Desktop/R Projects/NER/scripts/2_QAQC/qaqc_function.R")
+source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
 ```
 
 ### Target Values {.hidden}
@@ -97,17 +98,17 @@ source("C:/Users/allie/OneDrive/Desktop/R Projects/NER/scripts/2_QAQC/qaqc_funct
 # designate target values
 # 2025 parks: "CATO" "GETT" "MONO" "NERI" "RICH" "SHEN"
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-target_park <- c("MONO")
-target_years <- c(2025)
+target_park <- c("FRSP")
+target_years <- c(2009)
 ```
 
 ### Adjust File Paths {.hidden}
 
 ```{r import data, include=FALSE}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_data <- paste0(path_main, "R Outputs/NER/")
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_data <- paste0(path_main, "R Outputs/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " FMH Data QAQC Errors")
 ```
