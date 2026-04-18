@@ -4938,8 +4938,8 @@ errors_all_cf <- errors_all_cf %>%
   mutate(Color = ifelse(Color == TRUE, "Post", Color))
 
 # Add conditional formating to ouput
-errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:10]) %>%
-  rule_fill_discrete(columns = 1:9,
+errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:ncol(errors_all_cf)]) %>%
+  rule_fill_discrete(columns = 1:(ncol(errors_all_cf)-1),
                      expression = (errors_all_cf$Color),
                      colours = c("Standard"="#C6E0B4",
                                  "Post"="#FFC000",

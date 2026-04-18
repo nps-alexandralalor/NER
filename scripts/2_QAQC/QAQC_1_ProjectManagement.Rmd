@@ -596,8 +596,8 @@ errors_all_cf <- errors_all %>%
   mutate(Color = ifelse(SavedQuery == "", NA, "Color"))
 
 # Add conditional formating to ouput
-errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:8]) %>%
-  rule_fill_discrete(columns = 1:7,
+errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:ncol(errors_all_cf)]) %>%
+  rule_fill_discrete(columns = 1:(ncol(errors_all_cf)-1),
                      expression = (errors_all_cf$Color),
                      colours = c("Color"="#C6E0B4"),
                      na.value = "#FFFFFF") %>%

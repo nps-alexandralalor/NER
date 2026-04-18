@@ -102,10 +102,11 @@ library(knitr)
 
 ```{r}
 # Create blank data frame as error log template
-errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Macroplot_Type" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Macroplot_Type" = "", "Macroplot_Name" = "", "SampleEvent_Date" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>%
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date))
 
 # Create error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Type", "Error")
+errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Type", "Macroplot_Name", "SampleEvent_Date", "Error")
 
 ############################################################################################
 ## Source Code
@@ -119,7 +120,7 @@ source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
 # designate target park(s)
 # write 4-letter code of your park (e.g. "SHEN")
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-target_park <- "CUVA"
+target_park <- "ANTI"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -156,7 +157,7 @@ HerbsPoints_all <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"
 #####
 # Metadata
 #####
-MetadataReport <- MetadataReport_all %>%
+MetadataReport_data <- MetadataReport_all %>%
   filter(AdminUnit_Name %in% target_park)
 
 #####
@@ -231,7 +232,7 @@ kable(
 
 ```{r}
 # Filter NA values. Add number of data points and store in new column
-data_temp1 <- MetadataReport %>%
+data_temp1 <- MetadataReport_data %>%
   filter(grepl("Surface Fuels", SampleEvent_Protocols)) %>%
   group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
   dplyr::summarize()
@@ -247,7 +248,7 @@ remove(data_temp1, data_temp2)
 # Set parameters 
 data <- merge(Fuels1000_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
 query <- "Fuel 1000" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". If applicable, write 'no CWD found' in comments field in FFI. CWD")
+query_message <- paste0("If applicable, write 'no CWD found' in comments field in FFI. CWD")
 values_data <- data$data_points
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -260,7 +261,7 @@ errors_Fuels1000 <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Filter NA values. Add number of data points and store in new column
-data_temp1 <- MetadataReport %>%
+data_temp1 <- MetadataReport_data %>%
   filter(grepl("Surface Fuels", SampleEvent_Protocols)) %>%
   group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
   dplyr::summarize()
@@ -278,7 +279,7 @@ remove(data_temp1, data_temp2)
 # Set parameters 
 data <- merge(FuelsDuffLitt_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
 query <- "Fuel DL" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Sample Locations")
+query_message <- paste0("Complete Sample Locations")
 values_data <- data$data_points
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -291,7 +292,7 @@ errors_FuelsDuffLitt <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Filter NA values. Add number of data points and store in new column
-data_temp1 <- MetadataReport %>%
+data_temp1 <- MetadataReport_data %>%
   filter(grepl("Surface Fuels", SampleEvent_Protocols)) %>%
   group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
   dplyr::summarize()
@@ -307,7 +308,7 @@ remove(data_temp1, data_temp2)
 # Set parameters 
 data <- merge(FuelsFine_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
 query <- "Fuel Fine"
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Transects")
+query_message <- paste0("Complete Transects")
 values_data <- data$data_points
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -320,7 +321,7 @@ errors_FuelsFine <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Filter NA values. Add number of data points and store in new column
-data_temp1 <- MetadataReport %>%
+data_temp1 <- MetadataReport_data %>%
   filter(grepl("Post Burn Severity", SampleEvent_Protocols)) %>%
   group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
   dplyr::summarize()
@@ -338,7 +339,7 @@ remove(data_temp1, data_temp2)
 # Set parameters 
 data <- merge(PostBurn_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
 query <- "PBSev" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Sample Locations")
+query_message <- paste0("Complete Sample Locations")
 values_data <- data$data_points
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -351,7 +352,7 @@ errors_PostBurn <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Filter NA values. Add number of data points and store in new column
-data_temp1 <- MetadataReport %>%
+data_temp1 <- MetadataReport_data %>%
   filter(grepl("Trees - Individuals", SampleEvent_Protocols)) %>%
   group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
   dplyr::summarize()
@@ -367,7 +368,7 @@ remove(data_temp1, data_temp2)
 # Set parameters 
 data <- merge(Trees_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
 query <- "Trees" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". If applicable, write 'no trees found' in comments field in FFI. Trees")
+query_message <- paste0("If applicable, write 'no trees found' in comments field in FFI. Trees")
 values_data <- data$data_points
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -380,7 +381,7 @@ errors_Trees <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Filter NA values. Add number of data points and store in new column
-data_temp1 <- MetadataReport %>%
+data_temp1 <- MetadataReport_data %>%
   filter(grepl("Density - Quadrats", SampleEvent_Protocols)) %>%
   group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
   dplyr::summarize()
@@ -397,7 +398,7 @@ remove(data_temp1, data_temp2)
 # Set parameters 
 data <- merge(Seedlings_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
 query <- "Dens Quad" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". If applicable, write 'no seedlings found' in comments field in FFI. Seedlings")
+query_message <- paste0("If applicable, write 'no seedlings found' in comments field in FFI. Seedlings")
 values_data <- data$data_points
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -410,7 +411,7 @@ errors_Seedlings <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Filter NA values. Add number of data points and store in new column
-data_temp1 <- MetadataReport %>%
+data_temp1 <- MetadataReport_data %>%
   filter(grepl("Density - Belts", SampleEvent_Protocols)) %>%
   group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
   dplyr::summarize()
@@ -426,7 +427,7 @@ remove(data_temp1, data_temp2)
 # Set parameters 
 data <- merge(Shrubs_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
 query <- "Dens Belts" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". If applicable, write 'no shrubs found' in comments field in FFI. Shrubs")
+query_message <- paste0("If applicable, write 'no shrubs found' in comments field in FFI. Shrubs")
 values_data <- data$data_points
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -439,7 +440,7 @@ errors_Shrubs <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # Filter NA values. Add number of data points and store in new column
-data_temp1 <- MetadataReport %>%
+data_temp1 <- MetadataReport_data %>%
   filter(grepl("Cover - Species Composition", SampleEvent_Protocols)) %>% 
   group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
   dplyr::summarize()
@@ -456,7 +457,7 @@ remove(data_temp1, data_temp2)
 # Set parameters 
 data <- merge(HerbsSpComp_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
 query <- "Cvr SpComp" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". If applicable, write 'no species found' in comments field in FFI. Species")
+query_message <- paste0("If applicable, write 'no species found' in comments field in FFI. Species")
 values_data <- data$data_points
 values_valid <- 0
 values_check <- values_data > values_valid
@@ -467,10 +468,13 @@ errors_HerbsSpComp <- qaqc(data, query, query_message, values_check)
 
 # PROTOCOL - HERBS POINTS {.hidden}
 
+### Forest
+
 ```{r}
 # Filter NA values. Add number of data points and store in new column
-data_temp1 <- MetadataReport %>%
-  filter(grepl("Cover - Points", SampleEvent_Protocols)) %>%
+data_temp1 <- MetadataReport_data %>%
+  filter(grepl("Cover - Points", SampleEvent_Protocols),
+         Macroplot_Type %in% c("Forest")) %>%
   group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
   dplyr::summarize()
 
@@ -492,13 +496,65 @@ remove(data_temp1, data_temp2, data_temp_transects)
 # Set parameters 
 data <- merge(HerbsPoints_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name", "SampleEvent_Date", "Transect"), all = T)
 query <- "Cvr Pts" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Transect = ", data$Transect, ". Total Points") 
+query_message <- paste0("Transect = ", data$Transect, ". Total Points") 
 values_data <- data$data_points
 values_valid <- 0
 values_check <- values_data > values_valid
 
 # Identify errors
-errors_HerbsPoints <- qaqc(data, query, query_message, values_check)
+errors_HerbsPoints_Forest <- qaqc(data, query, query_message, values_check)
+```
+
+### Grassland & Shrubland
+
+```{r}
+# Filter NA values. Add number of data points and store in new column
+data_temp1 <- MetadataReport_data %>%
+  filter(grepl("Cover - Points", SampleEvent_Protocols),
+         Macroplot_Type %in% c("Grassland", "Shrubland")) %>%
+  group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
+  dplyr::summarize()
+
+data_temp2 <- HerbsPoints_data %>%
+  filter(Order == 1) %>%
+  group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date, Transect) %>% 
+  dplyr::summarise("data_points" = n())
+
+data_temp_transects <- as.data.frame(1)
+colnames(data_temp_transects) <- "Transect"
+data_temp1 <- merge(data_temp1, data_temp_transects) %>% 
+  dplyr::rename("Transect" = !!names(.)[5]) %>% 
+  arrange(Macroplot_Name, SampleEvent_Date, Transect)
+
+data_temp <- merge(data_temp1, data_temp2, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name", "SampleEvent_Date", "Transect"), all = TRUE)
+data_temp$data_points[is.na(data_temp$data_points)] <- 0
+remove(data_temp1, data_temp2, data_temp_transects)
+
+# Set parameters 
+data <- merge(HerbsPoints_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name", "SampleEvent_Date", "Transect"), all = T)
+query <- "Cvr Pts" 
+query_message <- paste0("Transect = ", data$Transect, ". Total Points") 
+values_data <- data$data_points
+values_valid <- 0
+values_check <- values_data > values_valid
+
+# Identify errors
+errors_HerbsPoints_Grassland <- qaqc(data, query, query_message, values_check)
+```
+
+### Combine HerbsPoints Errors
+
+```{r}
+# Combine
+errors_HerbsPoints <- unique(rbind(errors_HerbsPoints_Forest, errors_HerbsPoints_Grassland))
+
+remove(errors_HerbsPoints_Forest, errors_HerbsPoints_Grassland)
+
+if(nrow(errors_HerbsPoints) > 1) {
+  errors_HerbsPoints <- errors_HerbsPoints %>%
+    filter(Error != "No Error")
+} else {
+  errors_HerbsPoints <- errors_HerbsPoints}
 ```
 
 # ALL ERRORS
@@ -546,8 +602,8 @@ errors_all_cf <- errors_all %>%
   mutate(Color = ifelse(Color == FALSE, "Standard", Color))
 
 # Add conditional formating to ouput
-errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:8]) %>%
-  rule_fill_discrete(columns = 1:7,
+errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:ncol(errors_all_cf)]) %>%
+  rule_fill_discrete(columns = 1:(ncol(errors_all_cf)-1),
                      expression = (errors_all_cf$Color),
                      colours = c("Color"="#C6E0B4",
                                  "Protocol" = "#969696"),
@@ -560,5 +616,7 @@ QAQC file saved to:
 ```{r}
 # Save as CSV or XLSX 
 path_errors
+errors_all <- errors_all %>% 
+  mutate(SampleEvent_Date = as.character(SampleEvent_Date))
 condformat2excel(errors_all, paste0(path_errors, paste0(target_park, "_errors_complete.xlsx")), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
