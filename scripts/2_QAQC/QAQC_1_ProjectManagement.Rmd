@@ -62,7 +62,7 @@ library(here)
 
 ### Create Function {.hidden}
 
-```{r}
+```{r qaqc function, include=FALSE}
 # Create blank data frame as error log template
 errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Macroplot_Name" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
 
@@ -85,7 +85,7 @@ target_park <- "APCO"
 
 ### Adjust File Paths {.hidden}
 
-```{r import data, include=FALSE}
+```{r file paths, include=FALSE}
 # adjust file paths
 path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 #path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
@@ -100,16 +100,16 @@ path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 MetadataReport_all <- read.csv(paste0(path_data, "MetadataReport.csv"))
 ```
 
-### Filter
+### Filter Data
 
-```{r}
+```{r filter data, include=FALSE}
 MetadataReport <- MetadataReport_all %>%
   filter(AdminUnit_Name %in% target_park)
 ```
 
 # Park: [`r target_park`]{style="color:red"}
 
-# Macroplot Report
+# MACROPLOT REPORT
 
 ### Installation
 
@@ -489,7 +489,7 @@ if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
 errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent)
 ```
 
-# Sample Event Report
+# SAMPLE EVENT REPORT
 
 [Problem:]{.underline} Sample Event Report is missing information or is inconsistent with the Macroplot Report
 

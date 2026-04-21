@@ -15,7 +15,7 @@ output:
     toc_depth: 1
 ---
 
-# PURPOSE
+# Purpose
 
 This code is intended to combine FFI files into flat files to be used with subsequent R scripts.
 
@@ -49,7 +49,7 @@ The Protocol data can be downloaded via Query tab on the FFI Remote App Server b
 
 -   Cover - Points (metric)\_XPT.csv
 
-## BEFORE STARTING {.hidden}
+## Before Starting {.hidden}
 
 ### Setup {.hidden}
 
@@ -58,13 +58,13 @@ The Protocol data can be downloaded via Query tab on the FFI Remote App Server b
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
-```{r}
+```{r install packages, include=FALSE}
 # install.packages("tidyverse")
 # install.packages("knitr")
 # install.packages("here")
 ```
 
-```{r}
+```{r load packages, include=FALSE}
 # tidyverse and dplyr have lots of useful functions for data cleaning
 library(tidyverse)
 library(dplyr)
@@ -72,9 +72,15 @@ library(dplyr)
 library(knitr)
 ```
 
+### Target Parks {.hidden}
+
+```{r target values, include=FALSE}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+```
+
 ### Adjust File Paths {.hidden}
 
-```{r}
+```{r file paths, include=FALSE}
 # adjust file paths
 path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 #path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
@@ -82,17 +88,11 @@ path_main_data <- paste0(path_main, "Exports/")
 path_save <- paste0(path_main, "R Outputs/")
 ```
 
-### Parks {.hidden}
-
-```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-```
-
 # METADATA
 
 ## Sample Event & Macroplot Report
 
-```{r warning=FALSE}
+```{r metadata, warning=FALSE}
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -269,7 +269,7 @@ write.csv(final_df, paste0(path_save, "MetadataReport.csv"), quote = FALSE, row.
 
 ## Species Report
 
-```{r warning=FALSE}
+```{r species, warning=FALSE}
 final_df <- NULL
 for(i in parks) {
   # select target park
@@ -348,7 +348,15 @@ for(i in parks) {
 
 ### cover_frequency
 
+```{r cover_frequency, warning=FALSE}
+
+```
+
 ### cover_line_intercept
+
+```{r cover_line_intercept, warning=FALSE}
+
+```
 
 ### cover_points
 
@@ -588,9 +596,261 @@ for(i in parks) {
   write.csv(final_df, paste0(path_save, "Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE) 
 ```
 
+## Density
+
+### density_belts (shrubs)
+
+```{r density_belts, warning=FALSE}
+final_df <- NULL
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
+  
+  
+  # load data
+  Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  Shrubs_all <- Shrubs_all[, -ncol(Shrubs_all)]
+  ## replace commas with semicolons
+  Shrubs_all[] <- lapply(Shrubs_all, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  Shrubs_all[] <- lapply(Shrubs_all, function(x) gsub('"', "'", x))
+  
+  
+  # clean data
+  Shrubs_all <- Shrubs_all %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # separate Date column
+    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    # reformate Date column
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
+    # add Year column
+    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
+    # relocate Year column
+    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
+    # remove unnecessary columns
+    select(!c("Time"))
+  
+  
+  # filter data
+  ## Shrubs headers
+  Shrubs_header <- Shrubs_all %>%
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19,
+             NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  ## Shrubs data
+  Shrubs_data <- Shrubs_all %>%
+    filter(is.na(Visited)) %>% 
+    select(!c(NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  
+  
+  # merge data
+  Shrubs <- merge(Shrubs_header, Shrubs_data, by = c(1:19))
+  
+  
+  # add column for park name
+  Shrubs <- Shrubs %>% 
+    add_column(AdminUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
+  # add data to master list
+  final_df <- rbind(final_df, Shrubs)
+}
+
+# final column renaming to match metadata
+  final_df <- final_df %>%  
+    dplyr::rename(
+      Macroplot_Purpose = MacroPlot.Purpose,
+      Macroplot_Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      Macroplot_Name = MacroPlot.Name,
+      MonStatus_Name = Monitoring.Status,
+      MonStatus_Prefix = Status.Prefix,
+      MonStatus_Base = Status.Base,
+      MonStatus_Suffix = Status.Suffix,
+      MonStatus_Order = Status.Order,
+      Species_LifeCycleLocal = Lifecycle,
+      Species_NotBiological = NotBiological,
+      Species_LifeFormNameLocal = Preferred_Lifeform,
+      Species_Family = Family,
+      Species_Genus = Genus,
+      Species_ScientificName = ScientificName,
+      Species_NativityLocal = Native.Species,
+      Species_Invasive = Invasive.Species,
+      MethodData_LocalSpeciesSymbol = Species.Symbol,
+      MethodData_NumTran = NumTran,
+      MethodData_NumSubbelt = NumSubbelt,
+      MethodData_TranLen = TranLen,
+      MethodData_TranWid = TranWid,
+      MethodData_Area_ha = Area,
+      MethodData_FieldTeam = FieldTeam,
+      MethodData_EntryTeam = EntryTeam,
+      MethodData_UV1Desc = UV1Desc,
+      MethodData_UV2Desc = UV2Desc,
+      MethodData_UV3Desc = UV3Desc,
+      MethodData_SAComment = SaComment,
+      MethodData_Visited = Visited,
+      MethodData_Index = Index,
+      MethodData_Transect = Transect,
+      MethodData_Subbelt = Subbelt,
+      MethodData_Status = Status,
+      MethodData_SizeCl = SizeCl,
+      MethodData_AgeCl = AgeCl,
+      MethodData_Count = Count,
+      MethodData_Height_m = Height,
+      MethodData_SubFrac = SubFrac,
+      MethodData_Comment = Comment,
+      MethodData_UV1 = UV1,
+      MethodData_UV2 = UV2,
+      MethodData_UV3 = UV3
+      )
+  
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE)
+```
+
+### density_quadrats (seedlings)
+
+```{r density_quadrats, warning=FALSE}
+final_df <- NULL
+for(i in parks) {
+  # select target park
+  target_park <- i
+  
+  
+  # adjust file paths
+  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
+  
+  
+  # load data
+  Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
+  ## Drop last column if it's an empty placeholder (common in Excel exports)
+  Seedlings_all <- Seedlings_all[, -ncol(Seedlings_all)]
+  ## replace commas with semicolons
+  Seedlings_all[] <- lapply(Seedlings_all, function(x) gsub(",", ";", x))
+  ## replace double quotes with single quotes
+  Seedlings_all[] <- lapply(Seedlings_all, function(x) gsub('"', "'", x))
+  
+  
+  # clean data
+  Seedlings_all <- Seedlings_all %>%
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>%
+    # separate Date column
+    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    # reformate Date column
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
+    # add Year column
+    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
+    # relocate Year column
+    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
+    # remove unnecessary columns
+    select(!c("Time"))
+  
+  
+  # filter data
+  ## Seedlings headers
+  Seedlings_header <- Seedlings_all %>%
+    filter(!is.na(Visited)) %>% 
+    select(c(1:19,
+             NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  ## Seedlings data
+  Seedlings_data <- Seedlings_all %>%
+    filter(is.na(Visited)) %>% 
+    select(!c(NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
+  
+  
+  # merge data
+  Seedlings <- merge(Seedlings_header, Seedlings_data, by = c(1:19))
+  
+  
+  # add column for park name
+  Seedlings <- Seedlings %>% 
+    add_column(AdminUnit_Name = target_park, .before = "MacroPlot.Purpose")
+  
+  
+  # add data to master list
+  final_df <- rbind(final_df, Seedlings)
+}
+
+# final column renaming to match metadata
+  final_df <- final_df %>%  
+    dplyr::rename(
+      Macroplot_Purpose = MacroPlot.Purpose,
+      Macroplot_Type = MacroPlot.Type,
+      Macroplot_UV1 = MacroPlot.UV1,
+      Macroplot_UV2 = MacroPlot.UV2,
+      Macroplot_UV3 = MacroPlot.UV3,
+      Macroplot_UV4 = MacroPlot.UV4,
+      Macroplot_UV5 = MacroPlot.UV5,
+      Macroplot_UV6 = MacroPlot.UV6,
+      Macroplot_UV7 = MacroPlot.UV7,
+      Macroplot_UV8 = MacroPlot.UV8,
+      Macroplot_Name = MacroPlot.Name,
+      MonStatus_Name = Monitoring.Status,
+      MonStatus_Prefix = Status.Prefix,
+      MonStatus_Base = Status.Base,
+      MonStatus_Suffix = Status.Suffix,
+      MonStatus_Order = Status.Order,
+      Species_LifeCycleLocal = Lifecycle,
+      Species_NotBiological = NotBiological,
+      Species_LifeFormNameLocal = Preferred_Lifeform,
+      Species_Family = Family,
+      Species_Genus = Genus,
+      Species_ScientificName = ScientificName,
+      Species_NativityLocal = Native.Species,
+      Species_Invasive = Invasive.Species,
+      MethodData_LocalSpeciesSymbol = Species.Symbol,
+      MethodData_NumTran = NumTran,
+      MethodData_NumQuadTran = NumQuadTran,
+      MethodData_QuadLen = QuadLen,
+      MethodData_QuadWid = QuadWid,
+      MethodData_Area_ha = Area,
+      MethodData_FieldTeam = FieldTeam,
+      MethodData_EntryTeam = EntryTeam,
+      MethodData_UV1Desc = UV1Desc,
+      MethodData_UV2Desc = UV2Desc,
+      MethodData_UV3Desc = UV3Desc,
+      MethodData_SAComment = SaComment,
+      MethodData_Visited = Visited,
+      MethodData_Index = Index,
+      MethodData_Transect = Transect,
+      MethodData_Quadrat = Quadrat,
+      MethodData_Status = Status,
+      MethodData_SizeCl = SizeCl,
+      MethodData_AgeCl = AgeCl,
+      MethodData_Count = Count,
+      MethodData_Height_m = Height,
+      MethodData_SubFrac = SubFrac,
+      MethodData_Comment = Comment,
+      MethodData_UV1 = UV1,
+      MethodData_UV2 = UV2,
+      MethodData_UV3 = UV3
+      )
+  
+  # save file
+  write.csv(final_df, paste0(path_save, "Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE)
+```
+
 ## Surface Fuels
 
 ### surface_fuels_alaska_duff_litter
+
+```{r surface_fuels_alaska_duff_litter, warning=FALSE}
+
+```
 
 ### surface_fuels_duff_litter
 
@@ -815,6 +1075,10 @@ for(i in parks) {
 
 ### surface_fuels_piles
 
+```{r surface_fuels_piles, warning=FALSE}
+
+```
+
 ### surface_fuels_thousand_hr
 
 ```{r surface_fuels_thousand_hr, warning=FALSE}
@@ -925,6 +1189,10 @@ for(i in parks) {
 ```
 
 ### surface_fuels_vegetation
+
+```{r surface_fuels_vegetation, warning=FALSE}
+
+```
 
 ## Trees
 
@@ -1081,261 +1349,21 @@ for(i in parks) {
 
 ### trees_saplings
 
-### trees_seedlings
+```{r trees_saplings, warning=FALSE}
 
-## Density
-
-### density_quadrats (seedlings)
-
-```{r density_quadrats, warning=FALSE}
-final_df <- NULL
-for(i in parks) {
-  # select target park
-  target_park <- i
-  
-  
-  # adjust file paths
-  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
-  
-  
-  # load data
-  Seedlings_all <- read.csv(paste0(path_data, "Density - Quadrats (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-  ## Drop last column if it's an empty placeholder (common in Excel exports)
-  Seedlings_all <- Seedlings_all[, -ncol(Seedlings_all)]
-  ## replace commas with semicolons
-  Seedlings_all[] <- lapply(Seedlings_all, function(x) gsub(",", ";", x))
-  ## replace double quotes with single quotes
-  Seedlings_all[] <- lapply(Seedlings_all, function(x) gsub('"', "'", x))
-  
-  
-  # clean data
-  Seedlings_all <- Seedlings_all %>%
-    # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
-    # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
-    # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
-  
-  
-  # filter data
-  ## Seedlings headers
-  Seedlings_header <- Seedlings_all %>%
-    filter(!is.na(Visited)) %>% 
-    select(c(1:19,
-             NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-  ## Seedlings data
-  Seedlings_data <- Seedlings_all %>%
-    filter(is.na(Visited)) %>% 
-    select(!c(NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-  
-  
-  # merge data
-  Seedlings <- merge(Seedlings_header, Seedlings_data, by = c(1:19))
-  
-  
-  # add column for park name
-  Seedlings <- Seedlings %>% 
-    add_column(AdminUnit_Name = target_park, .before = "MacroPlot.Purpose")
-  
-  
-  # add data to master list
-  final_df <- rbind(final_df, Seedlings)
-}
-
-# final column renaming to match metadata
-  final_df <- final_df %>%  
-    dplyr::rename(
-      Macroplot_Purpose = MacroPlot.Purpose,
-      Macroplot_Type = MacroPlot.Type,
-      Macroplot_UV1 = MacroPlot.UV1,
-      Macroplot_UV2 = MacroPlot.UV2,
-      Macroplot_UV3 = MacroPlot.UV3,
-      Macroplot_UV4 = MacroPlot.UV4,
-      Macroplot_UV5 = MacroPlot.UV5,
-      Macroplot_UV6 = MacroPlot.UV6,
-      Macroplot_UV7 = MacroPlot.UV7,
-      Macroplot_UV8 = MacroPlot.UV8,
-      Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
-      Species_LifeCycleLocal = Lifecycle,
-      Species_NotBiological = NotBiological,
-      Species_LifeFormNameLocal = Preferred_Lifeform,
-      Species_Family = Family,
-      Species_Genus = Genus,
-      Species_ScientificName = ScientificName,
-      Species_NativityLocal = Native.Species,
-      Species_Invasive = Invasive.Species,
-      MethodData_LocalSpeciesSymbol = Species.Symbol,
-      MethodData_NumTran = NumTran,
-      MethodData_NumQuadTran = NumQuadTran,
-      MethodData_QuadLen = QuadLen,
-      MethodData_QuadWid = QuadWid,
-      MethodData_Area_ha = Area,
-      MethodData_FieldTeam = FieldTeam,
-      MethodData_EntryTeam = EntryTeam,
-      MethodData_UV1Desc = UV1Desc,
-      MethodData_UV2Desc = UV2Desc,
-      MethodData_UV3Desc = UV3Desc,
-      MethodData_SAComment = SaComment,
-      MethodData_Visited = Visited,
-      MethodData_Index = Index,
-      MethodData_Transect = Transect,
-      MethodData_Quadrat = Quadrat,
-      MethodData_Status = Status,
-      MethodData_SizeCl = SizeCl,
-      MethodData_AgeCl = AgeCl,
-      MethodData_Count = Count,
-      MethodData_Height_m = Height,
-      MethodData_SubFrac = SubFrac,
-      MethodData_Comment = Comment,
-      MethodData_UV1 = UV1,
-      MethodData_UV2 = UV2,
-      MethodData_UV3 = UV3
-      )
-  
-  # save file
-  write.csv(final_df, paste0(path_save, "Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
 
-### density_belts (shrubs)
+### trees_seedlings
 
-```{r warning=FALSE}
-final_df <- NULL
-for(i in parks) {
-  # select target park
-  target_park <- i
-  
-  
-  # adjust file paths
-  path_data <- paste0(path_main_data, target_park, "/", target_park, "_")
-  
-  
-  # load data
-  Shrubs_all <- read.csv(paste0(path_data, "Density - Belts (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
-  ## Drop last column if it's an empty placeholder (common in Excel exports)
-  Shrubs_all <- Shrubs_all[, -ncol(Shrubs_all)]
-  ## replace commas with semicolons
-  Shrubs_all[] <- lapply(Shrubs_all, function(x) gsub(",", ";", x))
-  ## replace double quotes with single quotes
-  Shrubs_all[] <- lapply(Shrubs_all, function(x) gsub('"', "'", x))
-  
-  
-  # clean data
-  Shrubs_all <- Shrubs_all %>%
-    # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
-    # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
-    # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
-  
-  
-  # filter data
-  ## Shrubs headers
-  Shrubs_header <- Shrubs_all %>%
-    filter(!is.na(Visited)) %>% 
-    select(c(1:19,
-             NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-  ## Shrubs data
-  Shrubs_data <- Shrubs_all %>%
-    filter(is.na(Visited)) %>% 
-    select(!c(NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
-  
-  
-  # merge data
-  Shrubs <- merge(Shrubs_header, Shrubs_data, by = c(1:19))
-  
-  
-  # add column for park name
-  Shrubs <- Shrubs %>% 
-    add_column(AdminUnit_Name = target_park, .before = "MacroPlot.Purpose")
-  
-  
-  # add data to master list
-  final_df <- rbind(final_df, Shrubs)
-}
+```{r trees_seedlings, warning=TRUE}
 
-# final column renaming to match metadata
-  final_df <- final_df %>%  
-    dplyr::rename(
-      Macroplot_Purpose = MacroPlot.Purpose,
-      Macroplot_Type = MacroPlot.Type,
-      Macroplot_UV1 = MacroPlot.UV1,
-      Macroplot_UV2 = MacroPlot.UV2,
-      Macroplot_UV3 = MacroPlot.UV3,
-      Macroplot_UV4 = MacroPlot.UV4,
-      Macroplot_UV5 = MacroPlot.UV5,
-      Macroplot_UV6 = MacroPlot.UV6,
-      Macroplot_UV7 = MacroPlot.UV7,
-      Macroplot_UV8 = MacroPlot.UV8,
-      Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
-      Species_LifeCycleLocal = Lifecycle,
-      Species_NotBiological = NotBiological,
-      Species_LifeFormNameLocal = Preferred_Lifeform,
-      Species_Family = Family,
-      Species_Genus = Genus,
-      Species_ScientificName = ScientificName,
-      Species_NativityLocal = Native.Species,
-      Species_Invasive = Invasive.Species,
-      MethodData_LocalSpeciesSymbol = Species.Symbol,
-      MethodData_NumTran = NumTran,
-      MethodData_NumSubbelt = NumSubbelt,
-      MethodData_TranLen = TranLen,
-      MethodData_TranWid = TranWid,
-      MethodData_Area_ha = Area,
-      MethodData_FieldTeam = FieldTeam,
-      MethodData_EntryTeam = EntryTeam,
-      MethodData_UV1Desc = UV1Desc,
-      MethodData_UV2Desc = UV2Desc,
-      MethodData_UV3Desc = UV3Desc,
-      MethodData_SAComment = SaComment,
-      MethodData_Visited = Visited,
-      MethodData_Index = Index,
-      MethodData_Transect = Transect,
-      MethodData_Subbelt = Subbelt,
-      MethodData_Status = Status,
-      MethodData_SizeCl = SizeCl,
-      MethodData_AgeCl = AgeCl,
-      MethodData_Count = Count,
-      MethodData_Height_m = Height,
-      MethodData_SubFrac = SubFrac,
-      MethodData_Comment = Comment,
-      MethodData_UV1 = UV1,
-      MethodData_UV2 = UV2,
-      MethodData_UV3 = UV3
-      )
-  
-  # save file
-  write.csv(final_df, paste0(path_save, "Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Post Burn
 
 ### post_burn_severity
 
-```{r warning=FALSE}
+```{r post_burn_severity, warning=FALSE}
 final_df <- NULL
 for(i in parks) {
   # select target park
