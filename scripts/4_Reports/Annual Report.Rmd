@@ -50,9 +50,8 @@ library(fs)
 
 ```{r}
 ## Adjust File Paths
-path_file <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/"
-#path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
-path_data <- paste0(path_file, "ALL/ALL_")
+path_data <- "E:/Allie/FireFX_NER/FFI Data Management/R Outputs/Calculations"
+#path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/Calculations"
 ```
 
 ### Load Data {.hidden}
@@ -61,14 +60,14 @@ Load in the Metadata Report. This Metadata Report was created by combining Macro
 
 ```{r}
 # Load in data
-MetadataReport <- read.csv(paste0(path_data, "MetadataReport.csv"))
+MetadataReport_all <- read.csv(paste0(path_data, "MetadataReport.csv"))
 ```
 
 ### Target Year {.hidden}
 
 ```{r set parameters, include=F}
 # designate target year or years 
-unique(MetadataReport$SampleEventDate_Year)
+unique(MetadataReport_all$SampleEventDate_Year)
 target_year <- c(2025)
 ```
 
@@ -76,7 +75,7 @@ target_year <- c(2025)
 
 ```{r}
 table_ProjectUnit <- MetadataReport_all %>% 
-  group_by(AdministrationUnit_Name, Plot_Type, MacroPlot.UV1) %>% 
+  group_by(AdminUnit_Name, Plot_Type, MacroPlot.UV1) %>% 
   dplyr::summarise(MacroPlot.UV2 = paste(na.omit(unique(MacroPlot.UV2)), collapse = ", "),
                    First_Year = min(SampleEventDate_Year),
                    Last_Year = max(SampleEventDate_Year),
