@@ -113,7 +113,9 @@ for(i in parks) {
   # The Macroplot Report contains information on both plot metadata and sample event history. Separate these into 2 tables.
   MacroplotReport_MetaData <- MacroplotReport %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate tables
     filter(is.na(SampleEventDate)) %>%
     # separate Date column
@@ -148,7 +150,9 @@ for(i in parks) {
 
   MacroplotReport_SampleEvents <- MacroplotReport %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate tables
     filter(!is.na(SampleEventDate)) %>%
     # separate Date column
@@ -177,7 +181,9 @@ for(i in parks) {
   # The Sample Event Report has different column names as the Macroplot Report, but contains the same information. Make column names consistent.
   SampleEventReport_clean <- SampleEventReport %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(SampleEvent_Date, sep = " ", 
              into = c("SampleEvent_Date", "SampleEvent_Time")) %>%
@@ -286,8 +292,10 @@ for(i in parks) {
   
   # clean data
   SpeciesReport <- SpeciesReport %>%
-  # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim))
+    # remove trailing/leading whitespace
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
   ## replace commas with semicolons
   SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -384,7 +392,9 @@ for(i in parks) {
   # clean data
   HerbsPoints_all <- HerbsPoints_all %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
     # reformate Date column
@@ -505,7 +515,9 @@ for(i in parks) {
   # clean data
   HerbsSpComp_all <- HerbsSpComp_all %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
     # reformate Date column
@@ -624,7 +636,9 @@ for(i in parks) {
   # clean data
   Shrubs_all <- Shrubs_all %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
     # reformate Date column
@@ -747,7 +761,9 @@ for(i in parks) {
   # clean data
   Seedlings_all <- Seedlings_all %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
     # reformate Date column
@@ -878,7 +894,9 @@ for(i in parks) {
   # clean data
   FuelsDuffLitt_all <- FuelsDuffLitt_all %>% 
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
     # reformate Date column
@@ -987,7 +1005,9 @@ for(i in parks) {
   # clean data
   FuelsFine_all <- FuelsFine_all %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
     # reformate Date column
@@ -1105,7 +1125,9 @@ for(i in parks) {
   # clean data
   Fuels1000_all <- Fuels1000_all %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
     # reformate Date column
@@ -1222,7 +1244,9 @@ for(i in parks) {
   # clean data
   Trees_all <- Trees_all %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
     # reformate Date column
@@ -1387,7 +1411,9 @@ for(i in parks) {
   # clean data
   PostBurn_all <- PostBurn_all %>%
     # remove trailing/leading whitespace
-    mutate(across(where(is.character), str_trim)) %>%
+    mutate(across(where(is.character), str_trim)) %>% 
+    # remove line breaks
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
     # reformate Date column
