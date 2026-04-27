@@ -65,7 +65,7 @@ parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO
 
 ## project_units
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -107,16 +107,8 @@ for(i in parks) {
 
   # final column renaming to match protocol exports
   final_df <- final_df %>%  
-    dplyr::rename(
-      MonStatus_Name = MonitoringStatus_Name,
-      MonStatus_Prefix = MonitoringStatus_Prefix,
-      MonStatus_Base = MonitoringStatus_Base,
-      MonStatus_Suffix = MonitoringStatus_Suffix,
-      MonStatus_Order = MonitoringStatus_Order,
-      MonStatus_Comment = MonitoringStatus_Comment
-    ) %>% 
+    filter(ProjectUnit_Name != "ALL") %>% 
   # final column selections
-    #filter(ProjectUnit_Name != "ALL") %>% 
     select(!c(AdminUnitId, ProjectUnitId, MonitoringStatusId, SampleEventId,
               ProjectUnit_Grid, ProjectUnit_CreateCode))
   
@@ -164,16 +156,8 @@ for(i in parks) {
 
   # final column renaming to match protocol exports
   final_df <- final_df %>%  
-    dplyr::rename(
-      MonStatus_Name = MonitoringStatus_Name,
-      MonStatus_Prefix = MonitoringStatus_Prefix,
-      MonStatus_Base = MonitoringStatus_Base,
-      MonStatus_Suffix = MonitoringStatus_Suffix,
-      MonStatus_Order = MonitoringStatus_Order,
-      MonStatus_Comment = MonitoringStatus_Comment
-    ) %>% 
+    filter(ProjectUnit_Name != "ALL") %>% 
   # final column selections
-    #filter(ProjectUnit_Name != "ALL") %>% 
     select(!c(AdminUnitId, ProjectUnitId, MonitoringStatusId, SampleEventId,
               ProjectUnit_Grid, ProjectUnit_CreateCode))
   
@@ -183,7 +167,7 @@ write.csv(final_df, paste0(path_save, protocol, ".csv"), quote = FALSE, row.name
 
 ## species_info
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -223,13 +207,8 @@ for(i in parks) {
 
   # final column renaming to match protocol exports
   final_df <- final_df %>%  
-    dplyr::rename(
-      AdminUnit_Name = Species_AdminUnitName,
-      Species_ITIS_TSN = Species_ITISTaxonomicSerialNumber
-    )
-
+    dplyr::rename(AdminUnit_Name = Species_AdminUnitName) %>% 
   # final column selections
-  final_df <- final_df %>% 
     select(!c(AdminUnitId, Species_Id, Species_MasterSpeciesId,
               Species_AuxSpeciesId, Species_LocalSpeciesId))
   
@@ -275,13 +254,8 @@ for(i in parks) {
 
   # final column renaming to match protocol exports
   final_df <- final_df %>%  
-    dplyr::rename(
-      AdminUnit_Name = Species_AdminUnitName,
-      Species_ITIS_TSN = Species_ITISTaxonomicSerialNumber
-    )
-
+    dplyr::rename(AdminUnit_Name = Species_AdminUnitName) %>% 
   # final column selections
-  final_df <- final_df %>% 
     select(!c(AdminUnitId, Species_Id, Species_MasterSpeciesId,
               Species_AuxSpeciesId, Species_LocalSpeciesId))
   
@@ -293,7 +267,7 @@ write.csv(final_df, paste0(path_save, protocol, ".csv"), quote = FALSE, row.name
 
 ## cover_frequency
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -320,30 +294,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -356,6 +307,11 @@ for(i in parks) {
   
   # # final column renaming to match protocol exports
   # final_df <- final_df %>%
+  #   # relocate columns
+  #     relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+  #     relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+  #     relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+  #   # rename columns
   #   dplyr::rename(
   #     Macroplot_Lat_dd = Macroplot_DdLat,
   #     Macroplot_Long_dd = Macroplot_DdLong,
@@ -363,9 +319,7 @@ for(i in parks) {
   #     Macroplot_UtmY_m = Macroplot_UtmY..m.,
   #     Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
   #     Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
-  #
-  #     SampleEvent_LegacyMonStatus = SampleEvent_LegacyMonitoringStatus,
-  #     Species_ITIS_TSN = Species_ITISTaxonomicSerialNumber,
+  # 
   #     MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
   # 
   #     MethodData_NumTran = MethodData_NumTran..num..,
@@ -417,30 +371,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -457,7 +388,7 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 ## cover_line_intercept
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -484,30 +415,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -518,40 +426,43 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
-  # # final column renaming to match protocol exports
-  # final_df <- final_df %>%
-  #   dplyr::rename(
-  #     Macroplot_Lat_dd = Macroplot_DdLat,
-  #     Macroplot_Long_dd = Macroplot_DdLong,
-  #     Macroplot_UtmX_m = Macroplot_UtmX..m.,
-  #     Macroplot_UtmY_m = Macroplot_UtmY..m.,
-  #     Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
-  #     Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
-  #
-  #     SampleEvent_LegacyMonStatus = SampleEvent_LegacyMonitoringStatus,
-  #     Species_ITIS_TSN = Species_ITISTaxonomicSerialNumber,
-  #     MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
-  # 
-  #     MethodData_NumTran = MethodData_NumTran..num..,
-  #     MethodData_TranLen_m = MethodData_TranLen..m.,
-  #     MethodData_SubFrac = MethodData_SubFrac..num..,
-  #     MethodData_Transect = MethodData_Transect..num..,
-  #     MethodData_Status = MethodData_Status..num..,
-  #     MethodData_NRF = MethodData_NRF..num..,
-  #     MethodData_Cover_pct = MethodData_Cover....,
-  #     MethodData_Height_m = MethodData_Height..m.,
-  #     MethodData_Start_m = MethodData_Start..m.,
-  #     MethodData_Stop_m = MethodData_Stop..m.,
-  #     MethodData_SizeCl = MethodData_SizeCl..num..
-  #   ) %>%
-  #   # final column selections
-  #   select(!c(OrganizationId, AdminUnitId, MacroplotId, 
-  #             SampleEventId, MethodId, MethodDataId, 
-  #             MethodData_Id, MethodData_SpeciesId, 
-  #             MethodData_SppGuid, MethodData_LocalSpeciesId,
-  #             Species_SourceEntityId, Species_LocalSpeciesId,
-  #             Species_MasterSpeciesId, Species_AuxSpeciesId
-  #             ))
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>%
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>%
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>%
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+
+      MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
+
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_TranLen_m = MethodData_TranLen..m.,
+      MethodData_SubFrac = MethodData_SubFrac..num..,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_Status = MethodData_Status..num..,
+      MethodData_NRF = MethodData_NRF..num..,
+      MethodData_Cover_pct = MethodData_Cover....,
+      MethodData_Height_m = MethodData_Height..m.,
+      MethodData_Start_m = MethodData_Start..m.,
+      MethodData_Stop_m = MethodData_Stop..m.,
+      MethodData_SizeCl = MethodData_SizeCl..num..
+    ) %>%
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId,
+              SampleEventId, MethodId, MethodDataId,
+              MethodData_Id, MethodData_SpeciesId,
+              MethodData_SppGuid, MethodData_LocalSpeciesId,
+              Species_SourceEntityId, Species_LocalSpeciesId,
+              Species_MasterSpeciesId, Species_AuxSpeciesId
+              ))
 
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
@@ -582,30 +493,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -622,7 +510,7 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 ## cover_points
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -649,30 +537,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -685,6 +550,12 @@ for(i in parks) {
 
   # final column renaming to match protocol exports
   final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+      relocate(MethodData_CanopyLayer, .before = MethodData_Cover) %>% 
+    # rename columns
     dplyr::rename(
       Macroplot_Lat_dd = Macroplot_DdLat,
       Macroplot_Long_dd = Macroplot_DdLong,
@@ -693,8 +564,6 @@ for(i in parks) {
       Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
       Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
       
-      SampleEvent_LegacyMonStatus = SampleEvent_LegacyMonitoringStatus,
-      Species_ITIS_TSN = Species_ITISTaxonomicSerialNumber,
       MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
       
       MethodData_NumTran = MethodData_NumTran..num..,
@@ -707,7 +576,6 @@ for(i in parks) {
       MethodData_Order = MethodData_Order..num..,
       MethodData_Height_m = MethodData_Height..m.
     ) %>% 
-    relocate(MethodData_CanopyLayer, .before = MethodData_Cover) %>% 
     # final column selections
     select(!c(OrganizationId, AdminUnitId, MacroplotId, 
               SampleEventId, MethodId, MethodDataId, 
@@ -746,30 +614,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -782,6 +627,12 @@ for(i in parks) {
 
   # final column renaming to match protocol exports
   final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+      relocate(MethodData_CanopyLayer, .before = MethodData_Cover) %>% 
+    # rename columns
     dplyr::rename(
       Macroplot_Lat_dd = Macroplot_DdLat,
       Macroplot_Long_dd = Macroplot_DdLong,
@@ -790,8 +641,6 @@ for(i in parks) {
       Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
       Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
       
-      SampleEvent_LegacyMonStatus = SampleEvent_LegacyMonitoringStatus,
-      Species_ITIS_TSN = Species_ITISTaxonomicSerialNumber,
       MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
       
       MethodData_NumTran = MethodData_NumTran..num..,
@@ -804,7 +653,6 @@ for(i in parks) {
       MethodData_Order = MethodData_Order..num..,
       MethodData_Height_ft = MethodData_Height..ft.
     ) %>% 
-    relocate(MethodData_CanopyLayer, .before = MethodData_Cover) %>% 
     # final column selections
     select(!c(OrganizationId, AdminUnitId, MacroplotId, 
               SampleEventId, MethodId, MethodDataId, 
@@ -820,7 +668,7 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 ## cover_species_composition
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -847,30 +695,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -881,6 +706,38 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
+      
+      MethodData_MinCovLevel_pct = MethodData_MinCovLevel....,
+      MethodData_Area_ha = MethodData_Area..ha.,
+      MethodData_Status = MethodData_Status..num..,
+      MethodData_SizeCl = MethodData_SizeCl..num..,
+      MethodData_Height_m = MethodData_Height..m.
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id, MethodData_SpeciesId, 
+              MethodData_SppGuid, MethodData_LocalSpeciesId,
+              Species_SourceEntityId, Species_LocalSpeciesId,
+              Species_MasterSpeciesId, Species_AuxSpeciesId
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
@@ -910,30 +767,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -944,6 +778,38 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
+      
+      MethodData_MinCovLevel_pct = MethodData_MinCovLevel....,
+      MethodData_Area_ac = MethodData_Area..ac..,
+      MethodData_Status = MethodData_Status..num..,
+      MethodData_SizeCl = MethodData_SizeCl..num..,
+      MethodData_Height_ft = MethodData_Height..ft.
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id, MethodData_SpeciesId, 
+              MethodData_SppGuid, MethodData_LocalSpeciesId,
+              Species_SourceEntityId, Species_LocalSpeciesId,
+              Species_MasterSpeciesId, Species_AuxSpeciesId
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
@@ -952,7 +818,7 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 ## surface_fuels_alaska_duff_litter
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -979,30 +845,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1013,6 +856,38 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_SampLoc_m = MethodData_SampLoc..m.,
+      MethodData_LittDep_cm = MethodData_LittDep..cm.,
+      MethodData_LiveMoss_cm = MethodData_LiveMoss..cm.,
+      MethodData_DeadMoss_cm = MethodData_DeadMoss..cm.,
+      MethodData_UppDuffDep_cm = MethodData_UppDuffDep..cm.,
+      MethodData_LowDuffDep_cm = MethodData_LowDuffDep..cm.,
+      MethodData_LichDep_cm = MethodData_LichDep..cm.,
+      MethodData_FuelBedDep_cm = MethodData_FuelBedDep..cm.
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
@@ -1042,30 +917,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1076,13 +928,45 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_SampLoc_ft = MethodData_SampLoc..ft.,
+      MethodData_LittDep_in = MethodData_LittDep..in.,
+      MethodData_LiveMoss_in = MethodData_LiveMoss..in.,
+      MethodData_DeadMoss_in = MethodData_DeadMoss..in.,
+      MethodData_UppDuffDep_in = MethodData_UppDuffDep..in.,
+      MethodData_LowDuffDep_in = MethodData_LowDuffDep..in.,
+      MethodData_LichDep_in = MethodData_LichDep..in.,
+      MethodData_FuelBedDep_in = MethodData_FuelBedDep..in.
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## surface_fuels_duff_litter
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -1109,30 +993,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1143,6 +1004,34 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_SampLoc_m = MethodData_SampLoc..m.,
+      MethodData_LittDep_cm = MethodData_LittDep..cm.,
+      MethodData_DuffDep_cm = MethodData_DuffDep..cm.,
+      MethodData_FuelBedDep_cm = MethodData_FuelbedDep..cm.
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
@@ -1172,30 +1061,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1206,13 +1072,41 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_SampLoc_ft = MethodData_SampLoc..ft.,
+      MethodData_LittDep_in = MethodData_LittDep..in.,
+      MethodData_DuffDep_in = MethodData_DuffDep..in.,
+      MethodData_FuelBedDep_in = MethodData_FuelbedDep..in.
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## surface_fuels_fine
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -1239,30 +1133,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1273,6 +1144,35 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_OneHrTranLen_m = MethodData_OneHrTranLen..m.,
+      MethodData_TenHrTranLen_m = MethodData_TenHrTranLen..m.,
+      MethodData_HunHrTranLen_m = MethodData_HunHrTranLen..m.,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_Azimuth_deg = MethodData_Azimuth....,
+      MethodData_Slope_pct = MethodData_Slope....
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
@@ -1302,30 +1202,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1336,13 +1213,42 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_OneHrTranLen_ft = MethodData_OneHrTranLen..ft.,
+      MethodData_TenHrTranLen_ft = MethodData_TenHrTranLen..ft.,
+      MethodData_HunHrTranLen_ft = MethodData_HunHrTranLen..ft.,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_Azimuth_deg = MethodData_Azimuth....,
+      MethodData_Slope_pct = MethodData_Slope....
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## surface_fuels_piles
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -1369,30 +1275,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1403,6 +1286,36 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_PlotDensity_ha = MethodData_plotDensity..ha..,
+      MethodData_PileNum = MethodData_PileNum..num..,
+      MethodData_Width1_m = MethodData_Width1..m.,
+      MethodData_Width2_m = MethodData_Width2..m.,
+      MethodData_Length1_m = MethodData_Length1..m.,
+      MethodData_Length2_m = MethodData_Length2..m.,
+      MethodData_Height1_m = MethodData_Height1..m.,
+      MethodData_Height2_m = MethodData_Height2..m.
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
@@ -1432,30 +1345,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1466,13 +1356,43 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_PlotDensity_ac = MethodData_plotDensity..ac..,
+      MethodData_PileNum = MethodData_PileNum..num..,
+      MethodData_Width1_ft = MethodData_Width1..ft.,
+      MethodData_Width2_ft = MethodData_Width2..ft.,
+      MethodData_Length1_ft = MethodData_Length1..ft.,
+      MethodData_Length2_ft = MethodData_Length2..ft.,
+      MethodData_Height1_ft = MethodData_Height1..ft.,
+      MethodData_Height2_ft = MethodData_Height2..ft.
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## surface_fuels_thousand_hr
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -1499,30 +1419,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1533,6 +1430,34 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_TranLen_m = MethodData_TranLen..m.,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_Slope_pct = MethodData_Slope....,
+      MethodData_LogNum = MethodData_LogNum..num..,
+      MethodData_Dia_cm = MethodData_Dia..cm.,
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
@@ -1562,30 +1487,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1596,13 +1498,41 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_TranLen_ft = MethodData_TranLen..ft.,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_Slope_pct = MethodData_Slope....,
+      MethodData_LogNum = MethodData_LogNum..num..,
+      MethodData_Dia_in = MethodData_Dia..in.,
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## surface_fuels_vegetation
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -1629,30 +1559,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>%  
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) 
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1663,6 +1570,33 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_SampLoc_m = MethodData_SampLoc..m.,
+      MethodData_Cover_pct = MethodData_Cover....,
+      MethodData_Height_m = MethodData_Height..m.
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
@@ -1692,30 +1626,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1726,6 +1637,33 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_NumTran = MethodData_NumTran..num..,
+      MethodData_Transect = MethodData_Transect..num..,
+      MethodData_SampLoc_ft = MethodData_SampLoc..ft.,
+      MethodData_Cover_pct = MethodData_Cover....,
+      MethodData_Height_ft = MethodData_Height..ft.
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
@@ -1734,7 +1672,7 @@ write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE,
 
 ## trees_individuals
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -1761,30 +1699,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1794,6 +1709,61 @@ for(i in parks) {
   # add data to master list
   final_df <- rbind(final_df, temp_df)
 }
+
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
+      
+      MethodData_MacroPlotSize_ha = MethodData_MacroPlotSize..ha.,
+      MethodData_SnagPlotSize_ha = MethodData_SnagPlotSize..ha.,
+      MethodData_BrkPntDia_cm = MethodData_BrkPntDia..cm.,
+      MethodData_QTR = MethodData_QTR..num..,
+      MethodData_SubFrac = MethodData_SubFrac..num..,
+      MethodData_TagNo = MethodData_TagNo..num..,
+      MethodData_DBH_cm = MethodData_DBH..cm.,
+      MethodData_Ht_m = MethodData_Ht..m.,
+      MethodData_CrwnRto_pct = MethodData_CrwnRto....,
+      MethodData_CrFuBHt_m = MethodData_CrFuBHt..m.,
+      MethodData_LiCrBHt_m = MethodData_LiCrBHt..m.,
+      MethodData_CrwnRad_m = MethodData_CrwnRad..m.,
+      MethodData_Age = MethodData_Age..yrs.,
+      MethodData_GrwthRt_cm = MethodData_GrwthRt..cm.,
+      MethodData_LaddBaseHt_m = MethodData_LaddBaseHt..m.,
+      MethodData_LaddMaxHt_m = MethodData_LaddMaxHt..m.,
+      MethodData_DRC_cm = MethodData_DRC..cm.,
+      MethodData_EqDia_cm = MethodData_EqDia..cm.,
+      MethodData_XCoord_m = MethodData_XCoord..m.,
+      MethodData_YCoord_m = MethodData_YCoord..m.,
+      MethodData_CharHt_m = MethodData_CharHt..m.,
+      MethodData_ScorchHt_m = MethodData_ScorchHt..m.,
+      MethodData_CrScPct_pct = MethodData_CrScPct....,
+      MethodData_DamSev1 = MethodData_DamSev1..num..,
+      MethodData_DamSev2 = MethodData_DamSev2..num..,
+      MethodData_DamSev3 = MethodData_DamSev3..num..,
+      MethodData_DamSev4 = MethodData_DamSev4..num..,
+      MethodData_DamSev5 = MethodData_DamSev5..num..
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id,
+              MethodData_SppGuid,
+              Species_SourceEntityId, Species_LocalSpeciesId,
+              Species_MasterSpeciesId, Species_AuxSpeciesId
+              ))
 
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
@@ -1824,30 +1794,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1858,13 +1805,68 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
+      
+      MethodData_MacroPlotSize_ac = MethodData_MacroPlotSize..ac..,
+      MethodData_SnagPlotSize_ac = MethodData_SnagPlotSize..ac..,
+      MethodData_BrkPntDia_in = MethodData_BrkPntDia..in.,
+      MethodData_QTR = MethodData_QTR..num..,
+      MethodData_SubFrac = MethodData_SubFrac..num..,
+      MethodData_TagNo = MethodData_TagNo..num..,
+      MethodData_DBH_in = MethodData_DBH..in.,
+      MethodData_Ht_ft = MethodData_Ht..ft.,
+      MethodData_CrwnRto_pct = MethodData_CrwnRto....,
+      MethodData_CrFuBHt_ft = MethodData_CrFuBHt..ft.,
+      MethodData_LiCrBHt_ft = MethodData_LiCrBHt..ft.,
+      MethodData_CrwnRad_ft = MethodData_CrwnRad..ft.,
+      MethodData_Age = MethodData_Age..yrs.,
+      MethodData_GrwthRt_in = MethodData_GrwthRt..in.,
+      MethodData_LaddBaseHt_ft = MethodData_LaddBaseHt..ft.,
+      MethodData_LaddMaxHt_ft = MethodData_LaddMaxHt..ft.,
+      MethodData_DRC_in = MethodData_DRC..in.,
+      MethodData_EqDia_in = MethodData_EqDia..in.,
+      MethodData_XCoord_ft = MethodData_XCoord..ft.,
+      MethodData_YCoord_ft = MethodData_YCoord..ft.,
+      MethodData_CharHt_ft = MethodData_CharHt..ft.,
+      MethodData_ScorchHt_ft = MethodData_ScorchHt..ft.,
+      MethodData_CrScPct_pct = MethodData_CrScPct....,
+      MethodData_DamSev1 = MethodData_DamSev1..num..,
+      MethodData_DamSev2 = MethodData_DamSev2..num..,
+      MethodData_DamSev3 = MethodData_DamSev3..num..,
+      MethodData_DamSev4 = MethodData_DamSev4..num..,
+      MethodData_DamSev5 = MethodData_DamSev5..num..
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id,
+              MethodData_SppGuid,
+              Species_SourceEntityId, Species_LocalSpeciesId,
+              Species_MasterSpeciesId, Species_AuxSpeciesId
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## trees_saplings
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -1891,30 +1893,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1925,6 +1904,42 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
+      
+      MethodData_MacroPlotSize_ha = MethodData_MacroPlotSize..ha..,
+      MethodData_SizeClDia_cm = MethodData_SizeClDia..cm.,
+      MethodData_AvgHt_m = MethodData_AvgHt..m.,
+      MethodData_AvgCrwnRto_pct = MethodData_AvgCrwnRto....,
+      MethodData_SubFrac = MethodData_SubFrac..num..,
+      
+      MethodData_UV1 = MethodData_Record_UV1,
+      MethodData_UV2 = MethodData_Record_UV2,
+      MethodData_UV3 = MethodData_Record_UV3
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id,
+              MethodData_SppGuid,
+              Species_SourceEntityId, Species_LocalSpeciesId,
+              Species_MasterSpeciesId, Species_AuxSpeciesId
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
@@ -1954,30 +1969,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1988,13 +1980,49 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
+      
+      MethodData_MacroPlotSize_ac = MethodData_MacroPlotSize..ac..,
+      MethodData_SizeClDia_in = MethodData_SizeClDia..in.,
+      MethodData_AvgHt_ft = MethodData_AvgHt..ft.,
+      MethodData_AvgCrwnRto_pct = MethodData_AvgCrwnRto....,
+      MethodData_SubFrac = MethodData_SubFrac..num..,
+      
+      MethodData_UV1 = MethodData_Record_UV1,
+      MethodData_UV2 = MethodData_Record_UV2,
+      MethodData_UV3 = MethodData_Record_UV3
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id,
+              MethodData_SppGuid,
+              Species_SourceEntityId, Species_LocalSpeciesId,
+              Species_MasterSpeciesId, Species_AuxSpeciesId
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## trees_seedlings
 
-```{r}
+```{r warning=FALSE}
 #############
 ## METRIC  ##
 #############
@@ -2021,30 +2049,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -2055,6 +2060,38 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
+      
+      MethodData_MacroPlotSize_ha = MethodData_MacroPlotSize,
+      MethodData_SizeClHt_m = MethodData_SizeClHt..m.,
+      MethodData_SubFrac = MethodData_SubFrac..num..,
+      MethodData_AvgDia_cm = MethodData_AvgDia..cm.,
+      MethodData_AvgCrwnRto_pct = MethodData_AvgCrwnRto....
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id,
+              MethodData_SppGuid,
+              Species_SourceEntityId, Species_LocalSpeciesId,
+              Species_MasterSpeciesId, Species_AuxSpeciesId
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 
@@ -2084,30 +2121,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-    # relocate columns
-    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
-    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
-    # reformate Date columns
-    mutate(
-      Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
-      Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-      Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
-      SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
-      ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut),
-      SampleEvent_Date_Year = year(SampleEvent_Date)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint)
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -2118,6 +2132,38 @@ for(i in parks) {
   final_df <- rbind(final_df, temp_df)
 }
 
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
+      relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>% 
+      relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>% 
+      relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>% 
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....,
+      
+      MethodData_LocalSpeciesSymbol = MethodData_RemoteApp_LocalSpeciesSymbol,
+      
+      MethodData_MacroPlotSize_ac = MethodData_MacroPlotSize,
+      MethodData_SizeClHt_ft = MethodData_SizeClHt..ft.,
+      MethodData_SubFrac = MethodData_SubFrac..num..,
+      MethodData_AvgDia_in = MethodData_AvgDia..in.,
+      MethodData_AvgCrwnRto_pct = MethodData_AvgCrwnRto....
+    ) %>% 
+    # final column selections
+    select(!c(OrganizationId, AdminUnitId, MacroplotId, 
+              SampleEventId, MethodId, MethodDataId, 
+              MethodData_Id,
+              MethodData_SppGuid,
+              Species_SourceEntityId, Species_LocalSpeciesId,
+              Species_MasterSpeciesId, Species_AuxSpeciesId
+              ))
+  
   # save file
 write.csv(final_df, paste0(path_save, "data_", protocol, ".csv"), quote = FALSE, row.names = FALSE)
 ```
