@@ -82,8 +82,8 @@ parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO
 
 ```{r file paths, include=FALSE}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_main_data <- paste0(path_main, "Exports/")
 path_save <- paste0(path_main, "R Outputs/")
 ```
@@ -166,16 +166,16 @@ for(i in parks) {
     relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
     # make column names consistent
     dplyr::rename(Macroplot_Name = Macroplot,
-                  SampleEvent_LegacyMonStatus = LegacyMonStatus,
+                  SampleEvent_LegacyMonitoringStatus = LegacyMonStatus,
                   SampleEvent_Who = SampleEventTeam,
                   SampleEvent_Comment = SampleEventComment,
-                  MonStatus_Name = MonStatus,
-                  MonStatus_Order = MonStatusOrd) %>% 
+                  MonitoringStatus_Name = MonStatus,
+                  MonitoringStatus_Order = MonStatusOrd) %>% 
     # remove unnecessary columns
     select(!c(SampleEvent_Time)) %>%
     select(c(Macroplot_Name, SampleEvent_Date, SampleEvent_Date_Year, 
-             SampleEvent_Who, SampleEvent_Comment, MonStatus_Order, 
-             SampleEvent_LegacyMonStatus, MonStatus_Name))
+             SampleEvent_Who, SampleEvent_Comment, MonitoringStatus_Order, 
+             SampleEvent_LegacyMonitoringStatus, MonitoringStatus_Name))
   
   #### Sample Event Report
   # The Sample Event Report has different column names as the Macroplot Report, but contains the same information. Make column names consistent.
@@ -197,8 +197,7 @@ for(i in parks) {
     dplyr::rename(AdminUnit_Name = AdministrationUnit_Name,
                   Macroplot_Name = MacroPlot_Name,
                   SampleEvent_Protocols = Protocols,
-                  SampleEvent_Visited = Visited,
-                  MonStatus_Name = MonitoringStatus_Name) %>% 
+                  SampleEvent_Visited = Visited) %>% 
     # remove unnecessary columns
     select(!c(SampleEvent_Time, SampleEvent_LegacyMonitoringStatus))
   
@@ -206,7 +205,7 @@ for(i in parks) {
   # merge data
   #### Merge MacroplotReport_Metadata and MacroplotReport_SampleEvents
   MacroplotReport_merge <- merge(MacroplotReport_MetaData, MacroplotReport_SampleEvents, by = c("Macroplot_Name")) %>%
-    select(!MonStatus_Order)
+    select(!MonitoringStatus_Order)
   
   #### Filter Sample Event Report for merging
   SampleEventReport_merge <- SampleEventReport_clean %>%
@@ -214,14 +213,14 @@ for(i in parks) {
     select(!c(Multi_PU))
   
   #### Merge Macroplot Report and Sample Event Report
-  MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot_Name", "SampleEvent_Date", "SampleEvent_Date_Year", "MonStatus_Name")) %>%
+  MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot_Name", "SampleEvent_Date", "SampleEvent_Date_Year", "MonitoringStatus_Name")) %>%
     relocate(AdminUnit_Name, .before = Macroplot_Name) %>%
     relocate(ProjectUnit_Name, .after = Purpose) %>%
     relocate(Type, .after = Purpose) %>% 
     relocate(Macroplot_Name, .after = Type) %>%
     relocate(SampleEvent_Date, .after = SampleEvent_Visited) %>%
     relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
-    relocate(MonStatus_Name, .after = SampleEvent_LegacyMonStatus) %>%
+    relocate(MonitoringStatus_Name, .after = SampleEvent_LegacyMonitoringStatus) %>%
     relocate(LocatedBy, .before = StartPoint)
   
   # replace commas with semicolons
@@ -295,7 +294,7 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
   ## replace commas with semicolons
   SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -317,7 +316,7 @@ for(i in parks) {
         Species_AdminUnitName = ReportType,
         #Species_OrganizationName = # not on species report
         #Species_MasterOrUserLocal = # not on species report
-        Species_ITIS_TSN = MasterSpecies_ITIS_TSN,
+        Species_ITISTaxonomicSerialNumber = MasterSpecies_ITIS_TSN,
         Species_LocalSpeciesSymbol = LocalSpecies_Symbol,
         #Species_Symbol = # not on species report
         Species_ScientificName = MasterSpecies_ScientificName,
@@ -446,11 +445,11 @@ for(i in parks) {
       Macroplot_UV7 = MacroPlot.UV7,
       Macroplot_UV8 = MacroPlot.UV8,
       Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
+      MonitoringStatus_Name = Monitoring.Status,
+      MonitoringStatus_Prefix = Status.Prefix,
+      MonitoringStatus_Base = Status.Base,
+      MonitoringStatus_Suffix = Status.Suffix,
+      MonitoringStatus_Order = Status.Order,
       Species_LifeCycleLocal = Lifecycle,
       Species_NotBiological = NotBiological,
       Species_LifeFormNameLocal = Preferred_Lifeform,
@@ -569,11 +568,11 @@ for(i in parks) {
       Macroplot_UV7 = MacroPlot.UV7,
       Macroplot_UV8 = MacroPlot.UV8,
       Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
+      MonitoringStatus_Name = Monitoring.Status,
+      MonitoringStatus_Prefix = Status.Prefix,
+      MonitoringStatus_Base = Status.Base,
+      MonitoringStatus_Suffix = Status.Suffix,
+      MonitoringStatus_Order = Status.Order,
       Species_LifeCycleLocal = Lifecycle,
       Species_NotBiological = NotBiological,
       Species_LifeFormNameLocal = Preferred_Lifeform,
@@ -690,11 +689,11 @@ for(i in parks) {
       Macroplot_UV7 = MacroPlot.UV7,
       Macroplot_UV8 = MacroPlot.UV8,
       Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
+      MonitoringStatus_Name = Monitoring.Status,
+      MonitoringStatus_Prefix = Status.Prefix,
+      MonitoringStatus_Base = Status.Base,
+      MonitoringStatus_Suffix = Status.Suffix,
+      MonitoringStatus_Order = Status.Order,
       Species_LifeCycleLocal = Lifecycle,
       Species_NotBiological = NotBiological,
       Species_LifeFormNameLocal = Preferred_Lifeform,
@@ -815,11 +814,11 @@ for(i in parks) {
       Macroplot_UV7 = MacroPlot.UV7,
       Macroplot_UV8 = MacroPlot.UV8,
       Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
+      MonitoringStatus_Name = Monitoring.Status,
+      MonitoringStatus_Prefix = Status.Prefix,
+      MonitoringStatus_Base = Status.Base,
+      MonitoringStatus_Suffix = Status.Suffix,
+      MonitoringStatus_Order = Status.Order,
       Species_LifeCycleLocal = Lifecycle,
       Species_NotBiological = NotBiological,
       Species_LifeFormNameLocal = Preferred_Lifeform,
@@ -948,11 +947,11 @@ for(i in parks) {
       Macroplot_UV7 = MacroPlot.UV7,
       Macroplot_UV8 = MacroPlot.UV8,
       Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
+      MonitoringStatus_Name = Monitoring.Status,
+      MonitoringStatus_Prefix = Status.Prefix,
+      MonitoringStatus_Base = Status.Base,
+      MonitoringStatus_Suffix = Status.Suffix,
+      MonitoringStatus_Order = Status.Order,
       MethodData_NumTran = NumTran,
       MethodData_FieldTeam = FieldTeam,
       MethodData_EntryTeam = EntryTeam,
@@ -1059,11 +1058,11 @@ for(i in parks) {
       Macroplot_UV7 = MacroPlot.UV7,
       Macroplot_UV8 = MacroPlot.UV8,
       Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
+      MonitoringStatus_Name = Monitoring.Status,
+      MonitoringStatus_Prefix = Status.Prefix,
+      MonitoringStatus_Base = Status.Base,
+      MonitoringStatus_Suffix = Status.Suffix,
+      MonitoringStatus_Order = Status.Order,
       MethodData_NumTran = NumTran,
       MethodData_OneHrTranLen_ft = OneHrTranLen,
       MethodData_TenHrTranLen_ft = TenHrTranLen,
@@ -1179,11 +1178,11 @@ for(i in parks) {
       Macroplot_UV7 = MacroPlot.UV7,
       Macroplot_UV8 = MacroPlot.UV8,
       Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
+      MonitoringStatus_Name = Monitoring.Status,
+      MonitoringStatus_Prefix = Status.Prefix,
+      MonitoringStatus_Base = Status.Base,
+      MonitoringStatus_Suffix = Status.Suffix,
+      MonitoringStatus_Order = Status.Order,
       MethodData_NumTran = NumTran,
       MethodData_TranLen_ft = TranLen,
       MethodData_FieldTeam = FieldTeam,
@@ -1298,11 +1297,11 @@ for(i in parks) {
       Macroplot_UV7 = MacroPlot.UV7,
       Macroplot_UV8 = MacroPlot.UV8,
       Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
+      MonitoringStatus_Name = Monitoring.Status,
+      MonitoringStatus_Prefix = Status.Prefix,
+      MonitoringStatus_Base = Status.Base,
+      MonitoringStatus_Suffix = Status.Suffix,
+      MonitoringStatus_Order = Status.Order,
       Species_LifeCycleLocal = Lifecycle,
       Species_NotBiological = NotBiological,
       Species_LifeFormNameLocal = Preferred_Lifeform,
@@ -1465,11 +1464,11 @@ for(i in parks) {
       Macroplot_UV7 = MacroPlot.UV7,
       Macroplot_UV8 = MacroPlot.UV8,
       Macroplot_Name = MacroPlot.Name,
-      MonStatus_Name = Monitoring.Status,
-      MonStatus_Prefix = Status.Prefix,
-      MonStatus_Base = Status.Base,
-      MonStatus_Suffix = Status.Suffix,
-      MonStatus_Order = Status.Order,
+      MonitoringStatus_Name = Monitoring.Status,
+      MonitoringStatus_Prefix = Status.Prefix,
+      MonitoringStatus_Base = Status.Base,
+      MonitoringStatus_Suffix = Status.Suffix,
+      MonitoringStatus_Order = Status.Order,
       MethodData_NumTran = NumTran,
       MethodData_TranLen_ft = TranLen,
       MethodData_NumPtsTran = NumPtsTran,
