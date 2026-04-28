@@ -1,5 +1,5 @@
 ---
-title: Clean FFI Data
+title: Clean and Merge FFI Data
 author: Alexandra Lalor
 output:
   html_document:
@@ -84,8 +84,8 @@ parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO
 # adjust file paths
 #path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_main_data <- paste0(path_main, "Exports/")
-path_save <- paste0(path_main, "R Outputs/")
+path_main_data <- paste0(path_main, "Exports/FFI/")
+path_save <- paste0(path_main, "Exports_Clean/FFI/")
 ```
 
 # METADATA
@@ -267,7 +267,7 @@ for(i in parks) {
         )
     
   # save file
-write.csv(final_df, paste0(path_save, "MetadataReport.csv"), quote = FALSE, row.names = FALSE) 
+write.csv(final_df, paste0(path_save, "all_metadata.csv"), quote = FALSE, row.names = FALSE) 
 ```
 
 # SPECIES
@@ -346,7 +346,7 @@ for(i in parks) {
         )
     
   # save file
-  write.csv(final_df, paste0(path_save, "SpeciesReport.csv"), quote = FALSE, row.names = FALSE)
+  write.csv(final_df, paste0(path_save, "all_species_info.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 # PROTOCOLS
@@ -485,7 +485,7 @@ for(i in parks) {
       )
   
   # save file
-  write.csv(final_df, paste0(path_save, "Data_Cover - Points (metric).csv"), quote = FALSE, row.names = FALSE)
+  write.csv(final_df, paste0(path_save, "metric_cover_points.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ### cover_species_composition
@@ -604,7 +604,7 @@ for(i in parks) {
       )
   
   # save file
-  write.csv(final_df, paste0(path_save, "Data_Cover - Species Composition (metric).csv"), quote = FALSE, row.names = FALSE) 
+  write.csv(final_df, paste0(path_save, "metric_cover_species_composition.csv"), quote = FALSE, row.names = FALSE) 
 ```
 
 ## Density
@@ -731,7 +731,7 @@ for(i in parks) {
       )
   
   # save file
-  write.csv(final_df, paste0(path_save, "Data_Density - Belts (metric).csv"), quote = FALSE, row.names = FALSE)
+  write.csv(final_df, paste0(path_save, "metric_density_belts.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ### density_quadrats (seedlings)
@@ -856,7 +856,7 @@ for(i in parks) {
       )
   
   # save file
-  write.csv(final_df, paste0(path_save, "Data_Density - Quadrats (metric).csv"), quote = FALSE, row.names = FALSE)
+  write.csv(final_df, paste0(path_save, "metric_density_quadrats.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ## Surface Fuels
@@ -975,7 +975,7 @@ for(i in parks) {
       )
   
   # save file
-  write.csv(final_df, paste0(path_save, "Data_Surface Fuels - Duff_Litter.csv"), quote = FALSE, row.names = FALSE) 
+  write.csv(final_df, paste0(path_save, "english_surface_fuels_duff_litter.csv"), quote = FALSE, row.names = FALSE) 
 ```
 
 ### surface_fuels_fine
@@ -1089,7 +1089,7 @@ for(i in parks) {
       )
   
   # save file
-  write.csv(final_df, paste0(path_save, "Data_Surface Fuels - Fine.csv"), quote = FALSE, row.names = FALSE) 
+  write.csv(final_df, paste0(path_save, "english_surface_fuels_fine.csv"), quote = FALSE, row.names = FALSE) 
 ```
 
 ### surface_fuels_piles
@@ -1206,7 +1206,7 @@ for(i in parks) {
       )
   
   # save file
-  write.csv(final_df, paste0(path_save, "Data_Surface Fuels - 1000Hr.csv"), quote = FALSE, row.names = FALSE)
+  write.csv(final_df, paste0(path_save, "english_surface_fuels_thousand_hr.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ### surface_fuels_vegetation
@@ -1367,7 +1367,7 @@ for(i in parks) {
       )
   
   # save file
-  write.csv(final_df, paste0(path_save, "Data_Trees - Individuals (metric).csv"), quote = FALSE, row.names = FALSE)
+  write.csv(final_df, paste0(path_save, "metric_trees_individuals.csv"), quote = FALSE, row.names = FALSE)
 ```
 
 ### trees_saplings
@@ -1494,5 +1494,5 @@ for(i in parks) {
       )
   
   # save file
-  write.csv(final_df, paste0(path_save, "Data_Post Burn Severity (metric).csv"), quote = FALSE, row.names = FALSE) 
+  write.csv(final_df, paste0(path_save, "metric_post_burn_severity.csv"), quote = FALSE, row.names = FALSE) 
 ```
