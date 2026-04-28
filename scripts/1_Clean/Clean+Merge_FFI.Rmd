@@ -294,7 +294,9 @@ for(i in parks) {
     # remove trailing/leading whitespace
     mutate(across(where(is.character), str_trim)) %>% 
     # remove line breaks
-    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
+    mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
+    # add column
+    add_column(AdminUnit_Name = target_park, .before = 1)
   ## replace commas with semicolons
   SpeciesReport[] <- lapply(SpeciesReport, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
@@ -1484,7 +1486,7 @@ for(i in parks) {
       MethodData_Index = Index,
       MethodData_Transect = Transect,
       MethodData_Point = Point,
-      MethodData_TapeDist = TapeDist,
+      MethodData_TapeDist_m = TapeDist,
       MethodData_Veg = Veg,
       MethodData_Sub = Sub,
       MethodData_Comment = Comment,
