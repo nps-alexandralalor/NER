@@ -97,17 +97,18 @@ library(knitr)
 ### Create Function {.hidden}
 
 ```{r qaqc function, include=FALSE}
-# Create blank data frame as error log template
-errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Macroplot_Type" = "", "Macroplot_Name" = "", "SampleEvent_Date" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>%
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date))
-
-# Create error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Type", "Macroplot_Name", "SampleEvent_Date", "Error")
-
-############################################################################################
 ## Source Code
 #Pull in source code that creates QAQC functions and builds an empty error table.
 source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
+
+###################################################################################
+
+# Edit blank data frame as preferred error log template.
+errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Macroplot_Type" = "", "Macroplot_Name" = "", "SampleEvent_Date" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>%
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date))
+
+# Edit error group. Duplicate errors will be grouped by these columns.
+errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Type", "Macroplot_Name", "SampleEvent_Date", "Error")
 ```
 
 ### Target Park {.hidden}

@@ -62,16 +62,17 @@ library(here)
 ### Create Function {.hidden}
 
 ```{r qaqc function, include=FALSE}
-# Create blank data frame as error log template
-errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "LocalSpecies_Symbol" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
-
-# Create error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "AdminUnit_Name", "LocalSpecies_Symbol", "Error")
-
-############################################################################################
 ## Source Code
 #Pull in source code that creates QAQC functions and builds an empty error table.
 source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
+
+###################################################################################
+
+# Edit blank data frame as preferred error log template.
+errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "LocalSpecies_Symbol" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+
+# Edit error group. Duplicate errors will be grouped by these columns.
+errors_group <- c("SavedQuery", "AdminUnit_Name", "LocalSpecies_Symbol", "Error")
 ```
 
 ### Target Park {.hidden}
