@@ -1751,12 +1751,14 @@ data <- Trees_data %>%
   filter(MethodData_Status == "L") %>% 
   rowwise() %>% 
   dplyr::mutate(
-    DamCd = paste(unique(str_trim(c_across(starts_with("MethodData_DamCd")))), collapse = "; "),
+    DamCd = paste(unique(str_trim(c_across(starts_with("MethodData_DamCd"))))[
+      str_trim(c_across(starts_with("MethodData_DamCd"))) != ""
+    ], collapse = "; "),
     DamCd_valid = length(setdiff(unique(str_trim(c_across(starts_with("MethodData_DamCd")))), damage_codes)) == 0
   ) %>%
   ungroup()
 query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = L. Damage Codes = ", data$DamCd, ". Valid code ")  
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = L. Damage Codes = ", data$DamCd, ". Valid code")  
 values_data <- data$DamCd_valid
 values_valid <- TRUE
 values_check <- values_data %in% values_valid
@@ -1770,71 +1772,22 @@ errors_Trees_DamCd_L <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-  filter(Status == "D")
+  filter(MethodData_Status == "D") %>% 
+  rowwise() %>% 
+  dplyr::mutate(
+    DamCd = paste(unique(str_trim(c_across(starts_with("MethodData_DamCd"))))[
+      str_trim(c_across(starts_with("MethodData_DamCd"))) != ""
+    ], collapse = "; ")
+  ) %>%
+  ungroup()
 query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = D. Damage Code 1")
-values_data <- data$DamCd1
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = D. Damage Codes")  
+values_data <- data$DamCd
 values_valid <- ""
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_Trees_DamCd_D_1 <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(Status == "D")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = D. Damage Code 2")  
-values_data <- data$DamCd2
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_D_2 <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(Status == "D")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = D. Damage Code 3")
-values_data <- data$DamCd3
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_D_3 <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(Status == "D")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = D. Damage Code 4")
-values_data <- data$DamCd4
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_D_4 <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(Status == "D")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = D. Damage Code 5")
-values_data <- data$DamCd5
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_D_5 <- qaqc(data, query, query_message, values_check)
+errors_Trees_DamCd_D <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Filter by DamCd1 = blank. Check that DamCd2, DamCd3, DamCd4, [and]{.underline} DamCd5 are blank.
@@ -1842,167 +1795,26 @@ errors_Trees_DamCd_D_5 <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-  filter(DamCd1 == "")
+  rowwise() %>% 
+  dplyr::mutate(
+    DamCd = paste(unique(str_trim(c_across(starts_with("MethodData_DamCd")))), collapse = "; "),
+    DamCd_missing = grepl("^\\s*;", DamCd)
+  ) %>%
+  ungroup()
+
 query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Damage Code 1 = Blank, Damage Code 2")
-values_data <- data$DamCd2
-values_valid <- ""
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Damage Codes = ", data$DamCd, ". Missing damage code")
+values_data <- data$DamCd_missing
+values_valid <- FALSE
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_Trees_DamCd_1_Blank_2 <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(DamCd1 == "")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Damage Code 1 = Blank, Damage Code 3")
-values_data <- data$DamCd3
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_1_Blank_3 <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(DamCd1 == "")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Damage Code 1 = Blank, Damage Code 4")
-values_data <- data$DamCd4
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_1_Blank_4 <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# Set parameters 
-data <- Trees_data  %>% 
-  filter(DamCd1 == "")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Damage Code 1 = Blank, Damage Code 5")
-values_data <- data$DamCd5
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_1_Blank_5 <- qaqc(data, query, query_message, values_check)
-```
-
--   Filter by DamCd2 = blank. Check that DamCd3, DamCd4, [and]{.underline} DamCd5 are blank.
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(DamCd2 == "")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Damage Code 2 = Blank, Damage Code 3")
-values_data <- data$DamCd3
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_2_Blank_3 <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(DamCd2 == "")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Damage Code 2 = Blank, Damage Code 4")
-values_data <- data$DamCd4
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_2_Blank_4 <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(DamCd2 == "")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Damage Code 2 = Blank, Damage Code 5")
-values_data <- data$DamCd5
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_2_Blank_5 <- qaqc(data, query, query_message, values_check)
-```
-
--   Filter by DamCd3 = blank. Check that DamCd4 [and]{.underline} DamCd5 are blank.
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(DamCd3 == "")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Damage Code 3 = Blank, Damage Code 4")
-values_data <- data$DamCd4
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_3_Blank_4 <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(DamCd3 == "")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Damage Code 3 = Blank, Damage Code 5")
-values_data <- data$DamCd5
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_3_Blank_5 <- qaqc(data, query, query_message, values_check)
-```
-
--   Filter by DamCd4 = blank. Check that DamCd5 is blank.
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  filter(DamCd4 == "")
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Damage Code 4 = Blank, Damage Code 5")
-values_data <- data$DamCd5
-values_valid <- ""
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_4_Blank_5 <- qaqc(data, query, query_message, values_check)
+errors_Trees_DamCd_Blank <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Damage Errors {.hidden}
 
 ```{r}
-# Damage Errors Live Trees
-errors_Trees_DamCd_L <- unique(rbind(errors_Trees_DamCd_L_1, errors_Trees_DamCd_L_2, errors_Trees_DamCd_L_3, errors_Trees_DamCd_L_4, errors_Trees_DamCd_L_5))
-
-remove(errors_Trees_DamCd_L_1, errors_Trees_DamCd_L_2, errors_Trees_DamCd_L_3, errors_Trees_DamCd_L_4, errors_Trees_DamCd_L_5)
-
-# Damage Errors Dead Trees
-errors_Trees_DamCd_D <- unique(rbind(errors_Trees_DamCd_D_1, errors_Trees_DamCd_D_2, errors_Trees_DamCd_D_3, errors_Trees_DamCd_D_4, errors_Trees_DamCd_D_5))
-
-remove(errors_Trees_DamCd_D_1, errors_Trees_DamCd_D_2, errors_Trees_DamCd_D_3, errors_Trees_DamCd_D_4, errors_Trees_DamCd_D_5)
-
-# Damage Errors Blank Entries
-errors_Trees_DamCd_Blank <- unique(rbind(errors_Trees_DamCd_1_Blank_2, errors_Trees_DamCd_1_Blank_3, errors_Trees_DamCd_1_Blank_4, errors_Trees_DamCd_1_Blank_5, errors_Trees_DamCd_2_Blank_3, errors_Trees_DamCd_2_Blank_4, errors_Trees_DamCd_2_Blank_5, errors_Trees_DamCd_3_Blank_4, errors_Trees_DamCd_3_Blank_5, errors_Trees_DamCd_4_Blank_5))
-
-remove(errors_Trees_DamCd_1_Blank_2, errors_Trees_DamCd_1_Blank_3, errors_Trees_DamCd_1_Blank_4, errors_Trees_DamCd_1_Blank_5, errors_Trees_DamCd_2_Blank_3, errors_Trees_DamCd_2_Blank_4, errors_Trees_DamCd_2_Blank_5, errors_Trees_DamCd_3_Blank_4, errors_Trees_DamCd_3_Blank_5, errors_Trees_DamCd_4_Blank_5)
-
 # Damage Errors Combined
 errors_Trees_DamCd <- unique(rbind(errors_Trees_DamCd_L, errors_Trees_DamCd_D, errors_Trees_DamCd_Blank))
 
