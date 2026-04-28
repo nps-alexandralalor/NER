@@ -1,5 +1,5 @@
 ---
-title: Merge FFI Data
+title: Clean and Merge FFI Data
 author: Alexandra Lalor
 output:
   word_document:
@@ -20,7 +20,7 @@ output:
 
 # PURPOSE
 
-This code is intended to combine data depot exports from multiple parks into a single files.
+This code is intended to combine data depot exports from multiple parks into a single file.
 
 ## BEFORE STARTING {.hidden}
 
@@ -45,20 +45,20 @@ library(tidyverse)
 library(stringr)
 ```
 
+### Target Parks
+
+```{r}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+```
+
 ### Adjust File Paths {.hidden}
 
 ```{r}
 # adjust file paths
 #path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_main_data <- paste0(path_main, "Exports Data Depot/")
-path_main_save <- paste0(path_main, "R Outputs Data Depot/Data Depot/")
-```
-
-### Parks
-
-```{r}
-parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+path_main_data <- paste0(path_main, "Exports/DataDepot/")
+path_main_save <- paste0(path_main, "Exports_Clean/DataDepot/")
 ```
 
 # Metadata
