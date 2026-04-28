@@ -1,3 +1,11 @@
+# Create blank data frame as error log template
+errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+
+# Create error group. Duplicate errors will be grouped by these columns.
+errors_group <- c("SavedQuery", "AdminUnit_Name", "Error")
+
+
+
 # QAQC function
 qaqc <- function(data, query, query_message, values_check) {
   
