@@ -63,16 +63,17 @@ library(here)
 ### Create Function {.hidden}
 
 ```{r qaqc function, include=FALSE}
-# Create blank data frame as error log template
-errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Macroplot_Name" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
-
-# Create error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "Error")
-
-############################################################################################
 ## Source Code
 #Pull in source code that creates QAQC functions and builds an empty error table.
 source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
+
+###################################################################################
+
+# Edit blank data frame as preferred error log template.
+errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Macroplot_Name" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+
+# Edit error group. Duplicate errors will be grouped by these columns.
+errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "Error")
 ```
 
 ### Target Park {.hidden}
@@ -87,9 +88,9 @@ target_park <- "APCO"
 
 ```{r file paths, include=FALSE}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_data <- paste0(path_main, "R Outputs/")
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_data <- paste0(path_main, "Exports_Clean/FFI/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 ```
@@ -97,7 +98,7 @@ path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 ### Load Data {.hidden}
 
 ```{r load data, include=FALSE}
-MetadataReport_all <- read.csv(paste0(path_data, "MetadataReport.csv"))
+MetadataReport_all <- read.csv(paste0(path_data, "all_metadata.csv"))
 ```
 
 ### Filter Data
@@ -453,14 +454,14 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_SampleEventDate <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that MonStatus is not blank
+-   Check that MonitoringStatus is not blank
 
 ```{r}
 # Set parameters 
 data <- MetadataReport
 query <- "Macroplot Report - Sample Events"
 query_message <- "Monitoring Status" 
-values_data <- data$MonStatus_Name
+values_data <- data$MonitoringStatus_Name
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -515,7 +516,7 @@ errors_SampleEventReport_AdminUnit <- qaqc(data, query, query_message, values_ch
 ```{r}
 # Set parameters 
 data <- MetadataReport %>% 
-  filter(!MonStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
+  filter(!MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
 query <- "Sample Event Report"
 query_message <- paste0("Date = ", data$SampleEvent_Date, ". Read = ", data$MonitoringStatus_Name, ". Protocol")
 values_data <- data$SampleEvent_Protocols
@@ -528,7 +529,7 @@ errors_SampleEventReport_Protocols <- qaqc(data, query, query_message, values_ch
 
 ```{r}
 data <- MetadataReport %>% 
-  filter(MonStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
+  filter(MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
 query <- "Sample Event Report"
 query_message <- paste0("Date = ", data$SampleEvent_Date, ". Read = ", data$MonitoringStatus_Name, ". Protocol")
 values_data <- data$SampleEvent_Protocols
@@ -544,7 +545,7 @@ errors_SampleEventReport_ProtocolsPost <- qaqc(data, query, query_message, value
 ```{r}
 # Set parameters 
 data <- MetadataReport %>% 
-  filter(!MonStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
+  filter(!MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"))
 query <- "Sample Event Report"
 query_message <- paste0("Date = ", data$SampleEvent_Date, ". Read = ", data$MonitoringStatus_Name, ". Visited")
 values_data <- data$SampleEvent_Visited
@@ -558,7 +559,7 @@ errors_SampleEventReport_Visited_1 <- qaqc(data, query, query_message, values_ch
 ```{r}
 # Set parameters 
 data <- MetadataReport %>% 
-  filter(MonStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"),
+  filter(MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mow", "Mechanical"),
          SampleEvent_Protocols != "Disturbance History")
 query <- "Sample Event Report"
 query_message <- paste0("Date = ", data$SampleEvent_Date, ". Read = ", data$MonitoringStatus_Name, ". Visited")
