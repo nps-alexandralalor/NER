@@ -124,9 +124,9 @@ target_park <- "ANTI"
 
 ```{r file paths, include=FALSE}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_data <- paste0(path_main, "R Outputs/")
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_data <- paste0(path_main, "Exports_Clean/FFI/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " CSV Errors")
 ```
@@ -135,17 +135,17 @@ path_errors_name <- paste0(target_park, " CSV Errors")
 
 ```{r load data, include=FALSE}
 # load data
-MetadataReport_all <- read.csv(paste0(path_data, "MetadataReport.csv"))
+MetadataReport_all <- read.csv(paste0(path_data, "all_metadata.csv"))
 
-Fuels1000_all <- read.csv(paste0(path_data, "Data_Surface Fuels - 1000Hr.csv"))
-FuelsDuffLitt_all <- read.csv(paste0(path_data, "Data_Surface Fuels - Duff_Litter.csv"))
-FuelsFine_all <- read.csv(paste0(path_data, "Data_Surface Fuels - Fine.csv"))
-PostBurn_all <- read.csv(paste0(path_data, "Data_Post Burn Severity (metric).csv"))
-Trees_all <- read.csv(paste0(path_data, "Data_Trees - Individuals (metric).csv"))
-Seedlings_all <- read.csv(paste0(path_data, "Data_Density - Quadrats (metric).csv"))
-Shrubs_all <- read.csv(paste0(path_data, "Data_Density - Belts (metric).csv"))
-HerbsSpComp_all <- read.csv(paste0(path_data, "Data_Cover - Species Composition (metric).csv"))
-HerbsPoints_all <- read.csv(paste0(path_data, "Data_Cover - Points (metric).csv"))
+Fuels1000_all <- read.csv(paste0(path_data, "english_surface_fuels_thousand_hr.csv"))
+FuelsDuffLitt_all <- read.csv(paste0(path_data, "english_surface_fuels_duff_litter.csv"))
+FuelsFine_all <- read.csv(paste0(path_data, "english_surface_fuels_fine.csv"))
+PostBurn_all <- read.csv(paste0(path_data, "metric_post_burn_severity.csv"))
+Trees_all <- read.csv(paste0(path_data, "metric_trees_individuals.csv"))
+Seedlings_all <- read.csv(paste0(path_data, "metric_density_quadrats.csv"))
+Shrubs_all <- read.csv(paste0(path_data, "metric_density_belts.csv"))
+HerbsSpComp_all <- read.csv(paste0(path_data, "metric_cover_species_composition.csv"))
+HerbsPoints_all <- read.csv(paste0(path_data, "metric_cover_points.csv"))
 ```
 
 ### Filter Data
