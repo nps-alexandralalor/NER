@@ -87,9 +87,9 @@ target_park <- "RICH"
 
 ```{r file paths, include=FALSE}
 # adjust file paths
-path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
-path_data <- paste0(path_main, "R Outputs/")
+#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_data <- paste0(path_main, "Exports_Clean/FFI/")
 path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors_name <- paste0(target_park, " Species QAQC Errors")
 ```
@@ -98,15 +98,13 @@ path_errors_name <- paste0(target_park, " Species QAQC Errors")
 
 ```{r load data, include=FALSE}
 ## Load Data
-SpeciesReport_all <- read.csv(paste0(path_data, "SpeciesReport.csv"))
+SpeciesReport_all <- read.csv(paste0(path_data, "all_species_info.csv"))
 ```
 
 ### Filter Data
 
 ```{r filter data, include=FALSE}
 SpeciesReport <- SpeciesReport_all %>% 
-  separate(Species_AdminUnitName, sep = " ", into = c("temp", "AdminUnit_Name")) %>% 
-  select(!temp) %>% 
   filter(AdminUnit_Name %in% target_park)
 ```
 
