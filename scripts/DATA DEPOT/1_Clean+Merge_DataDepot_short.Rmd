@@ -45,7 +45,7 @@ library(tidyverse)
 library(stringr)
 ```
 
-### Target Parks
+### Target Park
 
 ```{r}
 parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
