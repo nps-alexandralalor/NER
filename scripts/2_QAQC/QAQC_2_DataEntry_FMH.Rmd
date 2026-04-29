@@ -100,7 +100,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "SampleEvent
 # 2025 parks: "CATO" "GETT" "MONO" "NERI" "RICH" "SHEN"
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 target_park <- c("RICH")
-target_years <- c(2009)
+target_years <- c(2009:2025)
 ```
 
 ### Adjust File Paths {.hidden}
@@ -110,7 +110,8 @@ target_years <- c(2009)
 #path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "Exports_Clean/FFI/")
-path_errors <- paste0(path_main, "QAQC/", target_park, "/")
+#path_errors <- paste0(path_main, "QAQC/", target_park, "/")
+path_errors <- paste0(here(), "output/errors/")
 path_errors_name <- paste0(target_park, " FMH Data QAQC Errors")
 ```
 
@@ -550,7 +551,7 @@ data_temp <- FuelsDuffLitt_data %>%
 
 # Set parameters 
 data <- merge(FuelsDuffLitt_data, data_temp, by = c("Macroplot_Name","SampleEvent_Date"), all = T)
-query <- "Fuel DL" 
+query <- "Fuel DL Complete" 
 query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Sample Locations")
 values_data <- data$data_points
 values_valid <- 40
@@ -853,7 +854,7 @@ data_temp <- FuelsFine_data %>%
 
 # Set parameters 
 data <- merge(FuelsFine_data, data_temp, by = c("Macroplot_Name","SampleEvent_Date"), all = T)
-query <- "Fuel Fine"
+query <- "Fuel Fine Complete"
 query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Transects")
 values_data <- data$data_points
 values_valid <- 4
@@ -1254,7 +1255,7 @@ data_temp <- PostBurn_data %>%
 
 # Set parameters 
 data <- merge(PostBurn_data, data_temp, by = c("Macroplot_Name","SampleEvent_Date"), all = T)
-query <- "PBSev" 
+query <- "PBSev Complete" 
 query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Sample Locations")
 values_data <- data$data_points
 values_valid <- 40
@@ -1730,6 +1731,42 @@ if(nrow(errors_Trees_CrwnCl) > 1) {
 
 [Problem]{.underline}: Tree damage codes are entered incorrectly.
 
+[Procedure:]{.underline}
+
+-   Check that if earlier damage code are blank (DamCd1 = blank), subsequent damaged codes are also blank (DamCd2, DamCd3, DamCd4, [and]{.underline} DamCd5 = blank).
+
+```{r}
+# Make sure damage codes are blank vs NA
+Trees_data$MethodData_DamCd1[trimws(Trees_data$MethodData_DamCd1) == ""] <- NA
+Trees_data$MethodData_DamCd2[trimws(Trees_data$MethodData_DamCd2) == ""] <- NA
+Trees_data$MethodData_DamCd3[trimws(Trees_data$MethodData_DamCd3) == ""] <- NA
+Trees_data$MethodData_DamCd4[trimws(Trees_data$MethodData_DamCd4) == ""] <- NA
+Trees_data$MethodData_DamCd5[trimws(Trees_data$MethodData_DamCd5) == ""] <- NA
+
+# Set parameters 
+data <- Trees_data %>% 
+  rowwise() %>% 
+  dplyr::mutate(
+    DamCd_all = paste(c_across(starts_with("MethodData_DamCd")), collapse = "; "),
+    DamCd_missing = {
+      vals <- c_across(starts_with("MethodData_DamCd"))
+      any(cumany(is.na(vals)) & !is.na(vals))
+    }
+  ) %>%
+  ungroup()
+
+query <- "Trees Damage" 
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Damage Codes = ", data$DamCd_all, ". Missing damage code")
+values_data <- data$DamCd_missing
+values_valid <- FALSE
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_Trees_DamCd_Blank <- qaqc(data, query, query_message, values_check)
+```
+
+-   Filter by Status = L. Check that DamCd1, DamCd2, DamCd3, DamCd4, [and]{.underline} DamCd5 correspond to one of the choices on the FMH-1 overstory data sheets.
+
 ```{r}
 # Make sure damage codes are blank vs NA
 Trees_data$MethodData_DamCd1[is.na(Trees_data$MethodData_DamCd1)] <- ""
@@ -1737,13 +1774,7 @@ Trees_data$MethodData_DamCd2[is.na(Trees_data$MethodData_DamCd2)] <- ""
 Trees_data$MethodData_DamCd3[is.na(Trees_data$MethodData_DamCd3)] <- ""
 Trees_data$MethodData_DamCd4[is.na(Trees_data$MethodData_DamCd4)] <- ""
 Trees_data$MethodData_DamCd5[is.na(Trees_data$MethodData_DamCd5)] <- ""
-```
 
-[Procedure:]{.underline}
-
--   Filter by Status = L. Check that DamCd1, DamCd2, DamCd3, DamCd4, [and]{.underline} DamCd5 correspond to one of the choices on the FMH-1 overstory data sheets.
-
-```{r}
 damage_codes <- c("", "ABGR", "BIRD", "BLIG", "BROK", "BROM", "BURL", "CONK", "CROK", "DTOP", "EPIC", "EPIP", "FIRE", "FORK", "FRST", "GALL", "HOLW", "INSE", "LEAN", "LICH", "LIGT", "MAMM", "MISL", "MOSS", "OZON", "ROOT", "ROTT", "SPAR", "SPRT", "TWIN", "UMAN", "WOND")
 
 # Set parameters 
@@ -1751,14 +1782,14 @@ data <- Trees_data %>%
   filter(MethodData_Status == "L") %>% 
   rowwise() %>% 
   dplyr::mutate(
-    DamCd = paste(unique(str_trim(c_across(starts_with("MethodData_DamCd"))))[
+    DamCd_all = paste(unique(str_trim(c_across(starts_with("MethodData_DamCd"))))[
       str_trim(c_across(starts_with("MethodData_DamCd"))) != ""
     ], collapse = "; "),
     DamCd_valid = length(setdiff(unique(str_trim(c_across(starts_with("MethodData_DamCd")))), damage_codes)) == 0
   ) %>%
   ungroup()
 query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = L. Damage Codes = ", data$DamCd, ". Valid code")  
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = L. Damage Codes = ", data$DamCd_all, ". Valid code")  
 values_data <- data$DamCd_valid
 values_valid <- TRUE
 values_check <- values_data %in% values_valid
@@ -1770,46 +1801,31 @@ errors_Trees_DamCd_L <- qaqc(data, query, query_message, values_check)
 -   Filter by Status = D. Check that DamCd1, DamCd2, DamCd3, DamCd4, [and]{.underline} DamCd5 are blank.
 
 ```{r}
+# Make sure damage codes are blank vs NA
+Trees_data$MethodData_DamCd1[is.na(Trees_data$MethodData_DamCd1)] <- ""
+Trees_data$MethodData_DamCd2[is.na(Trees_data$MethodData_DamCd2)] <- ""
+Trees_data$MethodData_DamCd3[is.na(Trees_data$MethodData_DamCd3)] <- ""
+Trees_data$MethodData_DamCd4[is.na(Trees_data$MethodData_DamCd4)] <- ""
+Trees_data$MethodData_DamCd5[is.na(Trees_data$MethodData_DamCd5)] <- ""
+
 # Set parameters 
 data <- Trees_data %>% 
   filter(MethodData_Status == "D") %>% 
   rowwise() %>% 
   dplyr::mutate(
-    DamCd = paste(unique(str_trim(c_across(starts_with("MethodData_DamCd"))))[
+    DamCd_all = paste(unique(str_trim(c_across(starts_with("MethodData_DamCd"))))[
       str_trim(c_across(starts_with("MethodData_DamCd"))) != ""
     ], collapse = "; ")
   ) %>%
   ungroup()
 query <- "Trees Damage" 
 query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = D. Damage Codes")  
-values_data <- data$DamCd
+values_data <- data$DamCd_all
 values_valid <- ""
 values_check <- values_data %in% values_valid
 
 # Identify errors
 errors_Trees_DamCd_D <- qaqc(data, query, query_message, values_check)
-```
-
--   Filter by DamCd1 = blank. Check that DamCd2, DamCd3, DamCd4, [and]{.underline} DamCd5 are blank.
-
-```{r}
-# Set parameters 
-data <- Trees_data %>% 
-  rowwise() %>% 
-  dplyr::mutate(
-    DamCd = paste(unique(str_trim(c_across(starts_with("MethodData_DamCd")))), collapse = "; "),
-    DamCd_missing = grepl("^\\s*;", DamCd)
-  ) %>%
-  ungroup()
-
-query <- "Trees Damage" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Damage Codes = ", data$DamCd, ". Missing damage code")
-values_data <- data$DamCd_missing
-values_valid <- FALSE
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_Trees_DamCd_Blank <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Damage Errors {.hidden}
@@ -1839,10 +1855,10 @@ if(nrow(errors_Trees_DamCd) > 1) {
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-  filter(!CrwnCl %in% c("DD", "BBD", "CUS"))
+  filter(!MethodData_CrwnCl %in% c("DD", "BBD", "CUS"))
 query <- "Trees DBH" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "DBH")
-values_data <- data$DBH
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "DBH")
+values_data <- data$MethodData_DBH_cm
 values_valid <- min(2.5)
 values_check <- values_data >= values_valid
 
@@ -1855,19 +1871,19 @@ errors_Trees_DBH_Min <- qaqc(data, query, query_message, values_check)
 ```{r}
 # # Perform Rosner's Test for outliers using all values
 # data_temp <- Trees_all %>%
-#   filter(!is.na(DBH))
-# data_outlier <- rosnerTest(data_temp$DBH)
+#   filter(!is.na(MethodData_DBH_cm))
+# data_outlier <- rosnerTest(data_temp$MethodData_DBH_cm)
 # outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
 # max_DBH <- ifelse(length(outliers) == 0, max(data_temp$DBH), min(outliers) - 1)
 
 # Set parameters 
 data <- Trees_data %>% 
-  filter(!CrwnCl %in% c("DD", "BBD", "CUS"))
+  filter(!MethodData_CrwnCl %in% c("DD", "BBD", "CUS"))
 query <- "Trees DBH" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Possible outlier. DBH")
-values_data <- data$DBH
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Possible outlier. DBH")
+values_data <- data$MethodData_DBH_cm
 values_valid <- 100
-values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
+values_check <- values_data <= values_valid
 
 # Identify errors
 errors_Trees_DBH_Max <- qaqc(data, query, query_message, values_check)
@@ -1899,11 +1915,11 @@ if(nrow(errors_Trees_DBH) > 1) {
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-  filter(CrwnCl %in% c("DD", "BBD", "CUS"))
-data$DBH[is.na(data$DBH)] <- ""
+  filter(MethodData_CrwnCl %in% c("DD", "BBD", "CUS"))
+data$MethodData_DBH_cm[is.na(data$MethodData_DBH_cm)] <- ""
 query <- "Trees DD" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Crown Class = DD. DBH")
-values_data <- data$DBH
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Crown Class = DD. DBH")
+values_data <- data$MethodData_DBH_cm
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -1914,11 +1930,11 @@ errors_Trees_DD_DBH <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-  filter(CrwnCl %in% c("DD", "BBD", "CUS"))
-data$Ht[is.na(data$Ht)] <- ""
+  filter(MethodData_CrwnCl %in% c("DD", "BBD", "CUS"))
+data$MethodData_Ht_m[is.na(data$MethodData_Ht_m)] <- ""
 query <- "Trees DD" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Crown Class = DD. Height")
-values_data <- data$Ht
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Crown Class = DD. Height")
+values_data <- data$MethodData_Ht_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -1929,11 +1945,11 @@ errors_Trees_DD_Ht <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-  filter(CrwnCl %in% c("DD", "BBD", "CUS"))
-data$LiCrBHt[is.na(data$LiCrBHt)] <- ""
+  filter(MethodData_CrwnCl %in% c("DD", "BBD", "CUS"))
+data$MethodData_LiCrBHt_m[is.na(data$MethodData_LiCrBHt_m)] <- ""
 query <- "Trees DD" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Crown Class = DD. Live Crown Base Height")
-values_data <- data$LiCrBHt
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Crown Class = DD. Live Crown Base Height")
+values_data <- data$MethodData_LiCrBHt_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -1967,13 +1983,13 @@ if(nrow(errors_Trees_DD) > 1) {
 ```{r}
 # Check for tag duplication and store results in new column
 data_temp <- Trees_data %>% 
-  get_dupes(SampleEvent_Date, Macroplot_Name, SubFrac, TagNo)
+  get_dupes(SampleEvent_Date, Macroplot_Name, MethodData_SubFrac, MethodData_TagNo)
 
 # Set parameters 
 data <- merge(Trees_data, data_temp, all.x = T)
 data$dupe_count[is.na(data$dupe_count)] <- 0
 query <- "Trees Duplicates" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Duplicates")
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Duplicates")
 values_data <- data$dupe_count
 values_valid <- 0
 values_check <- values_data == values_valid
@@ -1993,11 +2009,11 @@ errors_Trees_Duplicate <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-   filter(DBH > 15.0)
-data$Ht[is.na(data$Ht)] <- ""
+   filter(MethodData_DBH_cm > 15.0)
+data$MethodData_Ht_m[is.na(data$MethodData_Ht_m)] <- ""
 query <- "Trees Height" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "DBH = overstory. Height")
-values_data <- data$Ht
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "DBH = overstory. Height")
+values_data <- data$MethodData_Ht_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2010,11 +2026,12 @@ errors_Trees_Height_Overstory <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-  filter(DBH <= 15.0)
+  filter(MethodData_DBH_cm <= 15.0)
+data$MethodData_Ht_m[is.na(data$MethodData_Ht_m)] <- ""
 query <- "Trees Height" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "DBH = pole. Height")
-values_data <- data$Ht
-values_valid <- c("", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "DBH = pole. Height")
+values_data <- data$MethodData_Ht_m
+values_valid <- c("", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -2048,8 +2065,8 @@ if(nrow(errors_Trees_Height) > 1) {
 # Set parameters 
 data <- Trees_data
 query <- "Trees LifeForm" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Life Form")
-values_data <- data$Preferred_Lifeform
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Life Form")
+values_data <- data$Species_LifeFormNameLocal
 values_valid <- "Tree"
 values_check <- values_data == values_valid
 
@@ -2068,13 +2085,12 @@ errors_Trees_LifeForm <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == FALSE)
-data$CharHt[is.na(data$CharHt)] <- ""
+data$MethodData_CharHt_m[is.na(data$MethodData_CharHt_m)] <- ""
 query <- "Trees Non-Post Severity" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Non-post read. Char Height")
-values_data <- data$CharHt
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Non-post read. Char Height")
+values_data <- data$MethodData_CharHt_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2085,13 +2101,12 @@ errors_Trees_NonPost_Severity_CharHt <- qaqc(data, query, query_message, values_
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == FALSE)
-data$ScorchHt[is.na(data$ScorchHt)] <- ""
+data$MethodData_ScorchHt_m[is.na(data$MethodData_ScorchHt_m)] <- ""
 query <- "Trees Non-Post Severity" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Non-post read. Scorch Height")
-values_data <- data$ScorchHt
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Non-post read. Scorch Height")
+values_data <- data$MethodData_ScorchHt_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2102,13 +2117,12 @@ errors_Trees_NonPost_Severity_ScorchHt <- qaqc(data, query, query_message, value
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == FALSE)
-data$CrScPct[is.na(data$CrScPct)] <- ""
+data$MethodData_CrScPct_pct[is.na(data$MethodData_CrScPct_pct)] <- ""
 query <- "Trees Non-Post Severity" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Non-post read. Crown Scorch Percent")
-values_data <- data$CrScPct
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Non-post read. Crown Scorch Percent")
+values_data <- data$MethodData_CrScPct_pct
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2142,14 +2156,13 @@ if(nrow(errors_Trees_NonPost_Severity) > 1) {
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == TRUE,
-         CrwnCl %in% c("DD", "BBD", "CUS"))
-data$CharHt[is.na(data$CharHt)] <- ""
+         MethodData_CrwnCl %in% c("DD", "BBD", "CUS"))
+data$MethodData_CharHt_m[is.na(data$MethodData_CharHt_m)] <- ""
 query <- "Trees Post Char" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Crown Class = DD. Char Height")
-values_data <- data$CharHt
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Crown Class = DD. Char Height")
+values_data <- data$MethodData_CharHt_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2162,14 +2175,13 @@ errors_Trees_Post_Char_DD <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == TRUE,
-         !CrwnCl %in% c("DD", "BBD", "CUS"))
-data$CharHt[is.na(data$CharHt)] <- ""
+         !MethodData_CrwnCl %in% c("DD", "BBD", "CUS"))
+data$MethodData_CharHt_m[is.na(data$MethodData_CharHt_m)] <- ""
 query <- "Trees Post Char" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Standing tree. Char Height")
-values_data <- data$CharHt
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Standing tree. Char Height")
+values_data <- data$MethodData_CharHt_m
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -2183,22 +2195,21 @@ errors_Trees_Post_Char_Standing <- qaqc(data, query, query_message, values_check
 # # Perform Rosner's Test for outliers using all values
 # data_temp <- Trees_all %>%
 #   filter(MonitoringStatus_Name %in% c("01Post", "02Post", "03Post", "04Post"),
-#          !is.na(CharHt))
-# data_outlier <- rosnerTest(data_temp$CharHt)
+#          !is.na(MethodData_CharHt_m))
+# data_outlier <- rosnerTest(data_temp$MethodData_CharHt_m)
 # outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
 # max_Char <- ifelse(length(outliers) == 0, max(data_temp$CharHt), min(outliers) - 1)
 
 # Set parameters
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == TRUE,
-         !is.na(CharHt))
+         !is.na(MethodData_CharHt_m))
 query <- "Trees Post Char"
-query_message <- paste0("Tag ", data$TagNo, ". ", "Possible outlier. Char Height")
-values_data <- data$CharHt
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Possible outlier. Char Height")
+values_data <- data$MethodData_CharHt_m
 values_valid <- 20
-values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
+values_check <- values_data <= values_valid
 
 # Identify errors
 errors_Trees_Post_Char_Max <- qaqc(data, query, query_message, values_check)
@@ -2230,14 +2241,13 @@ if(nrow(errors_Trees_Post_Char) > 1) {
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == TRUE,
-         CrwnCl %in% c("DD", "BBD", "CUS"))
-data$ScorchHt[is.na(data$ScorchHt)] <- ""
+         MethodData_CrwnCl %in% c("DD", "BBD", "CUS"))
+data$MethodData_ScorchHt_m[is.na(data$MethodData_ScorchHt_m)] <- ""
 query <- "Trees Post Scorch" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Crown Class = DD. Scorch Height")
-values_data <- data$ScorchHt
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Crown Class = DD. Scorch Height")
+values_data <- data$MethodData_ScorchHt_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2250,16 +2260,15 @@ errors_Trees_Post_Scorch_DD <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == TRUE,
-         !CrwnCl %in% c("DD", "BBD", "CUS"),
-         Status == "D",
-         ScorchHt != Ht)
-data$ScorchHt[is.na(data$ScorchHt)] <- ""
+         !MethodData_CrwnCl %in% c("DD", "BBD", "CUS"),
+         MethodData_Status == "D",
+         MethodData_ScorchHt_m != MethodData_Ht_m)
+data$MethodData_ScorchHt_m[is.na(data$MethodData_ScorchHt_m)] <- ""
 query <- "Trees Post Scorch"
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = D. Standing tree. Scorch Height")
-values_data <- data$ScorchHt
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = D. Standing tree. Scorch Height")
+values_data <- data$MethodData_ScorchHt_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2272,15 +2281,14 @@ errors_Trees_Post_Scorch_Dead <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == TRUE,
-         Status == "L")
+         MethodData_Status == "L")
 query <- "Trees Post Scorch" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = L. Possible outlier. Scorch Height")
-values_data <- data$ScorchHt
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = L. Possible outlier. Scorch Height")
+values_data <- data$MethodData_ScorchHt_m
 values_valid <- 20
-values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
+values_check <- values_data <= values_valid
 
 # Identify errors
 errors_Trees_Post_Scorch_Live <- qaqc(data, query, query_message, values_check)
@@ -2314,14 +2322,13 @@ if(nrow(errors_Trees_Post_ScorchHt) > 1) {
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == TRUE,
-         CrwnCl %in% c("DD", "BBD", "CUS"))
-data$CrScPct[is.na(data$CrScPct)] <- ""
+         MethodData_CrwnCl %in% c("DD", "BBD", "CUS"))
+data$MethodData_CrScPct_pct[is.na(data$MethodData_CrScPct_pct)] <- ""
 query <- "Trees Post Scorch%" 
 query_message <- paste0("Tag ", data$TagNo, ". ", "Crown Class = DD. Scorch Percent")
-values_data <- data$CrScPct
+values_data <- data$MethodData_CrScPct_pct
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2334,15 +2341,14 @@ errors_Trees_Post_ScorchPct_DD <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == TRUE,
-         !CrwnCl %in% c("DD", "BBD", "CUS"),
-         Status == "D")
-data$CrScPct[is.na(data$CrScPct)] <- ""
+         !MethodData_CrwnCl %in% c("DD", "BBD", "CUS"),
+         MethodData_Status == "D")
+data$MethodData_CrScPct_pct[is.na(data$MethodData_CrScPct_pct)] <- ""
 query <- "Trees Post Scorch%"
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = D. Standing tree. Scorch Percent")
-values_data <- data$CrScPct
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = D. Standing tree. Scorch Percent")
+values_data <- data$MethodData_CrScPct_pct
 values_valid <- c("", 100)
 values_check <- values_data %in% values_valid
 
@@ -2355,13 +2361,12 @@ errors_Trees_Post_ScorchPct_Dead <- qaqc(data, query, query_message, values_chec
 ```{r}
 # Set parameters 
 data <- Trees_data %>%
-  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), 
-                       TRUE, FALSE)) %>%
+  mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == TRUE,
-         Status == "L")
+         MethodData_Status == "L")
 query <- "Trees Post Scorch%" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status = L. Scorch Percent")
-values_data <- data$CrScPct
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = L. Scorch Percent")
+values_data <- data$MethodData_CrScPct_pct
 values_valid <- max(100)
 values_check <- values_data <= values_valid
 
@@ -2395,10 +2400,10 @@ if(nrow(errors_Trees_Post_ScorchPct) > 1) {
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-   filter(DBH > 15.0)
+   filter(MethodData_DBH_cm > 15.0)
 query <- "Trees Quarter" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "DBH = overstory. Quarter")
-values_data <- data$QTR
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "DBH = overstory. Quarter")
+values_data <- data$MethodData_QTR
 values_valid <- c(1, 2, 3, 4)
 values_check <- values_data %in% values_valid
 
@@ -2410,10 +2415,10 @@ errors_Trees_Quarter_Overstory <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 data <- Trees_data %>% 
-  filter(DBH <= 15.0)
+  filter(MethodData_DBH_cm <= 15.0)
 query <- "Trees Quarter" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "DBH = pole. Quarter")
-values_data <- data$QTR
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "DBH = pole. Quarter")
+values_data <- data$MethodData_QTR
 values_valid <- c(1)
 values_check <- values_data %in% values_valid
 
@@ -2448,8 +2453,8 @@ if(nrow(errors_Trees_Quarter) > 1) {
 # Set parameters 
 data <- Trees_data
 query <- "Trees Status" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "Status")
-values_data <- data$Status
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status")
+values_data <- data$MethodData_Status
 values_valid <- c("L", "D", "X")
 values_check <- values_data %in% values_valid
 
@@ -2468,10 +2473,10 @@ errors_Trees_Status <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-   filter(DBH > 15.0)
+   filter(MethodData_DBH_cm > 15.0)
 query <- "Trees SubFrac" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "DBH = overstory. Subplot Fraction")
-values_data <- data$SubFrac
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "DBH = overstory. Subplot Fraction")
+values_data <- data$MethodData_SubFrac
 values_valid <- 1
 values_check <- values_data == values_valid
 
@@ -2484,10 +2489,10 @@ errors_Trees_SubFrac_Overstory <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
-  filter(DBH <= 15.0)
+  filter(MethodData_DBH_cm <= 15.0)
 query <- "Trees SubFrac" 
 query_message <- paste0("DBH = pole. Subplot Fraction")
-values_data <- data$SubFrac
+values_data <- data$MethodData_SubFrac
 values_valid <- 0.25
 values_check <- values_data == values_valid
 
@@ -2521,10 +2526,10 @@ if(nrow(errors_Trees_SubFrac) > 1) {
 ```{r}
 # Set parameters 
 data <- Trees_data
-data$UV1[is.na(data$UV1)] <- ""
+data$MethodData_UV1[is.na(data$MethodData_UV1)] <- ""
 query <- "Trees UV1" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "User Variable 1")
-values_data <- data$UV1
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "User Variable 1")
+values_data <- data$MethodData_UV1
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2535,10 +2540,10 @@ errors_Trees_UV1 <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data
-data$UV2[is.na(data$UV2)] <- ""
+data$MethodData_UV2[is.na(data$MethodData_UV2)] <- ""
 query <- "Trees UV2" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "User Variable 2")
-values_data <- data$UV2
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "User Variable 2")
+values_data <- data$MethodData_UV2
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2549,10 +2554,10 @@ errors_Trees_UV2 <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Trees_data
-data$UV3[is.na(data$UV3)] <- ""
+data$MethodData_UV3[is.na(data$MethodData_UV3)] <- ""
 query <- "Trees UV3" 
-query_message <- paste0("Tag ", data$TagNo, ". ", "User Variable 3")
-values_data <- data$UV3
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "User Variable 3")
+values_data <- data$MethodData_UV3
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -2977,7 +2982,7 @@ It checks for errors in: headers, seedling counts, subplot fractions, heights, s
 data <- Seedlings_data
 query <- "Dens Quad Header" 
 query_message <- paste0("Correct Value = 50. Area")
-values_data <- data$Area
+values_data <- data$MethodData_Area_ha
 values_valid <- 50
 values_check <- values_data == values_valid
 
@@ -2992,7 +2997,7 @@ errors_Seedlings_Area <- qaqc(data, query, query_message, values_check)
 data <- Seedlings_data
 query <- "Dens Quad Header" 
 query_message <- paste0("Correct Value = 10. Quad Width")
-values_data <- data$QuadWid
+values_data <- data$MethodData_QuadWid_m
 values_valid <- 10
 values_check <- values_data == values_valid
 
@@ -3007,7 +3012,7 @@ errors_Seedlings_QuadWid <- qaqc(data, query, query_message, values_check)
 data <- Seedlings_data
 query <- "Dens Quad Header" 
 query_message <- paste0("Correct Value = 5. Quad Length")
-values_data <- data$QuadLen
+values_data <- data$MethodData_QuadLen_m
 values_valid <- 5
 values_check <- values_data == values_valid
 
@@ -3022,7 +3027,7 @@ errors_Seedlings_QuadLen <- qaqc(data, query, query_message, values_check)
 data <- Seedlings_data
 query <- "Dens Quad Header" 
 query_message <- paste0("Correct Value = 1. Number of Transects")
-values_data <- data$NumTran
+values_data <- data$MethodData_NumTran
 values_valid <- 1
 values_check <- values_data == values_valid
 
@@ -3037,7 +3042,7 @@ errors_Seedlings_NumTran <- qaqc(data, query, query_message, values_check)
 data <- Seedlings_data
 query <- "Dens Quad Header" 
 query_message <- paste0("Correct Value = 1. Number Quad Transects")
-values_data <- data$NumQuadTran
+values_data <- data$MethodData_NumQuadTran
 values_valid <- 1
 values_check <- values_data == values_valid
 
@@ -3050,10 +3055,10 @@ errors_Seedlings_NumQuadTran <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- Seedlings_data
-data$FieldTeam[is.na(data$FieldTeam)] <- ""
+data$MethodData_FieldTeam[is.na(data$MethodData_FieldTeam)] <- ""
 query <- "Dens Quad Header" 
 query_message <- "Collected By"  
-values_data <- data$FieldTeam
+values_data <- data$MethodData_FieldTeam
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -3066,10 +3071,10 @@ errors_Seedlings_FieldTeam <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- Seedlings_data
-data$EntryTeam[is.na(data$EntryTeam)] <- ""
+data$MethodData_EntryTeam[is.na(data$MethodData_EntryTeam)] <- ""
 query <- "Dens Quad Header" 
 query_message <- "Entered/Verified By"  
-values_data <- data$EntryTeam
+values_data <- data$MethodData_EntryTeam
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -3093,7 +3098,7 @@ if(nrow(errors_Seedlings_Header) > 1) {
 
 ### Seedlings Count
 
-[Problem:]{.underline} Seedling count values missing, zero, or excessively high (\>100 is possible, but should be verified).
+[Problem:]{.underline} Seedling count values missing, zero, or excessively high.
 
 [Procedure:]{.underline}
 
@@ -3104,7 +3109,7 @@ if(nrow(errors_Seedlings_Header) > 1) {
 data <- Seedlings_data
 query <- "Dens Quad Count" 
 query_message <- paste0("Count")
-values_data <- data$Count
+values_data <- data$MethodData_Count
 values_valid <- 1
 values_check <- values_data >= values_valid
 
@@ -3112,13 +3117,13 @@ values_check <- values_data >= values_valid
 errors_Seedlings_Count_Min <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Count is not excessively high
+-   Check that Count is not excessively high (\>1000 is possible, but should be verified).
 
 ```{r}
-# # Perform Rosner's Test for outliers using all values
+# Perform Rosner's Test for outliers using all values
 # data_temp <- Seedlings_all %>%
-#   filter(!is.na(Count))
-# data_outlier <- rosnerTest(data_temp$Count)
+#   filter(!is.na(MethodData_Count))
+# data_outlier <- rosnerTest(data_temp$MethodData_Count)
 # outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
 # max_SeedCount <- ifelse(length(outliers) == 0, max(data_temp$Count), min(outliers) - 1)
 
@@ -3126,9 +3131,9 @@ errors_Seedlings_Count_Min <- qaqc(data, query, query_message, values_check)
 data <- Seedlings_data
 query <- "Dens Quad Count" 
 query_message <- paste0("Possible outlier. Count")
-values_data <- data$Count
+values_data <- data$MethodData_Count
 values_valid <- 1000
-values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
+values_check <- values_data <= values_valid
 
 # Identify errors
 errors_Seedlings_Count_Max <- qaqc(data, query, query_message, values_check)
@@ -3160,8 +3165,8 @@ if(nrow(errors_Seedlings_Count) > 1) {
 # Set parameters 
 data <- Seedlings_data
 query <- "Dens Quad Height" 
-query_message <- paste0("SubFrac = ", data$SubFrac, ". ", "Species = ", data$Species.Symbol, ". ", "Height")
-values_data <- data$Height
+query_message <- paste0("SubFrac = ", data$MethodData_SubFrac, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Height")
+values_data <- data$MethodData_Height_m
 values_valid <- c(4, 5)
 values_check <- values_data %in% values_valid
 
@@ -3181,8 +3186,8 @@ errors_Seedlings_Height <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Seedlings_data
 query <- "Dens Quad LifeForm" 
-query_message <- paste0("Life Form")
-values_data <- data$Preferred_Lifeform
+query_message <- paste0("Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Life Form")
+values_data <- data$Species_LifeFormNameLocal
 values_valid <- "Tree"
 values_check <- values_data == values_valid
 
@@ -3203,7 +3208,7 @@ errors_Seedlings_LifeForm <- qaqc(data, query, query_message, values_check)
 data <- Seedlings_data
 query <- "Dens Quad Quadrat" 
 query_message <- paste0("Quadrat")
-values_data <- data$Quadrat
+values_data <- data$MethodData_Quadrat
 values_valid <- 1
 values_check <- values_data == values_valid
 
@@ -3223,8 +3228,8 @@ errors_Seedlings_Quadrat <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Seedlings_data
 query <- "Dens Quad Status" 
-query_message <- paste0("Species ", data$Species.Symbol, ". ", "Status")
-values_data <- data$Status
+query_message <- paste0("Species ", data$MethodData_LocalSpeciesSymbol, ". ", "Status")
+values_data <- data$MethodData_Status
 values_valid <- c("L")
 values_check <- values_data %in% values_valid
 
@@ -3245,7 +3250,7 @@ errors_Seedlings_Status <- qaqc(data, query, query_message, values_check)
 data <- Seedlings_data
 query <- "Dens Quad SubFrac" 
 query_message <- paste0("Subplot Fraction")
-values_data <- data$SubFrac
+values_data <- data$MethodData_SubFrac
 values_valid <- c(1)
 values_check <- values_data %in% values_valid
 
@@ -3266,7 +3271,7 @@ errors_Seedlings_SubFrac <- qaqc(data, query, query_message, values_check)
 data <- Seedlings_data
 query <- "Dens Quad Transect" 
 query_message <- paste0("Transect")
-values_data <- data$Transect
+values_data <- data$MethodData_Transect
 values_valid <- 1
 values_check <- values_data == values_valid
 
@@ -3285,10 +3290,10 @@ errors_Seedlings_Transect <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters
 data <- Seedlings_data
-data$AgeCl[is.na(data$AgeCl)] <- ""
+data$MethodData_AgeCl[is.na(data$MethodData_AgeCl)] <- ""
 query <- "Dens Quad Zero/NA"
 query_message <- "Age Class"
-values_data <- data$AgeCl
+values_data <- data$MethodData_AgeCl
 values_valid <- c("", "X")
 values_check <- values_data %in% values_valid
 
@@ -3301,10 +3306,10 @@ errors_Seedlings_AgeCl <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters
 data <- Seedlings_data
-data$SizeCl[is.na(data$SizeCl)] <- ""
+data$MethodData_SizeCl[is.na(data$MethodData_SizeCl)] <- ""
 query <- "Dens Quad Zero/NA"
 query_message <- "Size Class"
-values_data <- data$SizeCl
+values_data <- data$MethodData_SizeCl
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -3363,7 +3368,7 @@ It checks for errors in: heades, age class, shrub counts, life form, status, sub
 data <- Shrubs_data
 query <- "Dens Belts Header" 
 query_message <- paste0("Number of Transects")
-values_data <- data$NumTran
+values_data <- data$MethodData_NumTran
 values_valid <- 2
 values_check <- values_data == values_valid
 
@@ -3378,7 +3383,7 @@ errors_Shrubs_NumTran <- qaqc(data, query, query_message, values_check)
 data <- Shrubs_data
 query <- "Dens Belts Header" 
 query_message <- paste0("Transect Length")
-values_data <- data$TranLen 
+values_data <- data$MethodData_TranLen_m 
 values_valid <- 50  
 values_check <-values_data == values_valid
 
@@ -3393,7 +3398,7 @@ errors_Shrubs_TranLen <- qaqc(data, query, query_message, values_check)
 data <- Shrubs_data
 query <- "Dens Belts Header" 
 query_message <- paste0("Transect Width")
-values_data <- data$TranWid
+values_data <- data$MethodData_TranWid_m
 values_valid <- 2
 values_check <-values_data == values_valid
 
@@ -3408,7 +3413,7 @@ errors_Shrubs_TranWid <- qaqc(data, query, query_message, values_check)
 data <- Shrubs_data
 query <- "Dens Belts Header" 
 query_message <- paste0("Area")
-values_data <- data$Area
+values_data <- data$MethodData_Area_ha
 values_valid <- 100
 values_check <- values_data == values_valid
 
@@ -3421,10 +3426,10 @@ errors_Shrubs_Area <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Shrubs_data
-data$NumSubbelt[is.na(data$NumSubbelt)] <- ""
+data$MethodData_NumSubbelt[is.na(data$MethodData_NumSubbelt)] <- ""
 query <- "Dens Belts Header" 
 query_message <- paste0("Number of SubBelts")
-values_data <- data$NumSubbelt
+values_data <- data$MethodData_NumSubbelt
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -3437,10 +3442,10 @@ errors_Shrubs_NumSubBelt <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- Shrubs_data
-data$FieldTeam[is.na(data$FieldTeam)] <- ""
+data$MethodData_FieldTeam[is.na(data$MethodData_FieldTeam)] <- ""
 query <- "Dens Belts Header" 
 query_message <- "Collected By"  
-values_data <- data$FieldTeam
+values_data <- data$MethodData_FieldTeam
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -3453,10 +3458,10 @@ errors_Shrubs_FieldTeam <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- Shrubs_data
-data$EntryTeam[is.na(data$EntryTeam)] <- ""
+data$MethodData_EntryTeam[is.na(data$MethodData_EntryTeam)] <- ""
 query <- "Dens Belts Header" 
 query_message <- "Entered/Verified By"  
-values_data <- data$EntryTeam
+values_data <- data$MethodData_EntryTeam
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -3490,8 +3495,8 @@ if(nrow(errors_Shrubs_Header) > 1) {
 # Set parameters 
 data <- Shrubs_data
 query <- "Dens Belts AgeCl" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "SubBelt = ", data$Subbelt, ". ", "Age Class")
-values_data <- data$AgeCl
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "SubBelt = ", data$Subbelt, ". ", "Age Class")
+values_data <- data$MethodData_AgeCl
 values_valid <- c("I", "M")
 values_check <- values_data %in% values_valid
 
@@ -3512,7 +3517,7 @@ errors_Shrubs_AgeCl <- qaqc(data, query, query_message, values_check)
 data <- Shrubs_data
 query <- "Dens Belts Count" 
 query_message <- paste0("Count")
-values_data <- data$Count
+values_data <- data$MethodData_Count
 values_valid <- 1
 values_check <- values_data >= values_valid
 
@@ -3520,13 +3525,13 @@ values_check <- values_data >= values_valid
 errors_Shrubs_Count_Min <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Count is not excessively high
+-   Check that Count is not excessively high (\>500 is possible, but should be verified).
 
 ```{r}
 # # Perform Rosner's Test for outliers using all values
 # data_temp <- Shrubs_all %>%
-#   filter(!is.na(Count))
-# data_outlier <- rosnerTest(data_temp$Count)
+#   filter(!is.na(MethodData_Count))
+# data_outlier <- rosnerTest(data_temp$MethodData_Count)
 # outliers <- data_outlier$all.stats$Value[data_outlier$all.stats$Outlier]
 # max_ShrubCount <- ifelse(length(outliers) == 0, max(data_temp$Count), min(outliers) - 1)
 
@@ -3534,9 +3539,9 @@ errors_Shrubs_Count_Min <- qaqc(data, query, query_message, values_check)
 data <- Shrubs_data
 query <- "Dens Belts Count" 
 query_message <- paste0("Possible outlier. Count")
-values_data <- data$Count
-values_valid <- 540
-values_check <- (values_data <= values_valid) %>% replace_na(TRUE)
+values_data <- data$MethodData_Count
+values_valid <- 500
+values_check <- values_data <= values_valid
 
 # Identify errors
 errors_Shrubs_Count_Max <- qaqc(data, query, query_message, values_check)
@@ -3568,8 +3573,8 @@ if(nrow(errors_Shrubs_Count) > 1) {
 # Set parameters 
 data <- Shrubs_data
 query <- "Dens Belts LifeForm" 
-query_message <- paste0("Life Form")
-values_data <- data$Preferred_Lifeform
+query_message <- paste0("Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Life Form")
+values_data <- data$Species_LifeFormNameLocal
 values_valid <- c("Shrub", "Subshrub")
 values_check <- values_data %in% values_valid
 
@@ -3589,8 +3594,8 @@ errors_Shrubs_LifeForm <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Shrubs_data
 query <- "Dens Belts Status" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "SubBelt = ", data$Subbelt, ". ", "Status")
-values_data <- data$Status
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "SubBelt = ", data$MethodData_Subbelt, ". ", "Status")
+values_data <- data$MethodData_Status
 values_valid <- c("L")
 values_check <- values_data %in% values_valid
 
@@ -3610,8 +3615,8 @@ errors_Shrubs_Status <- qaqc(data, query, query_message, values_check)
 # Set parameters
 data <- Shrubs_data
 query <- "Dens Belts SubBelt"
-query_message <- paste0("Transect = ", data$Transect, ". ", "SubBelt")
-values_data <- data$Subbelt
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "SubBelt")
+values_data <- data$MethodData_Subbelt
 values_valid <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
 values_check <- values_data %in% values_valid
 
@@ -3632,7 +3637,7 @@ errors_Shrubs_SubBelt <- qaqc(data, query, query_message, values_check)
 data <- Shrubs_data
 query <- "Dens Belts SubFrac" 
 query_message <- paste0("Subplot Fraction")
-values_data <- data$SubFrac
+values_data <- data$MethodData_SubFrac
 values_valid <- c(1)
 values_check <- values_data %in% values_valid
 
@@ -3653,7 +3658,7 @@ errors_Shrubs_SubFrac <- qaqc(data, query, query_message, values_check)
 data <- Shrubs_data
 query <- "Dens Belts Transect" 
 query_message <- paste0("Transect")
-values_data <- data$Transect
+values_data <- data$MethodData_Transect
 values_valid <- c(1, 2)
 values_check <- values_data %in% values_valid
 
@@ -3672,10 +3677,10 @@ errors_Shrubs_Transect <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters
 data <- Shrubs_data
-data$Height[is.na(data$Height)] <- ""
+data$MethodData_Height_m[is.na(data$MethodData_Height_m)] <- ""
 query <- "Dens Belts Zero/NA"
 query_message <- "Height"
-values_data <- data$Height
+values_data <- data$MethodData_Height_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -3688,10 +3693,10 @@ errors_Shrubs_Height <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters
 data <- Shrubs_data
-data$SizeCl[is.na(data$SizeCl)] <- ""
+data$MethodData_SizeCl[is.na(data$MethodData_SizeCl)] <- ""
 query <- "Dens Belts Zero/NA"
 query_message <- "Size Class"
-values_data <- data$SizeCl
+values_data <- data$MethodData_SizeCl
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -3748,10 +3753,10 @@ It checks for errors in: cover, species, and status.
 ```{r}
 # Set parameters  
 data <- HerbsSpComp_data
-data$MinCovLevel[is.na(data$MinCovLevel)] <- ""
+data$MethodData_MinCovLevel_pct[is.na(data$MethodData_MinCovLevel_pct)] <- ""
 query <- "Cvr SpComp Header" 
 query_message <- "Min Cover Level"  
-values_data <- data$MinCovLevel
+values_data <- data$MethodData_MinCovLevel_pct
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -3764,10 +3769,10 @@ errors_HerbsSpComp_MinCovLevel <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- HerbsSpComp_data
-data$Area[is.na(data$Area)] <- ""
+data$MethodData_Area_ha[is.na(data$MethodData_Area_ha)] <- ""
 query <- "Cvr SpComp Header" 
 query_message <- "Area"  
-values_data <- data$Area
+values_data <- data$MethodData_Area_ha
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -3780,10 +3785,10 @@ errors_HerbsSpComp_Area <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- HerbsSpComp_data
-data$FieldTeam[is.na(data$FieldTeam)] <- ""
+data$MethodData_FieldTeam[is.na(data$MethodData_FieldTeam)] <- ""
 query <- "Cvr SpComp Header" 
 query_message <- "Collected By"  
-values_data <- data$FieldTeam
+values_data <- data$MethodData_FieldTeam
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -3796,10 +3801,10 @@ errors_HerbsSpComp_FieldTeam <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- HerbsSpComp_data
-data$EntryTeam[is.na(data$EntryTeam)] <- ""
+data$MethodData_EntryTeam[is.na(data$MethodData_EntryTeam)] <- ""
 query <- "Cvr SpComp Header" 
 query_message <- "Entered/Verified By"  
-values_data <- data$EntryTeam
+values_data <- data$MethodData_EntryTeam
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -3832,10 +3837,10 @@ if(nrow(errors_HerbsSpComp_Header) > 1) {
 ```{r}
 # Set parameters
 data <- HerbsSpComp_data
-data$Cover[is.na(data$Cover)] <- ""
+data$MethodData_Cover[is.na(data$MethodData_Cover)] <- ""
 query <- "Cvr SpComp Cvr"
 query_message <- paste0("Cover")
-values_data <- data$Cover
+values_data <- data$MethodData_Cover
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -3856,7 +3861,7 @@ errors_HerbsSpComp_Cover <- qaqc(data, query, query_message, values_check)
 data <- HerbsSpComp_data
 query <- "Cvr SpComp Species"
 query_message <- paste0("Species")
-values_data <- data$Species.Symbol
+values_data <- data$MethodData_LocalSpeciesSymbol
 values_valid <- unknowns_generic
 values_check <- !(values_data %in% values_valid)
 
@@ -3869,10 +3874,10 @@ errors_HerbsSpComp_Unknown <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters
 data <- HerbsSpComp_data
-data$Comment[is.na(data$Comment)] <- ""
+data$MethodData_Comment[is.na(data$MethodData_Comment)] <- ""
 query <- "Cvr SpComp Species"
-query_message <- paste0("Species = ", data$Species.Symbol, ". Comment")
-values_data <- data$Comment
+query_message <- paste0("Species = ", data$MethodData_LocalSpeciesSymbol, ". Comment")
+values_data <- data$MethodData_Comment
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -3900,15 +3905,16 @@ if(nrow(errors_HerbsSpComp_Species) > 1) {
 
 [Procedure:]{.underline}
 
--   Sort by Status. Check that Status = L
+-   Sort by Status. Check that Status = L or blank
 
 ```{r}
 # Set parameters 
 data <- HerbsSpComp_data
+data$MethodData_Status[is.na(data$MethodData_Status)] <- ""
 query <- "Cvr SpComp Status" 
 query_message <- paste0("Status")
-values_data <- data$Status
-values_valid <- c("L")
+values_data <- data$MethodData_Status
+values_valid <- c("L", "")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -3926,10 +3932,10 @@ errors_HerbsSpComp_Status <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters
 data <- HerbsSpComp_data
-data$AgeCl[is.na(data$AgeCl)] <- ""
+data$MethodData_AgeCl[is.na(data$MethodData_AgeCl)] <- ""
 query <- "Cvr SpComp Zero/NA"
 query_message <- "Age Class"
-values_data <- data$AgeCl
+values_data <- data$MethodData_AgeCl
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -3942,10 +3948,10 @@ errors_HerbsSpComp_AgeCl <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters
 data <- HerbsSpComp_data
-data$Height[is.na(data$Height)] <- ""
+data$MethodData_Height_m[is.na(data$MethodData_Height_m)] <- ""
 query <- "Cvr SpComp Zero/NA"
 query_message <- "Height"
-values_data <- data$Height
+values_data <- data$MethodData_Height_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -3958,10 +3964,10 @@ errors_HerbsSpComp_Height <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters
 data <- HerbsSpComp_data
-data$SizeCl[is.na(data$SizeCl)] <- ""
+data$MethodData_SizeCl[is.na(data$MethodData_SizeCl)] <- ""
 query <- "Cvr SpComp Zero/NA"
 query_message <- "Size Class"
-values_data <- data$SizeCl
+values_data <- data$MethodData_SizeCl
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -4022,16 +4028,16 @@ It checks for errors in: height, order, points, status, tape, and transect.
 ```{r}
 # Filter NA values. Add number of data points and store in new column
 data_temp <- HerbsPoints_data %>%
-  filter(Order == 1,
+  filter(MethodData_Order == 1,
          Macroplot_Type %in% c("Grassland", "Shrubland")) %>%
-  group_by(AdminUnit_Name, Macroplot_Name, SampleEvent_Date, Transect) %>% 
+  group_by(AdminUnit_Name, Macroplot_Name, SampleEvent_Date, MethodData_Transect) %>% 
   dplyr::summarise("data_points" = n())
 
 # Set parameters 
-data <- merge(HerbsPoints_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Name", "SampleEvent_Date", "Transect"), all = T) %>% 
+data <- merge(HerbsPoints_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Name", "SampleEvent_Date", "MethodData_Transect"), all = T) %>% 
   filter(Macroplot_Type %in% c("Grassland", "Shrubland"))
-query <- "Cvr Pts" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Transect = ", data$Transect, ". Total Points") 
+query <- "Cvr Pts Complete" 
+query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Transect = ", data$MethodData_Transect, ". Total Points") 
 values_data <- data$data_points
 values_valid <- 100
 values_check <- values_data == values_valid
@@ -4043,16 +4049,16 @@ errors_HerbsPoints_Complete_Grassland <- qaqc(data, query, query_message, values
 ```{r}
 # Filter NA values. Add number of data points and store in new column
 data_temp <- HerbsPoints_data %>%
-  filter(Order == 1,
+  filter(MethodData_Order == 1,
          Macroplot_Type %in% c("Forest")) %>%
-  group_by(AdminUnit_Name, Macroplot_Name, SampleEvent_Date, Transect) %>% 
+  group_by(AdminUnit_Name, Macroplot_Name, SampleEvent_Date, MethodData_Transect) %>% 
   dplyr::summarise("data_points" = n())
 
 # Set parameters 
-data <- merge(HerbsPoints_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Name", "SampleEvent_Date", "Transect"), all = T) %>% 
+data <- merge(HerbsPoints_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Name", "SampleEvent_Date", "MethodData_Transect"), all = T) %>% 
   filter(Macroplot_Type %in% c("Forest"))
-query <- "Cvr Pts" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Transect = ", data$Transect, ". Total Points") 
+query <- "Cvr Pts Complete" 
+query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Transect = ", data$MethodData_Transect, ". Total Points") 
 values_data <- data$data_points
 values_valid <- 166
 values_check <- values_data == values_valid
@@ -4089,7 +4095,7 @@ if(nrow(errors_HerbsPoints_Complete) > 1) {
 data <- HerbsPoints_data
 query <- "Cvr Pts Header" 
 query_message <- paste0("Number of Transects")
-values_data <- data$NumTran
+values_data <- data$MethodData_NumTran
 values_valid <- c(1, 2)
 values_check <- values_data %in% values_valid
 
@@ -4104,7 +4110,7 @@ errors_HerbsPoints_NumTran <- qaqc(data, query, query_message, values_check)
 data <- HerbsPoints_data
 query <- "Cvr Pts Header" 
 query_message <- paste0("Transect Length")
-values_data <- data$TranLen
+values_data <- data$MethodData_TranLen
 values_valid <- c(30, 49.8, 50)
 values_check <- values_data %in% values_valid
 
@@ -4119,7 +4125,7 @@ errors_HerbsPoints_TranLen <- qaqc(data, query, query_message, values_check)
 data <- HerbsPoints_data
 query <- "Cvr Pts Header" 
 query_message <- paste0("Number of Points per Transect")
-values_data <- data$NumPtsTran
+values_data <- data$MethodData_NumPtsTran
 values_valid <- c(100, 166)
 values_check <- values_data %in% values_valid
 
@@ -4134,7 +4140,7 @@ errors_HerbsPoints_NumPtsTran <- qaqc(data, query, query_message, values_check)
 data <- HerbsPoints_data
 query <- "Cvr Pts Header" 
 query_message <- paste0("Offset")
-values_data <- data$Offset
+values_data <- data$MethodData_Offset
 values_valid <- 0
 values_check <- values_data == values_valid
 
@@ -4147,10 +4153,10 @@ errors_HerbsPoints_Offset <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- HerbsPoints_data
-data$FieldTeam[is.na(data$FieldTeam)] <- ""
+data$MethodData_FieldTeam[is.na(data$MethodData_FieldTeam)] <- ""
 query <- "Cvr Pts Header" 
 query_message <- "Collected By"  
-values_data <- data$FieldTeam
+values_data <- data$MethodData_FieldTeam
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -4163,10 +4169,10 @@ errors_HerbsPoints_FieldTeam <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters  
 data <- HerbsPoints_data
-data$EntryTeam[is.na(data$EntryTeam)] <- ""
+data$MethodData_EntryTeam[is.na(data$MethodData_EntryTeam)] <- ""
 query <- "Cvr Pts Header" 
 query_message <- "Entered/Verified By"  
-values_data <- data$EntryTeam
+values_data <- data$MethodData_EntryTeam
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -4199,10 +4205,10 @@ if(nrow(errors_HerbsPoints_Header) > 1) {
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-   filter(!is.na(Height))
+   filter(!is.na(MethodData_Height_m))
 query <- "Cvr Pts Height" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order = ", data$Order, ". ", "Species = ", data$Species.Symbol, ". ", "Height")
-values_data <- data$Height
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Height")
+values_data <- data$MethodData_Height_m
 values_valid <- 2
 values_check <- values_data <= values_valid
 
@@ -4215,11 +4221,11 @@ errors_HerbsPoints_Height_Max <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-  filter(!is.na(Height))
+  filter(!is.na(MethodData_Height_m))
 query <- "Cvr Pts Height" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order = ", data$Order, ". ", "Species = ", data$Species.Symbol, ". ", "Precision error. Height")
-values_data <- data$Height
-values_valid <- c(0.01, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40, 1.45, 1.50, 1.55, 1.60, 1.65, 1.70, 1.75, 1.80, 1.85, 1.90, 1.95, 2.00)
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Precision error. Height")
+values_data <- data$MethodData_Height_m
+values_valid <- c(0, 0.01, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40, 1.45, 1.50, 1.55, 1.60, 1.65, 1.70, 1.75, 1.80, 1.85, 1.90, 1.95, 2.00)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -4231,12 +4237,12 @@ errors_HerbsPoints_Height_Precision <- qaqc(data, query, query_message, values_c
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-  filter(Order == 1,
-         !Species.Symbol %in% substrates)
-data$Height[is.na(data$Height)] <- ""
+  filter(MethodData_Order == 1,
+         !MethodData_LocalSpeciesSymbol %in% substrates)
+data$MethodData_Height_m[is.na(data$MethodData_Height_m)] <- ""
 query <- "Cvr Pts Height" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order = ", data$Order, ". ", "Species = ", data$Species.Symbol, ". ", "Height")
-values_data <- data$Height
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Height")
+values_data <- data$MethodData_Height_m
 values_valid <- ""
 values_check <- values_data != values_valid
 
@@ -4249,11 +4255,11 @@ errors_HerbsPoints_Height_Order1 <- qaqc(data, query, query_message, values_chec
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-   filter(Order != 1)
-data$Height[is.na(data$Height)] <- ""
+   filter(MethodData_Order != 1)
+data$MethodData_Height_m[is.na(data$MethodData_Height_m)] <- ""
 query <- "Cvr Pts Height" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order = ", data$Order, ". ", "Species = ", data$Species.Symbol, ". ", "Height")
-values_data <- data$Height
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_MethodData_MethodData_MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Height")
+values_data <- data$MethodData_Height_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -4266,11 +4272,11 @@ errors_HerbsPoints_Height_Order <- qaqc(data, query, query_message, values_check
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-  filter(Species.Symbol %in% substrates)
-data$Height[is.na(data$Height)] <- ""
+  filter(MethodData_LocalSpeciesSymbol %in% substrates)
+data$MethodData_Height_m[is.na(data$MethodData_Height_m)] <- ""
 query <- "Cvr Pts Height" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order = ", data$Order, ". ", "Species = ", data$Species.Symbol, ". ", "Height")
-values_data <- data$Height
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Height")
+values_data <- data$MethodData_Height_m
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -4304,8 +4310,8 @@ if(nrow(errors_HerbsPoints_Height) > 1) {
 # Set parameters 
 data <- HerbsPoints_data
 query <- "Cvr Pts Order" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order")
-values_data <- data$Order
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order")
+values_data <- data$MethodData_Order
 values_valid <- 0
 values_check <- values_data > values_valid
 
@@ -4318,13 +4324,13 @@ errors_HerbsPoints_Order_Number <- qaqc(data, query, query_message, values_check
 ```{r}
 # Check for tag duplication and store results in new column
 data_temp <- HerbsPoints_data %>% 
-  get_dupes(SampleEvent_Date, Macroplot_Name, Transect, Point, Order)
+  get_dupes(SampleEvent_Date, Macroplot_Name, MethodData_Transect, MethodData_Point, MethodData_Order)
 
 # Set parameters 
 data <- merge(HerbsPoints_data, data_temp, all.x = T)
 data$dupe_count[is.na(data$dupe_count)] <- 0
 query <- "Cvr Pts Order" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order = ", data$Order, ". ", "Duplicates")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Duplicates")
 values_data <- data$dupe_count
 values_valid <- 0
 values_check <- values_data == values_valid
@@ -4338,10 +4344,10 @@ errors_HerbsPoints_Order_Duplicate <- qaqc(data, query, query_message, values_ch
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-  filter(Species.Symbol %in% substrates)
+  filter(MethodData_LocalSpeciesSymbol %in% substrates)
 query <- "Cvr Pts Order" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Species = ", data$Species.Symbol, ". ", "Order")
-values_data <- data$Order
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Order")
+values_data <- data$MethodData_Order
 values_valid <- 1
 values_check <- values_data == values_valid
 
@@ -4375,8 +4381,8 @@ if(nrow(errors_HerbsPoints_Order) > 1) {
 # Set parameters 
 data <- HerbsPoints_data
 query <- "Cvr Pts Point" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Order = ", data$Order, ". ", "Point")
-values_data <- data$Point
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Order = ", data$MethodData_Order, ". ", "Point")
+values_data <- data$MethodData_Point
 values_valid <- seq(1, 166, by = 1)
 values_check <- values_data %in% values_valid
 
@@ -4391,20 +4397,20 @@ errors_HerbsPoints_Point_Number <- qaqc(data, query, query_message, values_check
 expected_sum <- 166 * (1 + 166) / 2
 
 data_temp <- HerbsPoints_data %>%
-  filter(is.na(Order)|Order == 1,
+  filter(is.na(MethodData_Order)|MethodData_Order == 1,
          Macroplot_Type == "Forest") %>% 
-  group_by(Macroplot_Name, SampleEvent_Date, Transect) %>% 
-  dplyr::summarize(across(Point, sum))
+  group_by(Macroplot_Name, SampleEvent_Date, MethodData_Transect) %>% 
+  dplyr::summarize(across(MethodData_Point, sum))
 
 data_temp <- data_temp %>% 
-  mutate(Missing = abs(expected_sum - Point)) %>% 
-  select(!Point)
+  mutate(Missing = abs(expected_sum - MethodData_Point)) %>% 
+  select(!MethodData_Point)
 
 # Set parameters 
-data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot_Name", "SampleEvent_Date", "Transect"), all = T) %>% 
+data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot_Name", "SampleEvent_Date", "MethodData_Transect"), all = T) %>% 
   filter(Macroplot_Type == "Forest")
 query <- "Cvr Pts Point" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Order = 1. Missing/Extra Point") 
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Order = 1. Missing/Extra Point") 
 values_data <- data$Missing
 values_valid <- 0
 values_check <- values_data == values_valid
@@ -4418,20 +4424,20 @@ errors_HerbsPoints_Point_Missing_Forest <- qaqc(data, query, query_message, valu
 expected_sum <- 100 * (1 + 100) / 2
 
 data_temp <- HerbsPoints_data %>%
-  filter(is.na(Order)|Order == 1,
+  filter(is.na(MethodData_Order)|MethodData_Order == 1,
          Macroplot_Type== "Grassland") %>% 
-  group_by(Macroplot_Name, SampleEvent_Date, Transect) %>% 
-  dplyr::summarize(across(Point, sum))
+  group_by(Macroplot_Name, SampleEvent_Date, MethodData_Transect) %>% 
+  dplyr::summarize(across(MethodData_Point, sum))
 
 data_temp <- data_temp %>% 
-  mutate(Missing = abs(expected_sum - Point)) %>% 
-  select(!Point)
+  mutate(Missing = abs(expected_sum - MethodData_Point)) %>% 
+  select(!MethodData_Point)
 
 # Set parameters 
-data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot_Name", "SampleEvent_Date", "Transect"), all = T) %>% 
+data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot_Name", "SampleEvent_Date", "MethodData_Transect"), all = T) %>% 
   filter(Macroplot_Type == "Grassland")
 query <- "Cvr Pts Point" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Order = 1. Missing/Extra Point") 
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Order = 1. Missing/Extra Point") 
 values_data <- data$Missing
 values_valid <- 0
 values_check <- values_data == values_valid
@@ -4467,7 +4473,7 @@ if(nrow(errors_HerbsPoints_Point) > 1) {
 data <- HerbsPoints_data
 query <- "Cvr Pts Species"
 query_message <- paste0("Species")
-values_data <- data$Species.Symbol
+values_data <- data$MethodData_LocalSpeciesSymbol
 values_valid <- unknowns_generic
 values_check <- !(values_data %in% values_valid)
 
@@ -4480,10 +4486,10 @@ errors_HerbsPoints_Unknown <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters
 data <- HerbsPoints_data
-data$Comment[is.na(data$Comment)] <- ""
+data$MethodData_Comment[is.na(data$MethodData_Comment)] <- ""
 query <- "Cvr Pts Species"
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Species = ", data$Species.Symbol, ". Comment")
-values_data <- data$Comment
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". Comment")
+values_data <- data$MethodData_Comment
 values_valid <- ""
 values_check <- values_data == values_valid
 
@@ -4516,10 +4522,10 @@ if(nrow(errors_HerbsPoints_Species) > 1) {
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-  filter(Preferred_Lifeform %in% c("Graminoid", "Grass-like", "Forb/herb", "Nonvascular", "Fern", "Vine"))
+  filter(Species_LifeFormNameLocal %in% c("Graminoid", "Grass-like", "Forb/herb", "Nonvascular", "Fern", "Vine"))
 query <- "Cvr Pts Status" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order = ", data$Order, ". ", "Species = ", data$Species.Symbol, ". ", "Status")
-values_data <- data$Status
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Status")
+values_data <- data$MethodData_Status
 values_valid <- c("L")
 values_check <- values_data %in% values_valid
 
@@ -4532,10 +4538,10 @@ errors_HerbsPoints_Status_Annual <- qaqc(data, query, query_message, values_chec
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-  filter(Preferred_Lifeform %in% c("Shrub", "Subshrub", "Tree"))
+  filter(Species_LifeFormNameLocal %in% c("Shrub", "Subshrub", "Tree"))
 query <- "Cvr Pts Status" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order = ", data$Order, ". ", "Species = ", data$Species.Symbol, ". ", "Status")
-values_data <- data$Status
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Status")
+values_data <- data$MethodData_Status
 values_valid <- c("L", "D")
 values_check <- values_data %in% values_valid
 
@@ -4543,16 +4549,16 @@ values_check <- values_data %in% values_valid
 errors_HerbsPoints_Status_Perennial <- qaqc(data, query, query_message, values_check)
 ```
 
--   Filter for substrates. Check that Status = D
+-   Filter for substrates. Check that Status = D or X
 
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-  filter(Species.Symbol %in% substrates,
-         !Species.Symbol %in% c("MOSS", "BOLE"))
+  filter(MethodData_LocalSpeciesSymbol %in% substrates,
+         !MethodData_LocalSpeciesSymbol %in% c("MOSS", "BOLE"))
 query <- "Cvr Pts Status" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Order = ", data$Order, ". ", "Species = ", data$Species.Symbol, ". ", "Status")
-values_data <- data$Status
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Status")
+values_data <- data$MethodData_Status
 values_valid <- c("D", "X")
 values_check <- values_data %in% values_valid
 
@@ -4586,8 +4592,8 @@ if(nrow(errors_HerbsPoints_Status) > 1) {
 # Set parameters 
 data <- HerbsPoints_data
 query <- "Cvr Pts Tape" 
-query_message <- paste0("Transect = ", data$Transect, ". ", "Point = ", data$Point, ". ", "Correct Tape Value = ", data$Point * 0.3, "; ", "Tape")
-values_data <- data$Tape
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Correct Tape Value = ", data$MethodData_Point * 0.3, "; ", "Tape")
+values_data <- data$MethodData_Tape
 values_valid <- c(0.3, 0.6, 0.9, 1.2, 1.5, 1.8, 2.1, 2.4, 2.7, 3.0, 3.3, 3.6, 3.9, 4.2, 4.5, 4.8, 5.1, 5.4, 5.7, 6.0, 6.3, 6.6, 6.9, 7.2, 7.5, 7.8, 8.1, 8.4, 8.7, 9.0, 9.3, 9.6, 9.9, 10.2, 10.5, 10.8, 11.1, 11.4, 11.7, 12.0, 12.3, 12.6, 12.9, 13.2, 13.5, 13.8, 14.1, 14.4, 14.7, 15.0, 15.3, 15.6, 15.9, 16.2, 16.5, 16.8, 17.1, 17.4, 17.7, 18.0, 18.3, 18.6, 18.9, 19.2, 19.5, 19.8, 20.1, 20.4, 20.7, 21.0, 21.3, 21.6, 21.9, 22.2, 22.5, 22.8, 23.1, 23.4, 23.7, 24.0, 24.3, 24.6, 24.9, 25.2, 25.5, 25.8, 26.1, 26.4, 26.7, 27.0, 27.3, 27.6, 27.9, 28.2, 28.5, 28.8, 29.1, 29.4, 29.7, 30.0, 30.3, 30.6, 30.9, 31.2, 31.5, 31.8, 32.1, 32.4, 32.7, 33.0, 33.3, 33.6, 33.9, 34.2, 34.5, 34.8, 35.1, 35.4, 35.7, 36.0, 36.3, 36.6, 36.9, 37.2, 37.5, 37.8, 38.1, 38.4, 38.7, 39.0, 39.3, 39.6, 39.9, 40.2, 40.5, 40.8, 41.1, 41.4, 41.7, 42.0, 42.3, 42.6, 42.9, 43.2, 43.5, 43.8, 44.1, 44.4, 44.7, 45.0, 45.3, 45.6, 45.9, 46.2, 46.5, 46.8, 47.1, 47.4, 47.7, 48.0, 48.3, 48.6, 48.9, 49.2, 49.5, 49.8)
 values_check <- values_data %in% values_valid
 
@@ -4608,7 +4614,7 @@ errors_HerbsPoints_Tape <- qaqc(data, query, query_message, values_check)
 data <- HerbsPoints_data
 query <- "Cvr Pts Transect" 
 query_message <- paste0("Transect")
-values_data <- data$Transect
+values_data <- data$MethodData_Transect
 values_valid <- c(1, 2)
 values_check <- values_data %in% values_valid
 
@@ -4627,10 +4633,10 @@ errors_HerbsPoints_Transect <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters
 data <- HerbsPoints_data
-data$CanopyLayer[is.na(data$CanopyLayer)] <- ""
+data$MethodData_CanopyLayer[is.na(data$MethodData_CanopyLayer)] <- ""
 query <- "Cvr Pts Zero/NA"
 query_message <- "Canopy Layer"
-values_data <- data$CanopyLayer
+values_data <- data$MethodData_CanopyLayer
 values_valid <- ""
 values_check <- values_data == values_valid
 
