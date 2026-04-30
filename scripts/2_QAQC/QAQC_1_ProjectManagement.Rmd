@@ -69,8 +69,14 @@ source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
 
 ###################################################################################
 
-# Edit blank data frame as preferred error log template.
-errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "Macroplot_Name" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+# Edit blank data frame for preferred error log template.
+errors_blank <- data.frame("SavedQuery" = "", 
+                           "AdminUnit_Name" = "", 
+                           "Macroplot_Name" = "", 
+                           "Error" = "", 
+                           "Fixed" = "", 
+                           "Explanation" = "", 
+                           "Queryers" = "")
 
 # Edit error group. Duplicate errors will be grouped by these columns.
 errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "Error")
