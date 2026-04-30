@@ -85,9 +85,16 @@ source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
 
 ###################################################################################
 
-# Edit blank data frame as preferred error log template.
-errors_blank <- data.frame("SavedQuery" = "", "AdminUnit_Name" = "", "SampleEvent_TreatmentUnit" = "", "Macroplot_Name" = "", "SampleEvent_Date" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>%
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date))
+# Edit blank data frame for preferred error log template.
+errors_blank <- data.frame("SavedQuery" = "", 
+                           "AdminUnit_Name" = "", 
+                           "SampleEvent_TreatmentUnit" = "", 
+                           "Macroplot_Name" = "", 
+                           "SampleEvent_Date" = as.Date(NA), 
+                           "Error" = "", 
+                           "Fixed" = "", 
+                           "Explanation" = "", 
+                           "Queryers" = "")
 
 # Edit error group. Duplicate errors will be grouped by these columns.
 errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "SampleEvent_Date", "Error")
@@ -132,86 +139,24 @@ HerbsPoints_all <- read.csv(paste0(path_data, "metric_cover_points.csv"))
 ### Filter Data {.hidden}
 
 ```{r filter data, include=FALSE}
-#####
-# Fuels1000
-#####
-Fuels1000_data <- Fuels1000_all %>%
-  filter(
-    AdminUnit_Name %in% target_park,
-    SampleEvent_Date_Year %in% target_years
-    )
+# Clean up data frame
+df_names <- c("Fuels1000_all", "FuelsDuffLitt_all", "FuelsFine_all",  "PostBurn_all", "Trees_all", "Seedlings_all", "Shrubs_all", "HerbsSpComp_all", "HerbsPoints_all")
 
-#####
-# FuelsDuffLitt
-#####
-FuelsDuffLitt_data <- FuelsDuffLitt_all %>%   
-  filter(
-    AdminUnit_Name %in% target_park,
-    SampleEvent_Date_Year %in% target_years
-    )
-
-#####
-# FuelsFine
-#####
-FuelsFine_data <- FuelsFine_all %>%   
-  filter(
-    AdminUnit_Name %in% target_park,
-    SampleEvent_Date_Year %in% target_years
-    )
-
-#####
-# PostBurn
-#####
-PostBurn_data <- PostBurn_all %>%
-  filter(
-    AdminUnit_Name %in% target_park,
-    SampleEvent_Date_Year %in% target_years
-    )
-
-#####
-# Trees
-#####
-Trees_data <- Trees_all %>%   
-  filter(
-    AdminUnit_Name %in% target_park,
-    SampleEvent_Date_Year %in% target_years
-    )
-
-#####
-# Seedlings
-#####
-Seedlings_data <- Seedlings_all %>%
-  filter(
-    AdminUnit_Name %in% target_park,
-    SampleEvent_Date_Year %in% target_years
-    )
-
-#####
-# Shrubs
-#####
-Shrubs_data <- Shrubs_all %>%
-  filter(
-    AdminUnit_Name %in% target_park,
-    SampleEvent_Date_Year %in% target_years
-    )
-
-#####
-# HerbsSpComp
-#####
-HerbsSpComp_data <- HerbsSpComp_all %>%
-  filter(
-    AdminUnit_Name %in% target_park,
-    SampleEvent_Date_Year %in% target_years
-    )
-
-#####
-# HerbsPoints
-#####
-HerbsPoints_data <- HerbsPoints_all %>%
-  filter(
-    AdminUnit_Name %in% target_park,
-    SampleEvent_Date_Year %in% target_years
-    )
+for (name in df_names) {
+  # load data
+  current_df <- get(name)
+  
+  # filter data for target park
+  filtered_df <- current_df %>% 
+    filter(
+      AdminUnit_Name == target_park,
+      SampleEvent_Date_Year %in% target_years
+      )
+  
+  # rename and save
+  new_name <- sub("_all$", "_data", name)
+  assign(new_name, filtered_df)
+}
 ```
 
 ### Define Codes {.hidden}
