@@ -108,7 +108,7 @@ library(diffdf)
 
 ```{r}
 # designate target park(s)
-target_park <- "ANTI"
+target_park <- "SHEN"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -116,10 +116,12 @@ target_park <- "ANTI"
 ```{r import data, include=FALSE}
 # adjust file paths
 #path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs Data Depot/"
-path_data_english <- paste0(path_main, "Data Depot/English/")
-path_data_metric <- paste0(path_main, "Data Depot/Metric/")
-path_data_original <- paste0(path_main, "FFI/")
+path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports_Clean/"
+path_data_DD <- paste0(path_main, "DataDepot/")
+path_data_FFI <- paste0(path_main, "FFI/")
+# path_data_english <- paste0(path_main, "Data Depot/English/")
+# path_data_metric <- paste0(path_main, "Data Depot/Metric/")
+# path_data_original <- paste0(path_main, "FFI/")
 ```
 
 ### Zip Data {.hidden}
@@ -130,30 +132,31 @@ path_data_original <- paste0(path_main, "FFI/")
 # load data
 
 # # project unit report
-ProjectUnitReport_E <- read_csv(paste0(path_data_english, "project_units.csv"))
-ProjectUnitReport_M <- read_csv(paste0(path_data_metric, "project_units.csv"))
+ProjectUnitReport <- read_csv(paste0(path_data_DD, "all_project_units.csv"))
 
 # protocols
-Fuels1000_O <- read_csv(paste0(path_data_original, "Data_Surface Fuels - 1000Hr.csv"))
-FuelsDuffLitt_O <- read_csv(paste0(path_data_original, "Data_Surface Fuels - Duff_Litter.csv"))
-FuelsFine_O <- read_csv(paste0(path_data_original, "Data_Surface Fuels - Fine.csv"))
-Trees_O <- read_csv(paste0(path_data_original, "Data_Trees - Individuals (metric).csv"))
-HerbsSpComp_O <- read_csv(paste0(path_data_original, "Data_Cover - Species Composition (metric).csv"))
-HerbsPoints_O <- read_csv(paste0(path_data_original, "Data_Cover - Points (metric).csv"))
+Fuels1000_O <- read_csv(paste0(path_data_FFI, "english_surface_fuels_thousand_hr.csv"))
+FuelsDuffLitt_O <- read_csv(paste0(path_data_FFI, "english_surface_fuels_duff_litter.csv"))
+FuelsFine_O <- read_csv(paste0(path_data_FFI, "english_surface_fuels_fine.csv"))
+Trees_O <- read_csv(paste0(path_data_FFI, "metric_trees_individuals.csv"))
+HerbsSpComp_O <- read_csv(paste0(path_data_FFI, "metric_cover_species_composition.csv"))
+HerbsPoints_O <- read_csv(paste0(path_data_FFI, "metric_cover_points.csv"))
+
 # protocols
-Fuels1000_E <- read_csv(paste0(path_data_english, "data_surface_fuels_thousand_hr.csv"))
-FuelsDuffLitt_E <- read_csv(paste0(path_data_english, "data_surface_fuels_duff_litter.csv"))
-FuelsFine_E <- read_csv(paste0(path_data_english, "data_surface_fuels_fine.csv"))
-Trees_E <- read_csv(paste0(path_data_english, "data_trees_individuals.csv"))
-HerbsSpComp_E <- read_csv(paste0(path_data_english, "data_cover_species_composition.csv"))
-HerbsPoints_E <- read_csv(paste0(path_data_english, "data_cover_points.csv"))
+Fuels1000_E <- read_csv(paste0(path_data_DD, "english_surface_fuels_thousand_hr.csv"))
+FuelsDuffLitt_E <- read_csv(paste0(path_data_DD, "english_surface_fuels_duff_litter.csv"))
+FuelsFine_E <- read_csv(paste0(path_data_DD, "english_surface_fuels_fine.csv"))
+Trees_E <- read_csv(paste0(path_data_DD, "english_trees_individuals.csv"))
+HerbsSpComp_E <- read_csv(paste0(path_data_DD, "english_cover_species_composition.csv"))
+HerbsPoints_E <- read_csv(paste0(path_data_DD, "english_cover_points.csv"))
+
 # protocols
-Fuels1000_M <- read_csv(paste0(path_data_metric, "data_surface_fuels_thousand_hr.csv"))
-FuelsDuffLitt_M <- read_csv(paste0(path_data_metric, "data_surface_fuels_duff_litter.csv"))
-FuelsFine_M <- read_csv(paste0(path_data_metric, "data_surface_fuels_fine.csv"))
-Trees_M <- read_csv(paste0(path_data_metric, "data_trees_individuals.csv"))
-HerbsSpComp_M <- read_csv(paste0(path_data_metric, "data_cover_species_composition.csv"))
-HerbsPoints_M <- read_csv(paste0(path_data_metric, "data_cover_points.csv"))
+Fuels1000_M <- read_csv(paste0(path_data_DD, "metric_surface_fuels_thousand_hr.csv"))
+FuelsDuffLitt_M <- read_csv(paste0(path_data_DD, "metric_surface_fuels_duff_litter.csv"))
+FuelsFine_M <- read_csv(paste0(path_data_DD, "metric_surface_fuels_fine.csv"))
+Trees_M <- read_csv(paste0(path_data_DD, "metric_trees_individuals.csv"))
+HerbsSpComp_M <- read_csv(paste0(path_data_DD, "metric_cover_species_composition.csv"))
+HerbsPoints_M <- read_csv(paste0(path_data_DD, "metric_cover_points.csv"))
 
 
 # blank protocols
@@ -186,108 +189,136 @@ TreesSeedlings_M <- read_csv(paste0(path_data_metric, "data_trees_seedlings.csv"
 #        HerbsFrequency_E, HerbsFrequency_M)
 ```
 
+### Filter Data {.hidden}
+
+```{r}
+# Clean up data frame
+df_names <- c("ProjectUnitReport", 
+              "Fuels1000_O", "Fuels1000_E", "Fuels1000_M",
+              "FuelsDuffLitt_O", "FuelsDuffLitt_E", "FuelsDuffLitt_M",
+              "FuelsFine_O", "FuelsFine_E", "FuelsFine_M",
+              "Trees_O", "Trees_E", "Trees_M",
+              "HerbsSpComp_O","HerbsSpComp_E", "HerbsSpComp_M",
+              "HerbsPoints_O","HerbsPoints_E", "HerbsPoints_M"
+              )
+
+for (name in df_names) {
+  # load data
+  current_df <- get(name)
+  
+  # filter data for target park
+  filtered_df <- current_df %>% 
+    filter(
+      AdminUnit_Name == target_park
+      )
+  
+  # save
+  assign(name, filtered_df)
+}
+```
+
 # ROWS
 
 ## Fuels 1000Hr (CWD)
 
 ```{r}
 Fuels1000_DataDepot <- Fuels1000_E %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  #arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
-  select(!c(MethodData_FieldTeam, MethodData_EntryTeam))
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index) %>% 
+  select(!c(Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate)) %>% 
+  relocate(Macroplot_Name, .after = Macroplot_UV8) %>%
+  relocate(SampleEvent_TreatmentUnit, .before = SampleEvent_Date)
+
 Fuels1000_DataFFI <- Fuels1000_O %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  #arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
-  select(!c(MethodData_FieldTeam, MethodData_EntryTeam))
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index) %>% 
+  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,SampleEvent_Date_Year))
 ```
 
 ```{r}
-diffdf(Fuels1000_DataDepot, Fuels1000_DataFFI)
+# known differences
+Fuels1000_DataDepot_SHEN <- Fuels1000_DataDepot %>% 
+  filter(
+    !SampleEvent_TreatmentUnit %in% c("Pumpkin Hill Unit A", "Pumpkin Hill"),
+    !Macroplot_UV1 %in% c("Hemlock"),
+    !(Macroplot_Name == "Pine Oak 07" & SampleEvent_Date == "05/26/2021"),
+    !(Macroplot_Name == "Pine Oak 08" & SampleEvent_Date == "06/07/2021"),
+    !(Macroplot_Name == "Pine Oak 10" & SampleEvent_Date == "06/21/2021"),
+    !(Macroplot_Name == "Xer Oak 04" & SampleEvent_Date == "05/27/2021"),
+    !(Macroplot_Name == "Xer Oak 05" & SampleEvent_Date == "06/16/2021"),
+    !(Macroplot_Name == "Xer Oak 07" & SampleEvent_Date == "06/24/2021"),
+    !(Macroplot_Name == "Xer Oak 08" & SampleEvent_Date == "06/17/2021")
+    )
 ```
 
 ```{r}
-Fuels1000_DataDepot <- Fuels1000_DataDepot %>% 
-  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>%
-  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
-  select(!c(Macroplot_Name))
-
-
-Fuels1000_DataFFI <- Fuels1000_DataFFI %>% 
-  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
-  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
-  select(!c(Macroplot_Name))
-```
-
-```{r}
-diffdf(Fuels1000_DataDepot, Fuels1000_DataFFI)
+diffdf(Fuels1000_DataDepot_SHEN, Fuels1000_DataFFI)
 ```
 
 ## Fuels Duff Litter (DL)
 
 ```{r}
 FuelsDuffLitt_DataDepot <- FuelsDuffLitt_E %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
-  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index) %>% 
+  select(!c(Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate)) %>% 
+  relocate(Macroplot_Name, .after = Macroplot_UV8) %>%
+  relocate(SampleEvent_TreatmentUnit, .before = SampleEvent_Date)
+
 FuelsDuffLitt_DataFFI <- FuelsDuffLitt_O %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
-  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index) %>% 
+  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,SampleEvent_Date_Year))
 ```
 
 ```{r}
-#diffdf(FuelsDuffLitt_DataDepot, FuelsDuffLitt_DataFFI)
+# known differences
+FuelsDuffLitt_DataDepot_SHEN <- FuelsDuffLitt_DataDepot %>% 
+  filter(
+    !SampleEvent_TreatmentUnit %in% c("Pumpkin Hill Unit A", "Pumpkin Hill"),
+    !Macroplot_UV1 %in% c("Hemlock"),
+    !(Macroplot_Name == "Pine Oak 07" & SampleEvent_Date == "05/26/2021"),
+    !(Macroplot_Name == "Pine Oak 08" & SampleEvent_Date == "06/07/2021"),
+    !(Macroplot_Name == "Pine Oak 10" & SampleEvent_Date == "06/21/2021"),
+    !(Macroplot_Name == "Xer Oak 04" & SampleEvent_Date == "05/27/2021"),
+    !(Macroplot_Name == "Xer Oak 05" & SampleEvent_Date == "06/16/2021"),
+    !(Macroplot_Name == "Xer Oak 07" & SampleEvent_Date == "06/24/2021"),
+    !(Macroplot_Name == "Xer Oak 08" & SampleEvent_Date == "06/17/2021")
+    )
 ```
 
 ```{r}
-FuelsDuffLitt_DataDepot <- FuelsDuffLitt_DataDepot %>% 
-  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX","Macroplot_UtmY","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill","Macroplot_SlopeTransect","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>% 
-  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
-  select(!c(Macroplot_Name))
-
-
-FuelsDuffLitt_DataFFI <- FuelsDuffLitt_DataFFI %>% 
-  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
-  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
-  select(!c(Macroplot_Name))
-```
-
-```{r}
-diffdf(FuelsDuffLitt_DataDepot, FuelsDuffLitt_DataFFI)
+diffdf(FuelsDuffLitt_DataDepot_SHEN, FuelsDuffLitt_DataFFI)
 ```
 
 ## Fuels Fine (FWD)
 
 ```{r}
 FuelsFine_DataDepot <- FuelsFine_E %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
-  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index) %>% 
+  select(!c(Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate)) %>% 
+  relocate(Macroplot_Name, .after = Macroplot_UV8) %>%
+  relocate(SampleEvent_TreatmentUnit, .before = SampleEvent_Date)
+
 FuelsFine_DataFFI <- FuelsFine_O %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
-  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index) %>% 
+  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,SampleEvent_Date_Year))
 ```
 
 ```{r}
-#diffdf(FuelsFine_DataDepot, FuelsFine_DataFFI)
+# known differences
+FuelsFine_DataDepot_SHEN <- FuelsFine_DataDepot %>% 
+  filter(
+    !SampleEvent_TreatmentUnit %in% c("Pumpkin Hill Unit A", "Pumpkin Hill"),
+    !Macroplot_UV1 %in% c("Hemlock"),
+    !(Macroplot_Name == "Pine Oak 07" & SampleEvent_Date == "05/26/2021"),
+    !(Macroplot_Name == "Pine Oak 08" & SampleEvent_Date == "06/07/2021"),
+    !(Macroplot_Name == "Pine Oak 10" & SampleEvent_Date == "06/21/2021"),
+    !(Macroplot_Name == "Xer Oak 04" & SampleEvent_Date == "05/27/2021"),
+    !(Macroplot_Name == "Xer Oak 05" & SampleEvent_Date == "06/16/2021"),
+    !(Macroplot_Name == "Xer Oak 07" & SampleEvent_Date == "06/24/2021"),
+    !(Macroplot_Name == "Xer Oak 08" & SampleEvent_Date == "06/17/2021")
+    )
 ```
 
 ```{r}
-FuelsFine_DataDepot <- FuelsFine_DataDepot %>% 
-  select(!c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId","Organization_Name","AdminUnit_Comment","Macroplot_LocatedBy","Macroplot_DdLat","Macroplot_DdLong","Macroplot_UtmX (m)","Macroplot_UtmY (m)","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_DateIn","Macroplot_FutureVisit","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill (%)","Macroplot_SlopeTransect (%)","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","SampleEvent_Who","SampleEvent_Comment","SampleEvent_UserVariables","SampleEvent_DefaultMonitoringStatus","SampleData_Executed","SampleData_SampleData","sampleEventId","MacroPlotId","MethodDataId","MethodData_id","MethodData_createdDate","MethodData_updatedDate","MethodData_deletedDate")) %>% 
-  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
-  select(!c(Macroplot_Name))
-
-
-FuelsFine_DataFFI <- FuelsFine_DataFFI %>% 
-  select(!c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")) %>% 
-  select(!c(Macroplot_Purpose,Macroplot_Type,Macroplot_UV1,Macroplot_UV2,Macroplot_UV3,Macroplot_UV4,Macroplot_UV5,Macroplot_UV6,Macroplot_UV7,Macroplot_UV8,SampleEvent_TreatmentUnit)) %>% 
-  select(!c(Macroplot_Name))
-```
-
-```{r}
-diffdf(FuelsFine_DataDepot, FuelsFine_DataFFI)
+#diffdf(FuelsFine_DataDepot_SHEN, FuelsFine_DataFFI)
 ```
 
 ## Post Burn
@@ -296,17 +327,34 @@ diffdf(FuelsFine_DataDepot, FuelsFine_DataFFI)
 
 ```{r}
 Trees_DataDepot <- Trees_M %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
-  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+  arrange(Macroplot_Name, SampleEvent_Date) %>% 
+  select(!c(Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate)) %>% 
+  relocate(Macroplot_Name, .after = Macroplot_UV8) %>%
+  relocate(SampleEvent_TreatmentUnit, .before = SampleEvent_Date)
+
 Trees_DataFFI <- Trees_O %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  arrange(Macroplot_Name, SampleEvent_Date, MethodData_index) %>% 
-  select(!c(MethodData_fieldTeam, MethodData_entryTeam))
+  arrange(Macroplot_Name, SampleEvent_Date) %>% 
+  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,SampleEvent_Date_Year))
 ```
 
 ```{r}
-#diffdf(Trees_DataDepot, Trees_DataFFI)
+# known differences
+Trees_DataDepot_SHEN <- Trees_DataDepot %>% 
+  filter(
+    !SampleEvent_TreatmentUnit %in% c("Pumpkin Hill Unit A", "Pumpkin Hill"),
+    !Macroplot_UV1 %in% c("Hemlock"),
+    !(Macroplot_Name == "Pine Oak 07" & SampleEvent_Date == "05/26/2021"),
+    !(Macroplot_Name == "Pine Oak 08" & SampleEvent_Date == "06/07/2021"),
+    !(Macroplot_Name == "Pine Oak 10" & SampleEvent_Date == "06/21/2021"),
+    !(Macroplot_Name == "Xer Oak 04" & SampleEvent_Date == "05/27/2021"),
+    !(Macroplot_Name == "Xer Oak 05" & SampleEvent_Date == "06/16/2021"),
+    !(Macroplot_Name == "Xer Oak 07" & SampleEvent_Date == "06/24/2021"),
+    !(Macroplot_Name == "Xer Oak 08" & SampleEvent_Date == "06/17/2021")
+    )
+```
+
+```{r}
+diffdf(Trees_DataDepot_SHEN, Trees_DataFFI)
 ```
 
 ```{r}
