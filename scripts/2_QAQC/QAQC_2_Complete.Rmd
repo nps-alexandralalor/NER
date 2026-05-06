@@ -124,7 +124,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Type", "Macroplot_N
 # designate target park(s)
 # write 4-letter code of your park (e.g. "SHEN")
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-target_park <- "ANTI"
+target_park <- "SARA"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -134,7 +134,7 @@ target_park <- "ANTI"
 #path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
 path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "Exports_Clean/FFI/")
-path_errors <- paste0(path_main, "QAQC/", target_park, "/")
+path_errors <- paste0(here(), "/output/errors/")
 path_errors_name <- paste0(target_park, " CSV Errors")
 ```
 
