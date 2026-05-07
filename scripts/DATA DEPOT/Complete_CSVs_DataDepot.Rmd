@@ -108,7 +108,7 @@ library(diffdf)
 
 ```{r}
 # designate target park
-target_park <- "SARA"
+target_park <- "CATO"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -467,12 +467,30 @@ HerbsSpComp_DataDepot_RICH <- HerbsSpComp_DataDepot %>%
 # known differences
 HerbsSpComp_DataDepot_SARA <- HerbsSpComp_DataDepot %>%
   filter(
-    !(Macroplot_Name == "Plot 01")
+    !(Macroplot_Name == "Plot 01"),
+    !(Macroplot_Name == "Plot 04"),
+    !(Macroplot_Name == "Plot 08"),
+    !(Macroplot_Name == "Plot 10"),
+    !(Macroplot_Name == "Plot 13"),
+    !(Macroplot_Name == "Plot 16"),
+    !(Macroplot_Name == "Plot 19"),
+    !(Macroplot_Name == "Plot 21"),
+    !(Macroplot_Name == "Plot 22")
     )
 ```
 
 ```{r}
-diffdf(HerbsSpComp_DataDepot_SARA, HerbsSpComp_DataFFI)
+# known differences
+HerbsSpComp_DataDepot_MONO <- HerbsSpComp_DataDepot %>%
+  filter(
+    !(Macroplot_Name == "Plot 01" & SampleEvent_Date == as.Date("2024-10-29")),
+    !(Macroplot_Name == "Plot 02" & SampleEvent_Date == as.Date("2024-10-30")),
+    !(Macroplot_Name == "Plot 04" & SampleEvent_Date == as.Date("2024-10-30") & MethodData_Index == "-2147483627")
+  )
+```
+
+```{r}
+diffdf(HerbsSpComp_DataDepot_MONO, HerbsSpComp_DataFFI)
 ```
 
 ## Herbs Points
@@ -532,7 +550,39 @@ HerbsPoints_DataDepot_RICH <- HerbsPoints_DataDepot %>%
 ```
 
 ```{r}
-diffdf(HerbsPoints_DataDepot_RICH, HerbsPoints_DataFFI)
+# known differences
+HerbsPoints_DataDepot_SARA <- HerbsPoints_DataDepot %>%
+  filter(
+    !(Macroplot_Name == "Plot 01"),
+    !(Macroplot_Name == "Plot 04"),
+    !(Macroplot_Name == "Plot 08"),
+    !(Macroplot_Name == "Plot 10"),
+    !(Macroplot_Name == "Plot 13"),
+    !(Macroplot_Name == "Plot 16"),
+    !(Macroplot_Name == "Plot 19"),
+    !(Macroplot_Name == "Plot 21"),
+    !(Macroplot_Name == "Plot 22"),
+    !(Macroplot_Name == "Plot 14" & SampleEvent_Date == as.Date("2022-07-11") & MethodData_Index == "-2147483332"),
+    !(Macroplot_Name == "Plot 14" & SampleEvent_Date == as.Date("2022-07-11") & MethodData_Index == "-2147483331"),
+    !(Macroplot_Name == "Plot 14" & SampleEvent_Date == as.Date("2022-07-11") & MethodData_Index == "-2147483330"),
+    !(Macroplot_Name == "Plot 14" & SampleEvent_Date == as.Date("2022-07-11") & MethodData_Index == "-2147483329"),
+    !(Macroplot_Name == "Plot 14" & SampleEvent_Date == as.Date("2022-07-11") & MethodData_Index == "-2147483328"),
+    !(Macroplot_Name == "Plot 14" & SampleEvent_Date == as.Date("2022-07-11") & MethodData_Index == "-2147483327"),
+    !(Macroplot_Name == "Plot 24" & SampleEvent_Date == as.Date("2022-06-01") & MethodData_Index == "-2147483314")
+    )
+```
+
+```{r}
+# known differences
+HerbsPoints_DataDepot_MONO <- HerbsPoints_DataDepot %>%
+  filter(
+    !(Macroplot_Name == "Plot 01" & SampleEvent_Date == as.Date("2024-10-29") & MethodData_Index == "-2147483333")
+  )
+
+```
+
+```{r}
+diffdf(HerbsPoints_DataDepot_MONO, HerbsPoints_DataFFI)
 ```
 
 ## Herbs Frequency
