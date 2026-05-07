@@ -4664,5 +4664,5 @@ kable(errors_all, "pipe")
 # Save as CSV or XLSX 
 errors_all <- errors_all %>% 
   mutate(SampleEvent_Date = as.character(SampleEvent_Date))
-condformat2excel(errors_all, paste0(path_errors, target_park, "_errors_data_FMH.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+condformat2excel(errors_all, paste0(path_errors, target_park, "_Errors_DataEntry_FMH.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
