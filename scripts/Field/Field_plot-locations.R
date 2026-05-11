@@ -16,30 +16,32 @@ library(here)
 
 
 # load in data.
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
+path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports_Clean/FFI/"
 path_output <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/data_clean/"
-parks <- list.files(path_file)
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 
   # # select target park
   # target_park <- "SHEN"
   # 
   # # load CSV
-  # path_data <- paste0(path_file, target_park, "/", target_park, "_")
-  # data_raw <- read.csv(paste0(path_data, "MetadataReport.csv"), quote = "")
+  # #path_data <- paste0(path_file, target_park, "/", target_park, "_")
+  # data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
+  #   filter(AdminUnit_Name == target_park)
   # 
   # # group
   # data_locations <- data_raw %>%
-  #   select(c(AdministrationUnit_Name, Purpose, Type, Macroplot, ProjectUnit, Latitude, Longitude, UTM_X, UTM_Y, UTM_Zone, Datum)) %>%
+  #   select(c(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, ProjectUnit_Name, Macroplot_Lat_dd, Macroplot_Long_dd, 
+  #            Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum)) %>%
   #   distinct()
   # 
   # # filter
   # data_final <- data_locations %>%
-  #   filter(!is.na(Latitude),
-  #          !is.na(Longitude))
+  #   filter(!is.na(Macroplot_Lat_dd),
+  #          !is.na(Macroplot_Long_dd))
   # 
   # # save file
-  # write.csv(data_final, paste0(path_output, target_park, "_PlotLocations.csv"), quote=FALSE, row.names = FALSE, na = "")
+  # write.csv(data_final, paste0(path_output, target_park, "_PlotLocations.csv"), quote=FALSE, row.names = FALSE)
 
 
 
@@ -48,19 +50,21 @@ for(i in parks) {
   target_park <- i
   
   # load CSV
-  path_data <- paste0(path_file, target_park, "/", target_park, "_")
-  data_raw <- read.csv(paste0(path_data, "MetadataReport.csv"))
+  #path_data <- paste0(path_file, target_park, "/", target_park, "_")
+  data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
+    filter(AdminUnit_Name == target_park)
   
   # group
-  data_locations <- data_raw %>% 
-    select(c(AdministrationUnit_Name, Purpose, Type, Macroplot, ProjectUnit, Latitude, Longitude, UTM_X, UTM_Y, UTM_Zone, Datum)) %>% 
+  data_locations <- data_raw %>%
+    select(c(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, ProjectUnit_Name, Macroplot_Lat_dd, Macroplot_Long_dd, 
+             Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum)) %>%
     distinct()
   
   # filter
-  data_final <- data_locations %>% 
-    filter(!is.na(Latitude),
-           !is.na(Longitude))
+  data_final <- data_locations %>%
+    filter(!is.na(Macroplot_Lat_dd),
+           !is.na(Macroplot_Long_dd))
   
   # save file
-  write.csv(data_final, paste0(path_output, target_park, "_PlotLocations.csv"), quote=FALSE, row.names = FALSE, na = "") 
+  write.csv(data_final, paste0(path_output, target_park, "_PlotLocations.csv"), quote=FALSE, row.names = FALSE)
 }
