@@ -113,7 +113,7 @@ for (i in 1:nrow(file_names_df)) {
 
   # Herbs Points reorganization (only if present)
   if (!is.null(HerbsPoints)) {
-    # reorganize HerbsPoints for additional species hits
+    # reorganize HerbsPoints for additional species hits. Removes primary species (added later)
     HerbsPoints_add <- HerbsPoints %>%
       # creates new rows for additional species (2spp - 8spp), replicating all info from first species
       # creates new columns (Order_extra, spp, spp_GUID) with extra species and GUIDs
@@ -139,51 +139,8 @@ for (i in 1:nrow(file_names_df)) {
     
     # Count Herb heights to make sure some data is present
     HerbsPointsCount <- sum(!is.na(HerbsPoints$Height))
-    # identify substrate codes
-    substrate <- c("BOLE", "DUFF", "HAY", "LITT", "LITTER", "MOSS", "ROCK", "SOIL", "WOOD")
   }
 
-  
-  ############################################
-  ### Herbs SpComp protocol reorganization ###
-  ############################################
- 
-  # Herbs SpComp reorganization (only if present)
-  if (!is.null(HerbsSpComp)) {
-    UniqueSpecies_HerbsSpComp <- HerbsSpComp %>%
-      mutate(Species = toupper(Species)) %>%
-      distinct(Species, Spp_GUID)
-    
-    # build combined species list safely
-    UniqueSpecies_all <- bind_rows(
-      if (!is.null(HerbsPoints)) HerbsPoints %>% 
-        mutate(Species = toupper(Species)) %>% 
-        filter(!Species %in% substrate) %>%
-        distinct(Species, Spp_GUID),
-      if (!is.null(Seedlings)) Seedlings %>% 
-        mutate(Species = toupper(Species)) %>% 
-        filter(!Species %in% substrate) %>%
-        distinct(Species, Spp_GUID)
-    ) %>% 
-      filter(!is.na(Species)) %>% 
-      distinct(Species, Spp_GUID)
-    
-    # identify species found in other protocols but not in HerbsSpComp
-    suppressMessages(UniqueSpecies_all_missing <- anti_join(UniqueSpecies_all, UniqueSpecies_HerbsSpComp))
-    # merge all species with HerbsSpComp
-    HerbsSpComp <- merge(HerbsSpComp, UniqueSpecies_all_missing, by = c("Species", "Spp_GUID"), all = T) %>% 
-      mutate(Species = toupper(Species),
-             Status = "L",
-             `Seen?` = ifelse(is.na(`Seen?`), "Y", `Seen?`)) %>% 
-      relocate(Species, .before = SizeCl) %>% 
-      relocate(Status, .after = Species) %>% 
-      relocate(Spp_GUID, .after = UV3) %>% 
-      arrange(Species)
-    
-    # # identify if this version of HerbsSpComp is the primary version
-    # HerbsSpComp <- HerbsSpComp %>% 
-    #   mutate(Primary = ifelse(("N" %in% HerbsSpComp$`Seen?`) == TRUE, FALSE, TRUE))
-  }
   
   #########################
   ### All protocol QAQC ###
@@ -196,12 +153,12 @@ for (i in 1:nrow(file_names_df)) {
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(FuelsDuffLitt)) {
-  FuelsDuffLitt <- subset(FuelsDuffLitt, LittDep != "") %>%
+  FuelsDuffLitt <- subset(FuelsDuffLitt, LittDep != "" & DuffDep != "") %>%
     mutate(Index = row_number()) %>% 
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(FuelsFine)) {
-  FuelsFine <- subset(FuelsFine, OneHr != "") %>%
+  FuelsFine <- subset(FuelsFine, OneHr != "" & TenHr != "" & HunHr != "") %>%
     mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
@@ -210,12 +167,17 @@ for (i in 1:nrow(file_names_df)) {
     mutate(HerbsPoints, Count = HerbsPointsCount) %>%
     subset(Count != "0") %>%
     select(!Count) %>% 
+    mutate(Species = toupper(Species)) %>%
     mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(HerbsSpComp)) {
-  HerbsSpComp <- subset(HerbsSpComp, !`Seen?` %in% c("N", "n")) %>%
+  HerbsSpComp_test <- subset(HerbsSpComp, !`Seen?` %in% c("N", "n")) %>%
+    mutate(Species = toupper(Species)) %>%
+    distinct(Species, Spp_GUID) %>% 
+    mutate(Status = "L") %>% 
     mutate(Index = row_number()) %>%
+    arrange(Species) %>% 
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(Seedlings)) {
@@ -246,7 +208,7 @@ for (i in 1:nrow(file_names_df)) {
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(PostBurn)) {
-  PostBurn <- subset(PostBurn, Sub != "") %>%
+  PostBurn <- subset(PostBurn, Sub != "" & Veg != "") %>%
     mutate(Index = row_number()) %>% 
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
