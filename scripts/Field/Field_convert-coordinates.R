@@ -5,7 +5,7 @@
 # To convert UTM coordinates to Lat Long coordinates
 
 # install packages
-install.packages("sf")
+#install.packages("sf")
 
 # load packages
 library(sf)
@@ -14,27 +14,33 @@ library(purrr)
 library(here)
 
 # designate target park(s)
-target_park <- "SHEN"
+target_park <- "ANTI"
 
-# Load in data.
-path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/R Outputs/"
-path_data <- paste0(path_file, target_park, "/", target_park, "_")
-#path_output <- paste0(here(), "/output/data_clean/")
+# Adjust filr paths
+path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports_Clean/FFI/"
 path_output <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/data_clean/"
 
-# Load CSV
-df_raw <- read.csv(paste0(path_data, "MetadataReport.csv"))
+# Load and filter data
+data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
+  filter(AdminUnit_Name == target_park)
 
 # Group
-df_locations <- df_raw %>% 
-  select(!c(SampleEventTeam, SampleEventComment, LegacyMonStatus, MonStatus, Protocols, Visited, SampleEventDate)) %>% 
+df_locations <- data_raw %>% 
+  select(!c(SampleEvent_Who, SampleEvent_Comment, SampleEvent_Date, SampleEvent_Date_Year, SampleEvent_LegacyMonitoringStatus, 
+            SampleEvent_Protocols, SampleEvent_Visited, MonitoringStatus_Name)) %>% 
   distinct() %>% 
-  select(c(AdministrationUnit_Name, Purpose, Type, Macroplot, ProjectUnit, UTM_X, UTM_Y, UTM_Zone, Datum))
+  select(c(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, ProjectUnit_Name,
+           Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum))
 
 # Filter
 df_filtered <- df_locations %>% 
-  filter(UTM_X != 0.0,
-         !is.na(UTM_X))
+  filter(Macroplot_UtmX_m != 0.0,
+         !is.na(Macroplot_UtmX_m))
+
+
+#write.csv(df_filtered, paste0(path_output, target_park, "_PlotCoordinates.csv"), quote=FALSE, row.names = FALSE, na = "") 
+# path_data <- "C:/Users/alalor/OneDrive - DOI/Desktop/ANTI_PlotCoordinates.csv"
+# df_filtered <- read.csv((path_data))
 
 ################
 # Functions to convert coordinates
@@ -71,11 +77,11 @@ convert_utm <- function(easting, northing, zone, EPSG) {
 
 # Add EPSG column to correctly convert different Datums
 df <- df_filtered %>% 
-  mutate(EPSG = map2_int(Datum, UTM_Zone, get_epsg))
+  mutate(EPSG = map2_int(Macroplot_Datum, Macroplot_UtmZone, get_epsg))
 
 # Convert to Lat Long using UTM_X, UTM_Y, UTM_Zone, and EPSG (converted Datum)
 df_coords <- bind_rows(lapply(1:nrow(df), function(i) {
-  convert_utm(df$UTM_X[i], df$UTM_Y[i], df$UTM_Zone[i], df$EPSG[i])
+  convert_utm(df$Macroplot_UtmX_m[i], df$Macroplot_UtmY_m[i], df$Macroplot_UtmZone[i], df$EPSG[i])
 }))
 
 # Final dataframe with lat/lon
