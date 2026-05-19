@@ -172,10 +172,10 @@ for(i in parks) {
                   MonitoringStatus_Name = MonStatus,
                   MonitoringStatus_Order = MonStatusOrd) %>% 
     # remove unnecessary columns
-    select(!c(SampleEvent_Time)) %>%
+    select(!c(SampleEvent_Time, MonitoringStatus_Name)) %>%
     select(c(Macroplot_Name, SampleEvent_Date, SampleEvent_Date_Year, 
              SampleEvent_Who, SampleEvent_Comment, MonitoringStatus_Order, 
-             SampleEvent_LegacyMonitoringStatus, MonitoringStatus_Name))
+             SampleEvent_LegacyMonitoringStatus))
   
   #### Sample Event Report
   # The Sample Event Report has different column names as the Macroplot Report, but contains the same information. Make column names consistent.
@@ -213,7 +213,7 @@ for(i in parks) {
     select(!c(Multi_PU))
   
   #### Merge Macroplot Report and Sample Event Report
-  MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot_Name", "SampleEvent_Date", "SampleEvent_Date_Year", "MonitoringStatus_Name")) %>%
+  MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot_Name", "SampleEvent_Date", "SampleEvent_Date_Year")) %>%
     relocate(AdminUnit_Name, .before = Macroplot_Name) %>%
     relocate(ProjectUnit_Name, .after = Purpose) %>%
     relocate(Type, .after = Purpose) %>% 
