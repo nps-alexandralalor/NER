@@ -148,6 +148,9 @@ for (name in df_names) {
   
   # filter data for target park
   filtered_df <- current_df %>% 
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date)) %>% 
+    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
+    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
     filter(
       AdminUnit_Name == target_park,
       SampleEvent_Date_Year %in% target_years
