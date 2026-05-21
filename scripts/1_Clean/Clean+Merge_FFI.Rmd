@@ -120,31 +120,20 @@ for(i in parks) {
     filter(is.na(SampleEventDate)) %>%
     # separate Date column
     separate(DateIn, sep = " ", 
-             into = c("Macroplot_DateIn", "DateInTime")) %>%
+             into = c("Macroplot_DateIn")) %>%
     separate(FutureVisit, sep = " ", 
-             into = c("Macroplot_FutureVisit", "FutureVisitTime")) %>%
+             into = c("Macroplot_FutureVisit")) %>%
     separate(DateOut, sep = " ", 
-             into = c("Macroplot_DateOut", "DateOutTime")) %>%
+             into = c("Macroplot_DateOut")) %>%
     # reformate Date columns
     mutate(
       Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
       Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
       Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y")
       ) %>%
-    # add Year columns
-    mutate(
-      Macroplot_DateIn_Year = year(Macroplot_DateIn),
-      Macroplot_FutureVisit_Year = year(Macroplot_FutureVisit),
-      Macroplot_DateOut_Year = year(Macroplot_DateOut)
-    ) %>% 
-    # relocate Year columns
-    relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
-    relocate(Macroplot_FutureVisit_Year, .after = Macroplot_FutureVisit) %>% 
-    relocate(Macroplot_DateOut_Year, .after = Macroplot_DateOut) %>%
     # make column names consistent
     dplyr::rename(Macroplot_Name = Macroplot) %>% 
     # remove unnecessary columns
-    select(!c(DateInTime, FutureVisitTime, DateOutTime)) %>% 
     select(!c(SampleEventDate, SampleEventTeam, SampleEventComment, 
               MonStatusOrd, LegacyMonStatus, MonStatus))
 
@@ -157,13 +146,9 @@ for(i in parks) {
     filter(!is.na(SampleEventDate)) %>%
     # separate Date column
     separate(SampleEventDate, sep = " ", 
-             into = c("SampleEvent_Date", "SampleEvent_Time")) %>%
+             into = c("SampleEvent_Date")) %>%
     # reformate Date column
     mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
     # make column names consistent
     dplyr::rename(Macroplot_Name = Macroplot,
                   SampleEvent_LegacyMonitoringStatus = LegacyMonStatus,
@@ -172,8 +157,7 @@ for(i in parks) {
                   MonitoringStatus_Name = MonStatus,
                   MonitoringStatus_Order = MonStatusOrd) %>% 
     # remove unnecessary columns
-    select(!c(SampleEvent_Time, MonitoringStatus_Name)) %>%
-    select(c(Macroplot_Name, SampleEvent_Date, SampleEvent_Date_Year, 
+    select(c(Macroplot_Name, SampleEvent_Date, 
              SampleEvent_Who, SampleEvent_Comment, MonitoringStatus_Order, 
              SampleEvent_LegacyMonitoringStatus))
   
@@ -186,20 +170,16 @@ for(i in parks) {
     mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
     separate(SampleEvent_Date, sep = " ", 
-             into = c("SampleEvent_Date", "SampleEvent_Time")) %>%
+             into = c("SampleEvent_Date")) %>%
     # reformate Date column
     mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
     # make column names consistent
     dplyr::rename(AdminUnit_Name = AdministrationUnit_Name,
                   Macroplot_Name = MacroPlot_Name,
                   SampleEvent_Protocols = Protocols,
                   SampleEvent_Visited = Visited) %>% 
     # remove unnecessary columns
-    select(!c(SampleEvent_Time, SampleEvent_LegacyMonitoringStatus))
+    select(!c(SampleEvent_LegacyMonitoringStatus))
   
   
   # merge data
@@ -213,13 +193,12 @@ for(i in parks) {
     select(!c(Multi_PU))
   
   #### Merge Macroplot Report and Sample Event Report
-  MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot_Name", "SampleEvent_Date", "SampleEvent_Date_Year")) %>%
+  MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot_Name", "SampleEvent_Date")) %>%
     relocate(AdminUnit_Name, .before = Macroplot_Name) %>%
     relocate(ProjectUnit_Name, .after = Purpose) %>%
     relocate(Type, .after = Purpose) %>% 
     relocate(Macroplot_Name, .after = Type) %>%
     relocate(SampleEvent_Date, .after = SampleEvent_Visited) %>%
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
     relocate(MonitoringStatus_Name, .after = SampleEvent_LegacyMonitoringStatus) %>%
     relocate(LocatedBy, .before = StartPoint)
   
@@ -397,22 +376,16 @@ for(i in parks) {
     # remove line breaks
     mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    separate(Date, sep = " ", into = c("SampleEvent_Date")) %>%
     # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"))
   
   
   # filter data
   ## HerbsPoints headers
   HerbsPoints_header <- HerbsPoints_all %>%
     filter(!is.na(Visited)) %>% 
-    select(c(1:19,
+    select(c(1:18,
              NumTran, TranLen, NumPtsTran, Offset, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
   ## HerbsPoints data
   HerbsPoints_data <- HerbsPoints_all %>%
@@ -421,7 +394,7 @@ for(i in parks) {
   
   
   # merge data
-  HerbsPoints <- merge(HerbsPoints_header, HerbsPoints_data, by = c(1:19))
+  HerbsPoints <- merge(HerbsPoints_header, HerbsPoints_data, by = c(1:18))
   
   
   # add column for park name
@@ -520,22 +493,16 @@ for(i in parks) {
     # remove line breaks
     mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    separate(Date, sep = " ", into = c("SampleEvent_Date")) %>%
     # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"))
   
   
   # filter data
   ## HerbsSpComp headers
   HerbsSpComp_header <- HerbsSpComp_all %>%
     filter(!is.na(Visited)) %>% 
-    select(c(1:19,
+    select(c(1:18,
              MinCovLevel, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
   ## HerbsSpComp data
   HerbsSpComp_data <- HerbsSpComp_all %>%
@@ -544,7 +511,7 @@ for(i in parks) {
   
   
   # merge data
-  HerbsSpComp <- merge(HerbsSpComp_header, HerbsSpComp_data, by = c(1:19))
+  HerbsSpComp <- merge(HerbsSpComp_header, HerbsSpComp_data, by = c(1:18))
   
   
   # add column for park name
@@ -641,22 +608,16 @@ for(i in parks) {
     # remove line breaks
     mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    separate(Date, sep = " ", into = c("SampleEvent_Date")) %>%
     # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"))
   
   
   # filter data
   ## Shrubs headers
   Shrubs_header <- Shrubs_all %>%
     filter(!is.na(Visited)) %>% 
-    select(c(1:19,
+    select(c(1:18,
              NumTran, NumSubbelt, TranLen, TranWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
   ## Shrubs data
   Shrubs_data <- Shrubs_all %>%
@@ -665,7 +626,7 @@ for(i in parks) {
   
   
   # merge data
-  Shrubs <- merge(Shrubs_header, Shrubs_data, by = c(1:19))
+  Shrubs <- merge(Shrubs_header, Shrubs_data, by = c(1:18))
   
   
   # add column for park name
@@ -766,22 +727,16 @@ for(i in parks) {
     # remove line breaks
     mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    separate(Date, sep = " ", into = c("SampleEvent_Date")) %>%
     # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"))
   
   
   # filter data
   ## Seedlings headers
   Seedlings_header <- Seedlings_all %>%
     filter(!is.na(Visited)) %>% 
-    select(c(1:19,
+    select(c(1:18,
              NumTran, NumQuadTran, QuadLen, QuadWid, Area, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
   ## Seedlings data
   Seedlings_data <- Seedlings_all %>%
@@ -790,7 +745,7 @@ for(i in parks) {
   
   
   # merge data
-  Seedlings <- merge(Seedlings_header, Seedlings_data, by = c(1:19))
+  Seedlings <- merge(Seedlings_header, Seedlings_data, by = c(1:18))
   
   
   # add column for park name
@@ -899,22 +854,16 @@ for(i in parks) {
     # remove line breaks
     mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    separate(Date, sep = " ", into = c("SampleEvent_Date")) %>%
     # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"))
   
   
   # filter data
   ## FuelsDuffLitt headers
   FuelsDuffLitt_header <- FuelsDuffLitt_all %>%   
     filter(!is.na(Visited)) %>% 
-    select(c(1:19,
+    select(c(1:18,
              NumTran, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
   ## FuelsDuffLitt data
   FuelsDuffLitt_data <- FuelsDuffLitt_all %>%   
@@ -923,7 +872,7 @@ for(i in parks) {
   
   
   # merge data
-  FuelsDuffLitt <- merge(FuelsDuffLitt_header, FuelsDuffLitt_data, by = c(1:19))
+  FuelsDuffLitt <- merge(FuelsDuffLitt_header, FuelsDuffLitt_data, by = c(1:18))
   
   
   # add column for park name
@@ -1010,22 +959,16 @@ for(i in parks) {
     # remove line breaks
     mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    separate(Date, sep = " ", into = c("SampleEvent_Date")) %>%
     # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"))
   
   
   # filter data
   ## FuelsFine headers 
   FuelsFine_header <- FuelsFine_all %>%   
     filter(!is.na(Visited)) %>% 
-    select(c(1:19,
+    select(c(1:18,
              NumTran, OneHrTranLen, TenHrTranLen, HunHrTranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
 ## FuelsFine data
   FuelsFine_data <- FuelsFine_all %>%   
@@ -1034,7 +977,7 @@ for(i in parks) {
   
   
   # merge data
-  FuelsFine <- merge(FuelsFine_header, FuelsFine_data, by = c(1:19))
+  FuelsFine <- merge(FuelsFine_header, FuelsFine_data, by = c(1:18))
   
   
   # add column for park name
@@ -1130,22 +1073,16 @@ for(i in parks) {
     # remove line breaks
     mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    separate(Date, sep = " ", into = c("SampleEvent_Date")) %>%
     # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"))
   
   
   # filter data
   ## Fuels1000 headers
   Fuels1000_header <- Fuels1000_all %>%
     filter(!is.na(Visited)) %>% 
-    select(c(1:19, 
+    select(c(1:18, 
              NumTran, TranLen, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
   ## Fuels1000 data
   Fuels1000_data <- Fuels1000_all %>%
@@ -1154,7 +1091,7 @@ for(i in parks) {
 
 
   # merge data
-  Fuels1000 <- merge(Fuels1000_header, Fuels1000_data, by = c(1:19))
+  Fuels1000 <- merge(Fuels1000_header, Fuels1000_data, by = c(1:18))
   
   
   # add column for park name
@@ -1249,22 +1186,15 @@ for(i in parks) {
     # remove line breaks
     mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    separate(Date, sep = " ", into = c("SampleEvent_Date")) %>%
     # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
-  
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"))
   
   # filter data
   ## Trees headers
   Trees_header <- Trees_all %>%   
     filter(!is.na(Visited)) %>% 
-    select(c(1:19,
+    select(c(1:18,
              MacroPlotSize, SnagPlotSize, BrkPntDia, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
   ## Trees data
   Trees_data <- Trees_all %>%   
@@ -1273,7 +1203,7 @@ for(i in parks) {
   
   
   # merge data
-  Trees <- merge(Trees_header, Trees_data, by = c(1:19))
+  Trees <- merge(Trees_header, Trees_data, by = c(1:18))
   
   
   # add column for park name
@@ -1416,22 +1346,16 @@ for(i in parks) {
     # remove line breaks
     mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
     # separate Date column
-    separate(Date, sep = " ", into = c("SampleEvent_Date", "Time")) %>%
+    separate(Date, sep = " ", into = c("SampleEvent_Date")) %>%
     # reformate Date column
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>%
-    # add Year column
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate Year column
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
-    # remove unnecessary columns
-    select(!c("Time"))
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"))
   
   
   # filter data
   ## PostBurn headers
   PostBurn_header <- PostBurn_all %>%
     filter(!is.na(Visited)) %>% 
-    select(c(1:19,
+    select(c(1:18,
              NumTran, TranLen, NumPtsTran, PlotType, PtArea, FieldTeam, EntryTeam, UV1Desc, UV2Desc, UV3Desc, SaComment, Visited))
   ## PostBurn data
   PostBurn_data <- PostBurn_all %>%
@@ -1440,7 +1364,7 @@ for(i in parks) {
   
   
   # merge data
-  PostBurn <- merge(PostBurn_header, PostBurn_data, by = c(1:19))
+  PostBurn <- merge(PostBurn_header, PostBurn_data, by = c(1:18))
   
   
   # add column for park name
