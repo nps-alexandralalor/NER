@@ -1,0 +1,1168 @@
+---
+title: "QAQC Cross Year"
+author: "Alexandra Lalor"
+output:
+  html_document:
+    theme: readable
+    highlight: 
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      smooth_scroll: yes
+    code_download: true
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+# BEFORE STARTING
+
+### Install Packages (if needed)
+
+```{r}
+# install.packages("tidyverse")
+# install.packages("Rtools")
+# install.packages("janitor")
+# install.packages("condformat")
+# install.packages("knitr")
+# install.packages("here")
+```
+
+### Load Packages
+
+```{r}
+# tidyverse and dplyr have lots of useful functions for data cleaning
+library(tidyverse)
+library(dplyr)
+#library(plyr)
+# janitor has functions to find duplicates
+library(janitor)
+# EnvStats is needed for the rosnerTest() function
+library(EnvStats)
+# writexl is used to create excel output files
+library(writexl)
+# condformat is used to format excel output files
+library(condformat)
+# knitr is used to create output files from R Markdown
+library(knitr)
+# here is useful for easily finding the working directory of any project
+library(here)
+```
+
+### Create Function
+
+Fuels
+
+```{r}
+# Blank data frame
+errors_blank_fuels <- data.frame("SavedQuery" = "", "MacroPlot.Name" = "", "Transect" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "") %>% 
+  mutate(Transect = as.integer(Transect))
+
+# QAQC function
+qaqc_fuels <- function(data, query, query_message, values_check) {
+  
+  # Check if there is data to QAQC
+  if(nrow(data) == 0) {
+  # If there is no data, default to "No Error" data frame
+  errors <- errors_blank_fuels %>%
+    mutate(SavedQuery = query,
+           Error = "No Error")
+  # If there is data, perform error check
+} else {
+  
+  # Use relevant dataset to look for errors
+  errors <- data %>%  
+    # Add columns relevant to error checking
+           # Populate the "SavedQuery" column with the query name
+    mutate("SavedQuery" = query, 
+           # Populate the "Error" column with the query message and relevant data
+           "Error" = paste(query_message, "=", values_data),
+           # Create a blank "Fixed" column
+           "Fixed" = "",
+           # Create a blank "Explanation" column
+           "Explanation" = "",
+           # Create a blank "Queryers" column
+           "Queryers" = "") %>%   
+    # Filter for data which is "false" (data does not match valid conditions)
+    # NA values are treated as "false" (missing data is not valid)
+    filter(!(values_check %>% replace_na(FALSE))) %>%   
+    # Select relevant columns to view errors
+    select("SavedQuery", "MacroPlot.Name", "Transect", "Error", "Fixed", "Explanation", "Queryers")
+  
+  # Next, check if there are duplicate errors
+  errors_temp <- errors %>% 
+    get_dupes(SavedQuery, MacroPlot.Name, Error)
+  # Merge duplicate errors
+  errors <- unique(merge(errors, errors_temp, all = T))
+  # If duplicate errors exist, add number of duplicates to error message
+  errors <- errors %>% 
+    mutate(Error = ifelse(is.na(dupe_count), Error, paste0("(x", dupe_count, ") ", Error))) %>% 
+    select(!"dupe_count")
+}
+  
+  # Check if there are no errors
+  if (nrow(errors) == 0) {  
+    # If there are no errors, default to "No Error" data frame
+    errors <- errors_blank_fuels %>%
+      mutate(SavedQuery = query,
+             Error = "No Error")
+    # If there are errors, keep error log you just created
+  } else {   
+    errors <- errors
+  }
+}
+```
+
+Trees
+
+```{r}
+# Blank data frame
+errors_blank_trees <- data.frame("SavedQuery" = "", "MacroPlot.Name" = "", "TagNo" = "", "Error" = "", "Fixed" = "", "Explanation" = "", "Queryers" = "")
+
+# QAQC function
+qaqc_trees <- function(data, query, query_message, values_check) {
+  
+  # Check if there is data to QAQC
+  if(nrow(data) == 0) {
+  # If there is no data, default to "No Error" data frame
+  errors <- errors_blank_trees %>%
+    mutate(SavedQuery = query,
+           Error = "No Error")
+  # If there is data, perform error check
+} else {
+  
+  # Use relevant dataset to look for errors
+  errors <- data %>%  
+    # Add columns relevant to error checking
+           # Populate the "SavedQuery" column with the query name
+    mutate("SavedQuery" = query, 
+           # Populate the "Error" column with the query message and relevant data
+           "Error" = paste(query_message, "=", values_data),
+           # Create a blank "Fixed" column
+           "Fixed" = "",
+           # Create a blank "Explanation" column
+           "Explanation" = "",
+           # Create a blank "Queryers" column
+           "Queryers" = "") %>%   
+    # Filter for data which is "false" (data does not match valid conditions)
+    # NA values are treated as "false" (missing data is not valid)
+    filter(!(values_check %>% replace_na(FALSE))) %>%   
+    # Select relevant columns to view errors
+    select("SavedQuery", "MacroPlot.Name", "TagNo", "Error", "Fixed", "Explanation", "Queryers")
+  
+  # Next, check if there are duplicate errors
+  errors_temp <- errors %>% 
+    get_dupes(SavedQuery, MacroPlot.Name, Error)
+  # Merge duplicate errors
+  errors <- unique(merge(errors, errors_temp, all = T))
+  # If duplicate errors exist, add number of duplicates to error message
+  errors <- errors %>% 
+    mutate(Error = ifelse(is.na(dupe_count), Error, paste0("(x", dupe_count, ") ", Error))) %>% 
+    select(!"dupe_count")
+}
+  
+  # Check if there are no errors
+  if (nrow(errors) == 0) {  
+    # If there are no errors, default to "No Error" data frame
+    errors <- errors_blank_trees %>%
+      mutate(SavedQuery = query,
+             Error = "No Error")
+    # If there are errors, keep error log you just created
+  } else {   
+    errors <- errors
+  }
+}
+```
+
+### Adjust File Paths
+
+Make sure to update file paths to be specific for your data.
+
+```{r}
+# Identify working directory.
+here()
+
+# Load in data.
+path_data_FMH <- "X:/FFI Data Management/Exports from FFI/GRCA_FMH/2025-01-23/"
+path_data_RAP_N <- "X:/FFI Data Management/Exports from FFI/GRCA_RAP/North Rim/2025-02-10/"
+path_data_RAP_S <- "X:/FFI Data Management/Exports from FFI/GRCA_RAP/South Rim/2025-02-10/"
+path_data_IM_M <- "X:/FFI Data Management/Exports from FFI/GRCA_I&M/M/2025-03-20/"
+path_data_IM_P <- "X:/FFI Data Management/Exports from FFI/GRCA_I&M/P/2025-01-23/"
+path_data_WACA <- "X:/FFI Data Management/Exports from FFI/WACA/2025-02-04/"
+
+path_errors <- paste0(here(), "/output/errors/")
+```
+
+### Load Data
+
+```{r}
+# Load in data
+
+# Fuels 1000
+Fuels1000_all_FMH <- read.csv(paste0(path_data_FMH, "Surface Fuels - 1000Hr_XPT.csv"), quote = "")
+Fuels1000_all_RAP_N <- read.csv(paste0(path_data_RAP_N, "Surface Fuels - 1000Hr_XPT.csv"), quote = "")
+Fuels1000_all_RAP_S <- read.csv(paste0(path_data_RAP_S, "Surface Fuels - 1000Hr_XPT.csv"), quote = "")
+Fuels1000_all_IM_M <- read.csv(paste0(path_data_IM_M, "Surface Fuels - 1000Hr_XPT.csv"), quote = "")
+Fuels1000_all_IM_P <- read.csv(paste0(path_data_IM_P, "Surface Fuels - 1000Hr_XPT.csv"), quote = "")
+Fuels1000_all_WACA <- read.csv(paste0(path_data_WACA, "Surface Fuels - 1000Hr_XPT.csv"), quote = "")
+
+# Fuels Fine
+FuelsFine_all_FMH <- read.csv(paste0(path_data_FMH, "Surface Fuels - Fine_XPT.csv"), quote = "")
+FuelsFine_all_RAP_N <- read.csv(paste0(path_data_RAP_N, "Surface Fuels - Fine_XPT.csv"), quote = "")
+FuelsFine_all_RAP_S <- read.csv(paste0(path_data_RAP_S, "Surface Fuels - Fine_XPT.csv"), quote = "")
+FuelsFine_all_IM_M <- read.csv(paste0(path_data_IM_M, "Surface Fuels - Fine_XPT.csv"), quote = "")
+FuelsFine_all_IM_P <- read.csv(paste0(path_data_IM_P, "Surface Fuels - Fine_XPT.csv"), quote = "")
+FuelsFine_all_WACA <- read.csv(paste0(path_data_WACA, "Surface Fuels - Fine_XPT.csv"), quote = "")
+
+# Trees
+Trees_all_FMH <- read.csv(paste0(path_data_FMH, "Trees - Individuals (metric)_XPT.csv"), quote = "")
+Trees_all_RAP_N <- read.csv(paste0(path_data_RAP_N, "Trees - Individuals (metric)_XPT.csv"), quote = "")
+Trees_all_RAP_S <- read.csv(paste0(path_data_RAP_S, "Trees - Individuals (metric)_XPT.csv"), quote = "")
+Trees_all_IM_M <- read.csv(paste0(path_data_IM_M, "Trees - Individuals (metric)_XPT.csv"), quote = "")
+Trees_all_IM_P <- read.csv(paste0(path_data_IM_P, "Trees - Individuals (metric)_XPT.csv"), quote = "")
+Trees_all_WACA <- read.csv(paste0(path_data_WACA, "Trees - Individuals (metric)_XPT.csv"), quote = "")
+```
+
+### Merge Data
+
+```{r}
+# Fuels 1000
+Fuels1000_all_RAP <- rbind(Fuels1000_all_RAP_N, Fuels1000_all_RAP_S)
+Fuels1000_all_IM <- rbind(Fuels1000_all_IM_M, Fuels1000_all_IM_P)
+
+# Fuels Fine
+FuelsFine_all_RAP <- rbind(FuelsFine_all_RAP_N, FuelsFine_all_RAP_S)
+FuelsFine_all_IM <- rbind(FuelsFine_all_IM_M, FuelsFine_all_IM_P)
+
+# Trees
+Trees_all_RAP <- rbind(Trees_all_RAP_N, Trees_all_RAP_S)
+Trees_all_IM <- rbind(Trees_all_IM_M, Trees_all_IM_P)
+
+# Remove extra data
+remove(Fuels1000_all_RAP_N, Fuels1000_all_RAP_S, Fuels1000_all_IM_M, Fuels1000_all_IM_P, FuelsFine_all_RAP_N, FuelsFine_all_RAP_S, FuelsFine_all_IM_M, FuelsFine_all_IM_P, Trees_all_RAP_N, Trees_all_RAP_S, Trees_all_IM_M, Trees_all_IM_P)
+```
+
+### Clean Data
+
+```{r}
+#####
+# Fuels1000
+#####
+
+##################################################################################
+# FMH
+
+# Reformat date column
+Fuels1000_all_FMH <- Fuels1000_all_FMH %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+##################################################################################
+# RAP
+
+# Reformat date column
+Fuels1000_all_RAP <- Fuels1000_all_RAP %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+##################################################################################
+# I&M
+
+# Clean up data frame
+Fuels1000_all_IM <- Fuels1000_all_IM %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time")) %>% 
+  # Add Monitoring Type
+  separate(MacroPlot.Name, sep = "_", into = c("Park", "Plot"), remove = FALSE) %>%
+  separate(Plot, sep = "(?=[[:digit:]])", into = c("MonitoringType", "PlotNumber"), remove = FALSE) %>%
+  select(!c("Park", "PlotNumber")) %>% 
+  mutate(MonitoringType = ifelse(MonitoringType == "M", "Mixed Conifer", "PIED"))
+
+##################################################################################
+# WACA
+
+# Reformat date column
+Fuels1000_all_WACA <- Fuels1000_all_WACA %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+
+#####
+# FuelsFine
+#####
+
+##################################################################################
+# FMH
+
+# Reformat date column
+FuelsFine_all_FMH <- FuelsFine_all_FMH %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+##################################################################################
+# RAP
+
+# Reformat date column
+FuelsFine_all_RAP <- FuelsFine_all_RAP %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+##################################################################################
+# I&M
+
+# Clean up data frame
+FuelsFine_all_IM <- FuelsFine_all_IM %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time")) %>% 
+  # Add Monitoring Type
+  separate(MacroPlot.Name, sep = "_", into = c("Park", "Plot"), remove = FALSE) %>%
+  separate(Plot, sep = "(?=[[:digit:]])", into = c("MonitoringType", "PlotNumber"), remove = FALSE) %>%
+  select(!c("Park", "PlotNumber")) %>% 
+  mutate(MonitoringType = ifelse(MonitoringType == "M", "Mixed Conifer", "PIED"))
+
+##################################################################################
+# WACA
+
+# Reformat date column
+FuelsFine_all_WACA <- FuelsFine_all_WACA %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>%
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>%
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+
+#####
+# Trees
+#####
+
+##################################################################################
+# FMH
+
+# Reformat date column
+Trees_all_FMH <- Trees_all_FMH %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>% 
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>% 
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+##################################################################################
+# RAP
+
+# Reformat date column
+Trees_all_RAP <- Trees_all_RAP %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>% 
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>% 
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+
+##################################################################################
+# I&M
+
+# Clean up data frame
+Trees_all_IM <- Trees_all_IM %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>% 
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>% 
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time")) %>% 
+  # Add Monitoring Type
+  separate(MacroPlot.Name, sep = "_", into = c("Park", "Plot"), remove = FALSE) %>%
+  separate(Plot, sep = "(?=[[:digit:]])", into = c("MonitoringType", "PlotNumber"), remove = FALSE) %>%
+  select(!c("Park", "PlotNumber")) %>% 
+  mutate(MonitoringType = ifelse(MonitoringType == "M", "Mixed Conifer", "PIED"))
+
+##################################################################################
+# WACA
+
+# Reformat date column
+Trees_all_WACA <- Trees_all_WACA %>%
+  # Separate Date column
+  separate(Date, sep = " ", into = c("Date", "Time")) %>%
+  separate(Date, sep = "/", into = c("Month", "Day", "Year"), remove = FALSE) %>% 
+  # Reformat Date column
+  mutate(Date = as.Date(Date, format = "%m/%d/%Y")) %>% 
+  # Remove Month, Day, and Time columns
+  select(!c("Month", "Day", "Time"))
+```
+
+### Filter Data
+
+#### Select Dataset
+
+```{r}
+# Select dataset of interest
+# _FMH, _RAP, _IM, _WACA
+
+Fuels1000_all <- Fuels1000_all_WACA
+FuelsFine_all <- FuelsFine_all_WACA
+Trees_all <- Trees_all_WACA
+
+path_errors_name <- "WACA QAQC Tree Errors"
+```
+
+```{r}
+#####
+# Fuels1000
+#####
+# Ensure blanks in Visited column are NA
+Fuels1000_all$Visited[Fuels1000_all$Visited==""] <- NA
+# Fuels1000 data
+Fuels1000_data_CrossYear <- Fuels1000_all %>%
+  filter(is.na(Visited))
+
+
+#####
+# FuelsFine
+#####
+# Ensure blanks in Visited column are NA
+FuelsFine_all$Visited[FuelsFine_all$Visited==""] <- NA
+# FuelsFine data
+FuelsFine_data_CrossYear <- FuelsFine_all %>%
+  filter(is.na(Visited))
+
+
+#####
+# Trees
+#####
+# Ensure blanks in Visited column are NA 
+Trees_all$Visited[Trees_all$Visited==""] <- NA
+# Trees data
+Trees_data_CrossYear <- Trees_all %>%   
+  filter(is.na(Visited))  
+```
+
+### Set Thresholds
+
+This QAQC check isolates *incorrect* changes in the following values. Setting thresholds allows us to decide what degree of inaccuracy is acceptable in the data. Larger changes may indicate clear errors, while smaller errors may simply reflect variation in data collection instruments and data collector interpretations. For instance, a live tree could decrease in height by 1 meter or by 10 meters; are both of these changes acceptable or unacceptable? Setting thresholds should consider imperfections in data collection methods and potential impacts to data analysis.
+
+```{r}
+# Azimuth (degrees)
+max_Azimuth <- 35
+
+# DBH (centimeters)
+max_DBH <- 5
+
+# CBH (meters)
+max_CBH <- 5
+
+# Height (meters)
+max_Ht <- 5
+```
+
+# Add Columns
+
+### Slope Columns
+
+-   Slope_Count = How many unique slopes have been recorded for each transect? Count \> 1 means that the transect has changed slope.
+
+-   Slope_Change = Has slope changed over time? if Slope_Count \> 1, Slope_Change = Y.
+
+```{r}
+# Find data with multiple slopes
+Fuels1000_data_CrossYear_Slope <- Fuels1000_data_CrossYear %>% 
+  group_by(MacroPlot.Name, Transect) %>% 
+  mutate(Slope_Count = n_distinct(unique(Slope))) %>% 
+  ungroup() %>% 
+  arrange(MacroPlot.Name, Date, Transect)
+
+data_temp_merge_Slope_Fuels1000 <- Fuels1000_data_CrossYear_Slope %>% 
+  filter(Slope_Count > 1) %>%
+  group_by(MacroPlot.Name, Transect) %>% 
+  mutate(Slope_Change = ifelse(duplicated(Slope), "N", "Y")) %>%
+  filter(Slope_Change == "Y") %>%
+  unique()
+
+remove(Fuels1000_data_CrossYear_Slope)
+```
+
+```{r}
+# Find data with multiple slopes
+FuelsFine_data_CrossYear_Slope <- FuelsFine_data_CrossYear %>% 
+  group_by(MacroPlot.Name, Transect) %>% 
+  mutate(Slope_Count = n_distinct(unique(Slope))) %>% 
+  ungroup() %>% 
+  arrange(MacroPlot.Name, Date, Transect)
+
+data_temp_merge_Slope_FuelsFine <- FuelsFine_data_CrossYear_Slope %>% 
+  filter(Slope_Count > 1) %>%
+  group_by(MacroPlot.Name, Transect) %>% 
+  mutate(Slope_Change = ifelse(duplicated(Slope), "N", "Y")) %>%
+  filter(Slope_Change == "Y") %>%
+  unique()
+
+remove(FuelsFine_data_CrossYear_Slope)
+```
+
+### Azimuth Columns
+
+-   Azimuth_Count = How many unique azimuths have been recorded for each transect? Count \> 1 means that the transect has changed azimuth.
+
+-   Azimuth_Change = Has azimuth changed over time? if Azimuth_Count \> 1, Azimuth_Change = Y.
+
+-   AzimuthDiff = What is the difference between azimuth values?
+
+```{r}
+# Find data with multiple azimuths
+FuelsFine_data_CrossYear_Azimuth <- FuelsFine_data_CrossYear %>% 
+  group_by(MacroPlot.Name, Transect) %>% 
+  mutate(Azimuth_Count = n_distinct(unique(Azimuth))) %>% 
+  ungroup() %>% 
+  arrange(MacroPlot.Name, Date, Transect)
+
+data_temp_merge_Azimuth <- FuelsFine_data_CrossYear_Azimuth %>% 
+  filter(Azimuth_Count > 1) %>%
+  group_by(MacroPlot.Name, Transect) %>% 
+  mutate(AzimuthDiff = max(Azimuth  - min(Azimuth)),
+         Azimuth_Change = ifelse(duplicated(Azimuth), "N", "Y")) %>%
+  filter(Azimuth_Change == "Y") %>%
+  unique()
+
+remove(FuelsFine_data_CrossYear_Azimuth)
+```
+
+### CBH Columns
+
+-   MaxCBH = What is the tallest recorded CBH of each individual **live** tree? (Dead trees do not have CBH)
+
+-   MaxCBHDate = What date was the tallest CBH recorded?
+
+-   MaxCBHDiff = What is the size difference between the tallest recorded CBH, and the sample event CBH?
+
+```{r}
+data_temp_CBH <- Trees_data_CrossYear %>% 
+  filter(Status == "L",
+         !is.na(LiCrBHt)) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MaxCBH = max(LiCrBHt),
+         MaxCBHDiff = MaxCBH - LiCrBHt) %>% 
+  ungroup() %>% 
+  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+
+data_temp_MaxCBHDate <- data_temp_CBH %>% 
+  filter(LiCrBHt == MaxCBH) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MaxCBHDate = max(Date)) %>% 
+  select(TagNo, MacroPlot.Name, SubFrac, MaxCBHDate) %>% 
+  unique()
+
+data_temp_merge_CBH <- merge(data_temp_CBH, data_temp_MaxCBHDate, all = T)
+remove(data_temp_CBH, data_temp_MaxCBHDate)
+```
+
+### DBH Columns
+
+-   MinDBH = What is the smallest recorded DBH of each individual **dead** tree?
+
+-   MinDBHDate = What date was the smallest DBH recorded?
+
+-   MinDBHDiff = What is the size difference between the smallest recorded DBH, and the sample event DBH?
+
+-   MaxDBH = What is the largest recorded DBH of each individual **live** tree?
+
+-   MaxDBHDate = What date was the largest DBH recorded?
+
+-   MaxDBHDiff = What is the size difference between the largest recorded DBH, and the sample event DBH?
+
+```{r}
+data_temp_DBH <- Trees_data_CrossYear %>% 
+  filter(Status == "D",
+         !is.na(DBH)) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MinDBH = min(DBH),
+         MinDBHDiff = DBH - MinDBH) %>% 
+  ungroup() %>% 
+  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+
+data_temp_MinDBHDate <- data_temp_DBH %>% 
+  filter(DBH == MinDBH) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MinDBHDate = min(Date)) %>% 
+  select(TagNo, MacroPlot.Name, SubFrac, MinDBHDate) %>% 
+  unique()
+
+data_temp_merge_DeadDBH <- merge(data_temp_DBH, data_temp_MinDBHDate, all = T)
+
+############################################################################################
+
+data_temp_DBH <- Trees_data_CrossYear %>% 
+  filter(Status == "L",
+         !is.na(DBH)) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MaxDBH = max(DBH),
+         MaxDBHDiff = MaxDBH - DBH) %>% 
+  ungroup() %>% 
+  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+
+data_temp_MaxDBHDate <- data_temp_DBH %>% 
+  filter(DBH == MaxDBH) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MaxDBHDate = max(Date)) %>% 
+  select(TagNo, MacroPlot.Name, SubFrac, MaxDBHDate) %>% 
+  unique()
+
+data_temp_merge_LiveDBH <- merge(data_temp_DBH, data_temp_MaxDBHDate, all = T)
+
+############################################################################################
+
+data_temp_merge_DBH <- merge(data_temp_merge_DeadDBH, data_temp_merge_LiveDBH, all = T)
+remove(data_temp_merge_DeadDBH, data_temp_merge_LiveDBH, data_temp_DBH, data_temp_MinDBHDate, data_temp_MaxDBHDate)
+```
+
+### Height Columns
+
+-   MinHeight= What is the shortest recorded Height of each individual **dead** tree?
+
+-   MinHeightDate = What date was the shortest Height recorded?
+
+-   MinHeightDiff = What is the size difference between the shortest recorded Height, and the sample event Height?
+
+-   MaxHeight = What is the tallest recorded Height of each individual **live** tree?
+
+-   MaxHeightDate = What date was the tallest Height recorded?
+
+-   MaxHeightDiff = What is the size difference between the tallest recorded Height, and the sample event Height?
+
+```{r}
+data_temp_Height <- Trees_data_CrossYear %>% 
+  filter(Status == "D",
+         !is.na(Ht)) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MinHeight = min(Ht),
+         MinHeightDiff = Ht - MinHeight) %>% 
+  ungroup() %>% 
+  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+
+data_temp_MinHeightDate <- data_temp_Height %>% 
+  filter(Ht == MinHeight) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MinHeightDate = min(Date)) %>% 
+  select(TagNo, MacroPlot.Name, SubFrac, MinHeightDate) %>% 
+  unique()
+
+data_temp_merge_DeadHeight <- merge(data_temp_Height, data_temp_MinHeightDate, all = T)
+
+############################################################################################
+
+data_temp_Height <- Trees_data_CrossYear %>% 
+  filter(Status == "L",
+         !is.na(Ht)) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MaxHeight = max(Ht),
+         MaxHeightDiff = MaxHeight - Ht) %>% 
+  ungroup() %>% 
+  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+
+data_temp_MaxHeightDate <- data_temp_Height %>% 
+  filter(Ht == MaxHeight) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MaxHeightDate = max(Date)) %>% 
+  select(TagNo, MacroPlot.Name, SubFrac, MaxHeightDate) %>% 
+  unique()
+
+data_temp_merge_LiveHeight <- merge(data_temp_Height, data_temp_MaxHeightDate, all = T)
+
+############################################################################################
+
+data_temp_merge_Height <- merge(data_temp_merge_DeadHeight, data_temp_merge_LiveHeight, all = T)
+remove(data_temp_merge_DeadHeight, data_temp_merge_LiveHeight, data_temp_Height, data_temp_MinHeightDate, data_temp_MaxHeightDate)
+```
+
+### Species Columns
+
+-   Species_Count = How many unique species have been recorded for each individual tree? Count \> 1 means that the tree has changed species.
+
+```{r}
+Trees_data_CrossYear_Species <- Trees_data_CrossYear %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(Species_Count = n_distinct(unique(Species.Symbol))) %>% 
+  ungroup() %>% 
+  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+
+data_temp_Species <- Trees_data_CrossYear_Species %>% 
+  filter(Species_Count > 1) %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(Species_Change = ifelse(duplicated(Species.Symbol), "N", "Y")) %>% 
+  filter(Species_Change == "Y") %>% 
+  unique()
+
+data_temp_merge_Species <- data_temp_Species
+remove(Trees_data_CrossYear_Species, data_temp_Species)
+```
+
+### Status Columns
+
+-   Status_Count = How many unique statuses have been recorded for each individual tree? Count of 1 means that the tree has been alive or dead for the entirety of data collection. Count of 2 means that the tree has been both alive and dead.
+
+-   MinDeadDate = What date was the tree first recorded as Dead?
+
+-   MinLiveDate = What date was the tree first recorded as Live?
+
+```{r}
+Trees_data_CrossYear_Status <- Trees_data_CrossYear %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(Status_Count = n_distinct(unique(Status))) %>% 
+  ungroup() %>% 
+  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+
+# add min death date to data_temp
+data_temp_Status_AllDead <- Trees_data_CrossYear_Status %>% 
+  filter(Status_Count == 1 & Status == "D")
+data_temp_Status_SomeDead <- Trees_data_CrossYear_Status %>% 
+  filter(Status_Count > 1)
+data_temp_Status_Dead <- rbind(data_temp_Status_AllDead, data_temp_Status_SomeDead)
+
+data_temp_MinDeadDate <- data_temp_Status_Dead %>% 
+  filter(Status == "D") %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MinDeadDate = min(Date)) %>% 
+  select(TagNo, MacroPlot.Name, SubFrac, MinDeadDate) %>% 
+  unique()
+
+data_temp_merge_Status_Dead <- merge(data_temp_Status_Dead, data_temp_MinDeadDate, all = T)
+
+# add min live date to data_temp
+data_temp_Status_AllLive <- Trees_data_CrossYear_Status %>% 
+  filter(Status_Count == 1 & Status == "L")
+data_temp_Status_SomeLive <- Trees_data_CrossYear_Status %>% 
+  filter(Status_Count > 1)
+data_temp_Status_Live <- rbind(data_temp_Status_AllLive, data_temp_Status_SomeLive)
+
+data_temp_MinLiveDate <- data_temp_Status_Live %>% 
+  filter(Status == "L") %>% 
+  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
+  mutate(MinLiveDate = min(Date)) %>% 
+  select(TagNo, MacroPlot.Name, SubFrac, MinLiveDate) %>% 
+  unique()
+
+data_temp_merge_Status_Live <- merge(data_temp_Status_Live, data_temp_MinLiveDate, all = T)
+
+# merge
+data_temp_merge_Status <- merge(data_temp_merge_Status_Dead, data_temp_merge_Status_Live, all = T)
+
+remove(Trees_data_CrossYear_Status, data_temp_Status_AllDead, data_temp_Status_SomeDead, data_temp_Status_Dead, data_temp_MinDeadDate, data_temp_merge_Status_Dead, data_temp_Status_AllLive, data_temp_Status_SomeLive, data_temp_Status_Live, data_temp_MinLiveDate, data_temp_merge_Status_Live)
+```
+
+# PROTOCOL - SURFACE FUELS
+
+## 1000HR (CWD) & FINE FUELS (FWD)
+
+This code conducts cross-year quality control checks on 2 surface fuels datasets
+
+-   coarse woody debris (CWD) surface fuels data within the "Surface Fuels - 1000Hr" data set
+
+-   fine woody debris (FWD) surface fuels data within the "Surface Fuels - Fine" data set.
+
+It checks for errors in: Fuel Slope consistency across years, Fuel Azimuth consistency across years
+
+### Fuel Slope
+
+#### Fuels 1000
+
+```{r}
+# Set parameters 
+data <- merge(Fuels1000_data_CrossYear, data_temp_merge_Slope_Fuels1000, all = T)
+query <- "Fuel 1000 Slope" 
+query_message <- paste0("Slope = ", data$Slope, ". ", "Earliest date = ", data$Date, ". ", "Conflicting slopes")
+values_data <- data$Slope_Change
+values_valid <- "Y"
+values_check <- (values_data != values_valid) %>%  replace_na(TRUE)
+
+# Identify errors
+errors_Fuels1000_CrossYear_Slope <- qaqc_fuels(data, query, query_message, values_check)
+
+# Consolidate duplicate slope errors into one row
+errors_Fuels1000_CrossYear_Slope <- errors_Fuels1000_CrossYear_Slope %>%
+  separate(Error, sep = ". Conflicting slopes = Y", into = c("Error")) %>% 
+  separate(Error, sep = "date = ", into = c("Test", "Date"), remove = F) %>% 
+  arrange(MacroPlot.Name, Transect, Date) %>% 
+  group_by(SavedQuery, MacroPlot.Name, Transect) %>% 
+  summarize(
+    Error = paste(Error, collapse = "; "),
+    Fixed = "",
+    Explanation = "",
+    Queryers = "")
+```
+
+#### Fuels Fine
+
+```{r}
+# Set parameters 
+data <- merge(FuelsFine_data_CrossYear, data_temp_merge_Slope_FuelsFine, all = T)
+query <- "Fuel Fine Slope" 
+query_message <- paste0("Slope = ", data$Slope, ". ", "Earliest date = ", data$Date, ". ", "Conflicting slopes")
+values_data <- data$Slope_Change
+values_valid <- "Y"
+values_check <- (values_data != values_valid) %>%  replace_na(TRUE)
+
+# Identify errors
+errors_FuelsFine_CrossYear_Slope <- qaqc_fuels(data, query, query_message, values_check)
+
+# Consolidate duplicate species errors into one row
+errors_FuelsFine_CrossYear_Slope <- errors_FuelsFine_CrossYear_Slope %>%
+  separate(Error, sep = ". Conflicting slopes = Y", into = c("Error")) %>% 
+  separate(Error, sep = "date = ", into = c("Test", "Date"), remove = F) %>% 
+  arrange(MacroPlot.Name, Transect, Date) %>% 
+  group_by(SavedQuery, MacroPlot.Name, Transect) %>% 
+  summarize(
+    Error = paste(Error, collapse = "; "),
+    Fixed = "",
+    Explanation = "",
+    Queryers = "")
+```
+
+### Fuel Azimuth
+
+```{r}
+# Set parameters 
+data <- merge(FuelsFine_data_CrossYear, data_temp_merge_Azimuth, all = T) %>% 
+  filter(AzimuthDiff >= max_Azimuth)
+query <- "Fuel Fine Azimuth" 
+query_message <- paste0("Azimuth = ", data$Azimuth, ". ", "Earliest date = ", data$Date, ". ", "Conflicting azimuths")
+values_data <- data$Azimuth_Change
+values_valid <- "Y"
+values_check <- (values_data != values_valid) %>%  replace_na(TRUE)
+
+# Identify errors
+errors_FuelsFine_CrossYear_Azimuth <- qaqc_fuels(data, query, query_message, values_check)
+
+# Consolidate duplicate species errors into one row
+errors_FuelsFine_CrossYear_Azimuth <- errors_FuelsFine_CrossYear_Azimuth %>%
+  separate(Error, sep = ". Conflicting azimuths = Y", into = c("Error")) %>% 
+  separate(Error, sep = "date = ", into = c("Test", "Date"), remove = F) %>% 
+  arrange(MacroPlot.Name, Transect, Date) %>% 
+  group_by(SavedQuery, MacroPlot.Name, Transect) %>% 
+  summarize(
+    Error = paste(Error, collapse = "; "),
+    Fixed = "",
+    Explanation = "",
+    Queryers = "")
+```
+
+## ALL FUEL ERRORS
+
+```{r}
+errors_Fuels_CrossYear <- rbind(errors_Fuels1000_CrossYear_Slope, errors_FuelsFine_CrossYear_Slope, errors_FuelsFine_CrossYear_Azimuth) %>% 
+  arrange(MacroPlot.Name, Transect)
+
+remove(errors_Fuels1000_CrossYear_Slope, errors_FuelsFine_CrossYear_Slope, errors_FuelsFine_CrossYear_Azimuth)
+```
+
+```{r}
+# Formatting
+
+# Add blank rows between each tag number
+errors_Fuels_CrossYear_blanks <- errors_Fuels_CrossYear[1, ]
+for (i in 2:nrow(errors_Fuels_CrossYear)) {
+  if (errors_Fuels_CrossYear[i, "MacroPlot.Name"] != errors_Fuels_CrossYear[i - 1, "MacroPlot.Name"]) {
+    errors_Fuels_CrossYear_blanks <- rbind(errors_Fuels_CrossYear_blanks, errors_blank_fuels, errors_Fuels_CrossYear[i, ])
+  } else {
+    errors_Fuels_CrossYear_blanks <- rbind(errors_Fuels_CrossYear_blanks, errors_Fuels_CrossYear[i, ])
+  }
+}
+
+# Add conditional formating to ouput
+errors_Fuels_CrossYear_blanks <- condformat(errors_Fuels_CrossYear_blanks[1:(nrow(errors_Fuels_CrossYear_blanks)), 1:7]) %>%
+  rule_fill_discrete(columns = 1:7,
+                     expression = SavedQuery != "",
+                     colours = c("TRUE" = "#C6E0B4"),
+                     na.value = "#FFFFFF")
+```
+
+```{r}
+# Save as CSV or XLSX 
+#path_errors
+
+#write_xlsx(errors_Fuels_CrossYear, paste0(path_errors, "errors_Fuels_CrossYear.xlsx"))
+# Formatted
+condformat2excel(errors_Fuels_CrossYear_blanks, paste0(path_errors, "errors_CrossYear_Fuels_formatted.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+```
+
+# PROTOCOL - TREES
+
+This code conducts quality control checks on tree data within the "Trees - Individuals (metric)" data set.
+
+It checks for illogical changes over time in: CBH, DBH, Height, Species, and Status
+
+### Trees CBH
+
+#### CBH Decrease
+
+[Problem:]{.underline} Live trees have Crown Base Height (CBH) which decreases over time.
+
+[Procedure:]{.underline}
+
+-   Filter for Status = L. Filter to exclude a certain threshold where the difference in CBH is not a concern. Remaining entries should include all CBHs that are smaller than the maximum CBH.
+
+-   We are concerned with live trees which decrease in CBH over time. Ensure that each sample event date is *earlier* than the date with the tallest recorded CBH (**MaxCBHDate**).
+
+```{r}
+# Set parameters 
+data <- merge(Trees_data_CrossYear, data_temp_merge_CBH, all = T) %>% 
+  filter(Status == "L", !is.na(LiCrBHt),
+         # set threshold of concern
+         MaxCBHDiff >= max_CBH)
+query <- "Trees CBH" 
+query_message <- paste0("LiCrBHt (CBH) decreases over time. ", "Max CBH = ", data$MaxCBH, " on date")
+values_data <- data$MaxCBHDate
+values_valid <- data$Date
+values_check <- values_data >= values_valid
+
+# Identify errors
+errors_Trees_CrossYear_CBH <- qaqc_trees(data, query, query_message, values_check)
+```
+
+### Trees DBH
+
+#### DBH Live Decrease
+
+[Problem:]{.underline} Live trees have DBH which decreases over time.
+
+[Procedure:]{.underline}
+
+-   Filter for Status = L. Filter to exclude a certain threshold where the difference in DBH is not a concern. Remaining entries should include all DBHs that are smaller than the maximum DBH.
+
+-   We are concerned with live trees which decrease in DBH while they are still alive. Ensure that each sample event date is *earlier* than the date with the largest recorded DBH (**MaxDBHDate**).
+
+```{r}
+# Set parameters 
+data <- merge(Trees_data_CrossYear, data_temp_merge_DBH, all = T) %>% 
+  filter(Status == "L", !is.na(DBH),
+         # set threshold of concern
+         MaxDBHDiff >= max_DBH)
+query <- "Trees DBH" 
+query_message <- paste0("Status = ", data$Status, ". ", "DBH decreases over time. ", "Max DBH = ", data$MaxDBH, " on date")
+values_data <- data$MaxDBHDate
+values_valid <- data$Date
+values_check <- values_data >= values_valid
+
+# Identify errors
+errors_Trees_CrossYear_DBH_Live <- qaqc_trees(data, query, query_message, values_check)
+```
+
+#### DBH Dead Increase
+
+[Problem:]{.underline} Dead trees have DBH which increases over time.
+
+[Procedure:]{.underline}
+
+-   Filter for Status = D. Filter to exclude a certain threshold where the difference in DBH is not a concern. Remaining entries should include all DBHs that are larger than the minimum DBH.
+
+-   We are concerned with dead trees which increase DBH post-death. Ensure that each sample event date is *earlier* than the date with the smallest recorded DBH (**MinDBHDate**).
+
+```{r}
+# Set parameters 
+data <- merge(Trees_data_CrossYear, data_temp_merge_DBH, all = T) %>% 
+  filter(Status == "D", !is.na(DBH),
+         # set threshold of concern
+         MinDBHDiff >= max_DBH)
+query <- "Trees DBH" 
+query_message <- paste0("Status = ", data$Status, ". ", "DBH increases over time. ", "Min DBH = ", data$MinDBH, " on date")
+values_data <- data$MinDBHDate
+values_valid <- data$Date
+values_check <- values_data >= values_valid
+
+# Identify errors
+errors_Trees_CrossYear_DBH_Dead <- qaqc_trees(data, query, query_message, values_check)
+```
+
+### Trees Height
+
+#### Height Live Decrease
+
+[Problem:]{.underline} Live trees have Height which decreases over time.
+
+[Procedure:]{.underline}
+
+-   Filter for Status = L. Filter to exclude a certain threshold where the difference in Height is not a concern. Remaining entries should include all Heights that are shorter than the maximum Height.
+
+-   We are concerned with live trees which decrease in Height over time. Ensure that each sample event date is *earlier* than the date with the tallest recorded Height (**MaxHeightDate**).
+
+```{r}
+# Set parameters 
+data <- merge(Trees_data_CrossYear, data_temp_merge_Height, all = T) %>% 
+  filter(Status == "L", !is.na(Ht),
+         # set threshold of concern
+         MaxHeightDiff >= max_Ht)
+query <- "Trees Height" 
+query_message <- paste0("Status = ", data$Status, ". ", "Height decreases over time. ", "Max Height = ", data$MaxHeight, " on date")
+values_data <- data$MaxHeightDate
+values_valid <- data$Date
+values_check <- values_data >= values_valid
+
+# Identify errors
+errors_Trees_CrossYear_Height_Live <- qaqc_trees(data, query, query_message, values_check)
+```
+
+#### Height Dead Increase
+
+[Problem:]{.underline} Dead trees have Height which increases over time.
+
+[Procedure:]{.underline}
+
+-   Filter for Status = D. Filter to exclude a certain threshold where the difference in Height is not a concern. Remaining entries should include all Heights that are taller than the minimum Height.
+
+-   We are concerned with dead trees which increase in Height over time. Ensure that each sample event date is *earlier* than the date with the shortest recorded Height (**MinHeightDate**).
+
+```{r}
+# Set parameters 
+data <- merge(Trees_data_CrossYear, data_temp_merge_Height, all = T) %>% 
+  filter(Status == "D", !is.na(Ht),
+         # set threshold of concern
+         MinHeightDiff >= max_Ht)
+query <- "Trees Height" 
+query_message <- paste0("Status = ", data$Status, ". ", "Height increases over time. ", "Min Height = ", data$MinHeight, " on date")
+values_data <- data$MinHeightDate
+values_valid <- data$Date
+values_check <- values_data >= values_valid
+
+# Identify errors
+errors_Trees_CrossYear_Height_Dead <- qaqc_trees(data, query, query_message, values_check)
+```
+
+### Trees Species
+
+#### Species Change
+
+[Problem:]{.underline} Trees change species over time.
+
+[Procedure:]{.underline}
+
+-   Isolate rows which have more than 1 entry for Species.Symbol for each individual tree, and the earliest date when each species was recorded.
+
+```{r}
+# Set parameters 
+data <- merge(Trees_data_CrossYear, data_temp_merge_Species, all = T)
+query <- "Trees Species" 
+query_message <- paste0("Species = ", data$Species.Symbol, ". ", "Earliest date = ", data$Date, ". ", "Species change")
+values_data <- data$Species_Change
+values_valid <- "Y"
+values_check <- (values_data != values_valid) %>%  replace_na(TRUE)
+
+# Identify errors
+errors_Trees_CrossYear_Species_1 <- qaqc_trees(data, query, query_message, values_check)
+
+# Consolidate duplicate species errors into one row
+errors_Trees_CrossYear_Species <- errors_Trees_CrossYear_Species_1 %>% 
+  separate(Error, sep = ". Species change = Y", into = c("Error")) %>% 
+  separate(Error, sep = "date = ", into = c("Test", "Date"), remove = F) %>% 
+  arrange(MacroPlot.Name, TagNo, Date) %>% 
+  group_by(SavedQuery, MacroPlot.Name, TagNo) %>% 
+  summarize(
+    Error = paste(Error, collapse = "; "),
+    Fixed = "",
+    Explanation = "",
+    Queryers = "")
+```
+
+### Trees Status
+
+#### Status Dead to Live
+
+[Problem:]{.underline} Trees change status from D to L over time.
+
+[Procedure:]{.underline}
+
+-   Filter for Status = L. Check that the sample event date is not later than the death date.
+
+```{r}
+# Set parameters 
+data <- merge(Trees_data_CrossYear, data_temp_merge_Status, all = T) %>% 
+  filter(Status == "L")
+query <- "Trees Status" 
+query_message <- paste0("Status = ", data$Status, ". ", "Death date")
+values_data <- data$MinDeadDate
+values_valid <- data$Date
+values_check <- (values_data >= values_valid) %>%  replace_na(TRUE)
+
+# Identify errors
+errors_Trees_CrossYear_Status <- qaqc_trees(data, query, query_message, values_check)
+```
+
+## ALL TREE ERRORS
+
+```{r}
+errors_Trees_CrossYear <- rbind(errors_Trees_CrossYear_CBH, errors_Trees_CrossYear_DBH_Live, errors_Trees_CrossYear_DBH_Dead, errors_Trees_CrossYear_Height_Live, errors_Trees_CrossYear_Height_Dead, errors_Trees_CrossYear_Species, errors_Trees_CrossYear_Status) %>% 
+  arrange(MacroPlot.Name, TagNo, desc(SavedQuery))
+
+remove(errors_Trees_CrossYear_CBH, errors_Trees_CrossYear_DBH_Live, errors_Trees_CrossYear_DBH_Dead, errors_Trees_CrossYear_Height_Live, errors_Trees_CrossYear_Height_Dead, errors_Trees_CrossYear_Species, errors_Trees_CrossYear_Species_1, errors_Trees_CrossYear_Status)
+```
+
+```{r}
+# Formatting
+
+# Add blank rows between each tag number
+errors_Trees_CrossYear_blanks <- errors_Trees_CrossYear[1, ]
+for (i in 2:nrow(errors_Trees_CrossYear)) {
+  if (errors_Trees_CrossYear[i, "TagNo"] != errors_Trees_CrossYear[i - 1, "TagNo"]) {
+    errors_Trees_CrossYear_blanks <- rbind(errors_Trees_CrossYear_blanks, errors_blank_trees, errors_Trees_CrossYear[i, ])
+  } else {
+    errors_Trees_CrossYear_blanks <- rbind(errors_Trees_CrossYear_blanks, errors_Trees_CrossYear[i, ])
+  }
+}
+
+# Add conditional formating to ouput
+errors_Trees_CrossYear_blanks <- condformat(errors_Trees_CrossYear_blanks[1:(nrow(errors_Trees_CrossYear_blanks)), 1:7]) %>%
+  rule_fill_discrete(columns = 1:7,
+                     expression = SavedQuery != "",
+                     colours = c("TRUE" = "#C6E0B4"),
+                     na.value = "#FFFFFF")
+```
+
+```{r}
+# Save as CSV or XLSX 
+path_errors
+
+#write_xlsx(errors_Trees_CrossYear, paste0(path_errors, "errors_CrossYear.xlsx"))
+# Formatted
+condformat2excel(errors_Trees_CrossYear_blanks, paste0(path_errors, "errors_CrossYear_Trees_formatted.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+```
