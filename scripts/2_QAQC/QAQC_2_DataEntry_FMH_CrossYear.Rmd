@@ -75,8 +75,8 @@ target_park <- "RICH"
 ```{r file paths, include=FALSE}
 # adjust file paths
 
-#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
+path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
+#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/"
 path_data <- paste0(path_main, "Exports_Clean/FFI/")
 #path_errors <- paste0(path_main, "QAQC/", target_park, "/")
 path_errors <- paste0(here(), "/output/errors/")
@@ -103,9 +103,9 @@ for (name in df_names) {
   
   # filter data for target park
   filtered_df <- current_df %>% 
-    mutate(SampleEvent_Date = as.Date(SampleEvent_Date)) %>% 
-    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
+    # mutate(SampleEvent_Date = as.Date(SampleEvent_Date)) %>% 
+    # mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
+    # relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
     filter(
       AdminUnit_Name == target_park
       )
@@ -122,7 +122,7 @@ This QAQC check isolates *incorrect* changes in the following values. Setting th
 
 ```{r}
 # Azimuth (degrees)
-max_Azimuth <- 35
+max_Azimuth <- 30
 
 # DBH (centimeters)
 max_DBH <- 5
@@ -135,22 +135,22 @@ max_Ht <- 5
 
 ### Slope Columns
 
--   Slope_Count = How many unique slopes have been recorded for each transect? Count \> 1 means that the transect has changed slope.
+-   Slope_Count = How many unique slopes have been recorded for each transect?
 
 -   Slope_Change = Has slope changed over time? if Slope_Count \> 1, Slope_Change = Y.
 
 ```{r}
 # Find data with multiple slopes
 Fuels1000_data_CrossYear_Slope <- Fuels1000_data_CrossYear %>% 
-  group_by(MacroPlot.Name, Transect) %>% 
-  mutate(Slope_Count = n_distinct(unique(Slope))) %>% 
+  group_by(Macroplot_Name, MethodData_Transect) %>% 
+  mutate(Slope_Count = n_distinct(unique(MethodData_Slope_pct))) %>% 
   ungroup() %>% 
-  arrange(MacroPlot.Name, Date, Transect)
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_Transect)
 
 data_temp_merge_Slope_Fuels1000 <- Fuels1000_data_CrossYear_Slope %>% 
   filter(Slope_Count > 1) %>%
-  group_by(MacroPlot.Name, Transect) %>% 
-  mutate(Slope_Change = ifelse(duplicated(Slope), "N", "Y")) %>%
+  group_by(Macroplot_Name, MethodData_Transect) %>% 
+  mutate(Slope_Change = ifelse(duplicated(MethodData_Slope_pct), "N", "Y")) %>%
   filter(Slope_Change == "Y") %>%
   unique()
 
@@ -160,15 +160,15 @@ remove(Fuels1000_data_CrossYear_Slope)
 ```{r}
 # Find data with multiple slopes
 FuelsFine_data_CrossYear_Slope <- FuelsFine_data_CrossYear %>% 
-  group_by(MacroPlot.Name, Transect) %>% 
-  mutate(Slope_Count = n_distinct(unique(Slope))) %>% 
+  group_by(Macroplot_Name, MethodData_Transect) %>% 
+  mutate(Slope_Count = n_distinct(unique(MethodData_Slope_pct))) %>% 
   ungroup() %>% 
-  arrange(MacroPlot.Name, Date, Transect)
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_Transect)
 
 data_temp_merge_Slope_FuelsFine <- FuelsFine_data_CrossYear_Slope %>% 
   filter(Slope_Count > 1) %>%
-  group_by(MacroPlot.Name, Transect) %>% 
-  mutate(Slope_Change = ifelse(duplicated(Slope), "N", "Y")) %>%
+  group_by(Macroplot_Name, MethodData_Transect) %>% 
+  mutate(Slope_Change = ifelse(duplicated(MethodData_Slope_pct), "N", "Y")) %>%
   filter(Slope_Change == "Y") %>%
   unique()
 
@@ -177,7 +177,7 @@ remove(FuelsFine_data_CrossYear_Slope)
 
 ### Azimuth Columns
 
--   Azimuth_Count = How many unique azimuths have been recorded for each transect? Count \> 1 means that the transect has changed azimuth.
+-   Azimuth_Count = How many unique azimuths have been recorded for each transect?
 
 -   Azimuth_Change = Has azimuth changed over time? if Azimuth_Count \> 1, Azimuth_Change = Y.
 
@@ -186,16 +186,16 @@ remove(FuelsFine_data_CrossYear_Slope)
 ```{r}
 # Find data with multiple azimuths
 FuelsFine_data_CrossYear_Azimuth <- FuelsFine_data_CrossYear %>% 
-  group_by(MacroPlot.Name, Transect) %>% 
-  mutate(Azimuth_Count = n_distinct(unique(Azimuth))) %>% 
+  group_by(Macroplot_Name, MethodData_Transect) %>% 
+  mutate(Azimuth_Count = n_distinct(unique(MethodData_Azimuth_deg))) %>% 
   ungroup() %>% 
-  arrange(MacroPlot.Name, Date, Transect)
+  arrange(Macroplot_Name, SampleEvent_Date, MethodData_Transect)
 
 data_temp_merge_Azimuth <- FuelsFine_data_CrossYear_Azimuth %>% 
   filter(Azimuth_Count > 1) %>%
-  group_by(MacroPlot.Name, Transect) %>% 
-  mutate(AzimuthDiff = max(Azimuth  - min(Azimuth)),
-         Azimuth_Change = ifelse(duplicated(Azimuth), "N", "Y")) %>%
+  group_by(Macroplot_Name, MethodData_Transect) %>% 
+  mutate(AzimuthDiff = max(MethodData_Azimuth_deg - min(MethodData_Azimuth_deg)),
+         Azimuth_Change = ifelse(duplicated(MethodData_Azimuth_deg), "N", "Y")) %>%
   filter(Azimuth_Change == "Y") %>%
   unique()
 
@@ -218,19 +218,19 @@ remove(FuelsFine_data_CrossYear_Azimuth)
 
 ```{r}
 data_temp_DBH <- Trees_data_CrossYear %>% 
-  filter(Status == "D",
-         !is.na(DBH)) %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(MinDBH = min(DBH),
-         MinDBHDiff = DBH - MinDBH) %>% 
+  filter(MethodData_Status == "D",
+         !is.na(MethodData_DBH_cm)) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(MinDBH = min(MethodData_DBH_cm),
+         MinDBHDiff = MethodData_DBH_cm - MinDBH) %>% 
   ungroup() %>% 
-  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+  arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 data_temp_MinDBHDate <- data_temp_DBH %>% 
-  filter(DBH == MinDBH) %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(MinDBHDate = min(Date)) %>% 
-  select(TagNo, MacroPlot.Name, SubFrac, MinDBHDate) %>% 
+  filter(MethodData_DBH_cm == MinDBH) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(MinDBHDate = min(SampleEvent_Date)) %>% 
+  select(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac, MinDBHDate) %>% 
   unique()
 
 data_temp_merge_DeadDBH <- merge(data_temp_DBH, data_temp_MinDBHDate, all = T)
@@ -238,19 +238,19 @@ data_temp_merge_DeadDBH <- merge(data_temp_DBH, data_temp_MinDBHDate, all = T)
 ############################################################################################
 
 data_temp_DBH <- Trees_data_CrossYear %>% 
-  filter(Status == "L",
-         !is.na(DBH)) %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(MaxDBH = max(DBH),
-         MaxDBHDiff = MaxDBH - DBH) %>% 
+  filter(MethodData_Status == "L",
+         !is.na(MethodData_DBH_cm)) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(MaxDBH = max(MethodData_DBH_cm),
+         MaxDBHDiff = MaxDBH - MethodData_DBH_cm) %>% 
   ungroup() %>% 
-  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+  arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 data_temp_MaxDBHDate <- data_temp_DBH %>% 
-  filter(DBH == MaxDBH) %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(MaxDBHDate = max(Date)) %>% 
-  select(TagNo, MacroPlot.Name, SubFrac, MaxDBHDate) %>% 
+  filter(MethodData_DBH_cm == MaxDBH) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(MaxDBHDate = max(SampleEvent_Date)) %>% 
+  select(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac, MaxDBHDate) %>% 
   unique()
 
 data_temp_merge_LiveDBH <- merge(data_temp_DBH, data_temp_MaxDBHDate, all = T)
@@ -277,19 +277,19 @@ remove(data_temp_merge_DeadDBH, data_temp_merge_LiveDBH, data_temp_DBH, data_tem
 
 ```{r}
 data_temp_Height <- Trees_data_CrossYear %>% 
-  filter(Status == "D",
-         !is.na(Ht)) %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(MinHeight = min(Ht),
-         MinHeightDiff = Ht - MinHeight) %>% 
+  filter(MethodData_Status == "D",
+         !is.na(MethodData_Ht_m)) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(MinHeight = min(MethodData_Ht_m),
+         MinHeightDiff = MethodData_Ht_m - MinHeight) %>% 
   ungroup() %>% 
-  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+  arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 data_temp_MinHeightDate <- data_temp_Height %>% 
-  filter(Ht == MinHeight) %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(MinHeightDate = min(Date)) %>% 
-  select(TagNo, MacroPlot.Name, SubFrac, MinHeightDate) %>% 
+  filter(MethodData_Ht_m == MinHeight) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(MinHeightDate = min(SampleEvent_Date)) %>% 
+  select(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac, MinHeightDate) %>% 
   unique()
 
 data_temp_merge_DeadHeight <- merge(data_temp_Height, data_temp_MinHeightDate, all = T)
@@ -297,19 +297,19 @@ data_temp_merge_DeadHeight <- merge(data_temp_Height, data_temp_MinHeightDate, a
 ############################################################################################
 
 data_temp_Height <- Trees_data_CrossYear %>% 
-  filter(Status == "L",
-         !is.na(Ht)) %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(MaxHeight = max(Ht),
-         MaxHeightDiff = MaxHeight - Ht) %>% 
+  filter(MethodData_Status == "L",
+         !is.na(MethodData_Ht_m)) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(MaxHeight = max(MethodData_Ht_m),
+         MaxHeightDiff = MaxHeight - MethodData_Ht_m) %>% 
   ungroup() %>% 
-  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+  arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 data_temp_MaxHeightDate <- data_temp_Height %>% 
-  filter(Ht == MaxHeight) %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(MaxHeightDate = max(Date)) %>% 
-  select(TagNo, MacroPlot.Name, SubFrac, MaxHeightDate) %>% 
+  filter(MethodData_Ht_m == MaxHeight) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(MaxHeightDate = max(SampleEvent_Date)) %>% 
+  select(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac, MaxHeightDate) %>% 
   unique()
 
 data_temp_merge_LiveHeight <- merge(data_temp_Height, data_temp_MaxHeightDate, all = T)
@@ -326,15 +326,15 @@ remove(data_temp_merge_DeadHeight, data_temp_merge_LiveHeight, data_temp_Height,
 
 ```{r}
 Trees_data_CrossYear_Species <- Trees_data_CrossYear %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(Species_Count = n_distinct(unique(Species.Symbol))) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(Species_Count = n_distinct(unique(MethodData_LocalSpeciesSymbol))) %>% 
   ungroup() %>% 
-  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+  arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 data_temp_Species <- Trees_data_CrossYear_Species %>% 
   filter(Species_Count > 1) %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(Species_Change = ifelse(duplicated(Species.Symbol), "N", "Y")) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(Species_Change = ifelse(duplicated(MethodData_LocalSpeciesSymbol), "N", "Y")) %>% 
   filter(Species_Change == "Y") %>% 
   unique()
 
@@ -352,39 +352,39 @@ remove(Trees_data_CrossYear_Species, data_temp_Species)
 
 ```{r}
 Trees_data_CrossYear_Status <- Trees_data_CrossYear %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(Status_Count = n_distinct(unique(Status))) %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(Status_Count = n_distinct(unique(MethodData_Status))) %>% 
   ungroup() %>% 
-  arrange(TagNo, MacroPlot.Name, Date, SubFrac)
+  arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 # add min death date to data_temp
 data_temp_Status_AllDead <- Trees_data_CrossYear_Status %>% 
-  filter(Status_Count == 1 & Status == "D")
+  filter(Status_Count == 1 & MethodData_Status == "D")
 data_temp_Status_SomeDead <- Trees_data_CrossYear_Status %>% 
   filter(Status_Count > 1)
 data_temp_Status_Dead <- rbind(data_temp_Status_AllDead, data_temp_Status_SomeDead)
 
 data_temp_MinDeadDate <- data_temp_Status_Dead %>% 
-  filter(Status == "D") %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(MinDeadDate = min(Date)) %>% 
-  select(TagNo, MacroPlot.Name, SubFrac, MinDeadDate) %>% 
+  filter(MethodData_Status == "D") %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(MinDeadDate = min(SampleEvent_Date)) %>% 
+  select(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac, MinDeadDate) %>% 
   unique()
 
 data_temp_merge_Status_Dead <- merge(data_temp_Status_Dead, data_temp_MinDeadDate, all = T)
 
 # add min live date to data_temp
 data_temp_Status_AllLive <- Trees_data_CrossYear_Status %>% 
-  filter(Status_Count == 1 & Status == "L")
+  filter(Status_Count == 1 & MethodData_Status == "L")
 data_temp_Status_SomeLive <- Trees_data_CrossYear_Status %>% 
   filter(Status_Count > 1)
 data_temp_Status_Live <- rbind(data_temp_Status_AllLive, data_temp_Status_SomeLive)
 
 data_temp_MinLiveDate <- data_temp_Status_Live %>% 
-  filter(Status == "L") %>% 
-  group_by(TagNo, MacroPlot.Name, SubFrac) %>% 
-  mutate(MinLiveDate = min(Date)) %>% 
-  select(TagNo, MacroPlot.Name, SubFrac, MinLiveDate) %>% 
+  filter(MethodData_Status == "L") %>% 
+  group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
+  mutate(MinLiveDate = min(SampleEvent_Date)) %>% 
+  select(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac, MinLiveDate) %>% 
   unique()
 
 data_temp_merge_Status_Live <- merge(data_temp_Status_Live, data_temp_MinLiveDate, all = T)
@@ -415,14 +415,14 @@ errors_blank <- data.frame("SavedQuery" = "",
                            "AdminUnit_Name" = "", 
                            "SampleEvent_TreatmentUnit" = "", 
                            "Macroplot_Name" = "", 
-                           "Transect" = as.integer(NA), 
+                           "MethodData_Transect" = as.integer(NA), 
                            "Error" = "", 
                            "Fixed" = "", 
                            "Explanation" = "", 
                            "Queryers" = "")
 
 # Edit error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "Transect", "Error")
+errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "MethodData_Transect", "Error")
 ```
 
 ### Fuel Slope
@@ -433,10 +433,10 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "Transect", 
 # Set parameters 
 data <- merge(Fuels1000_data_CrossYear, data_temp_merge_Slope_Fuels1000, all = T)
 query <- "Fuel 1000 Slope" 
-query_message <- paste0("Slope = ", data$Slope, ". ", "Earliest date = ", data$Date, ". ", "Conflicting slopes")
+query_message <- paste0("Slope = ", data$MethodData_Slope_pct, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Conflicting slopes")
 values_data <- data$Slope_Change
 values_valid <- "Y"
-values_check <- (values_data != values_valid) %>%  replace_na(TRUE)
+values_check <- (values_data != values_valid) %>% replace_na(TRUE)
 
 # Identify errors
 errors_Fuels1000_CrossYear_Slope <- qaqc(data, query, query_message, values_check)
@@ -445,8 +445,8 @@ errors_Fuels1000_CrossYear_Slope <- qaqc(data, query, query_message, values_chec
 errors_Fuels1000_CrossYear_Slope <- errors_Fuels1000_CrossYear_Slope %>%
   separate(Error, sep = ". Conflicting slopes = Y", into = c("Error")) %>% 
   separate(Error, sep = "date = ", into = c("Test", "Date"), remove = F) %>% 
-  arrange(MacroPlot.Name, Transect, Date) %>% 
-  group_by(SavedQuery, MacroPlot.Name, Transect) %>% 
+  arrange(Macroplot_Name, MethodData_Transect, Date) %>% 
+  group_by(SavedQuery, AdminUnit_Name, SampleEvent_TreatmentUnit, Macroplot_Name, MethodData_Transect) %>% 
   summarize(
     Error = paste(Error, collapse = "; "),
     Fixed = "",
@@ -460,10 +460,10 @@ errors_Fuels1000_CrossYear_Slope <- errors_Fuels1000_CrossYear_Slope %>%
 # Set parameters 
 data <- merge(FuelsFine_data_CrossYear, data_temp_merge_Slope_FuelsFine, all = T)
 query <- "Fuel Fine Slope" 
-query_message <- paste0("Slope = ", data$Slope, ". ", "Earliest date = ", data$Date, ". ", "Conflicting slopes")
+query_message <- paste0("Slope = ", data$MethodData_Slope_pct, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Conflicting slopes")
 values_data <- data$Slope_Change
 values_valid <- "Y"
-values_check <- (values_data != values_valid) %>%  replace_na(TRUE)
+values_check <- (values_data != values_valid) %>% replace_na(TRUE)
 
 # Identify errors
 errors_FuelsFine_CrossYear_Slope <- qaqc(data, query, query_message, values_check)
@@ -472,8 +472,8 @@ errors_FuelsFine_CrossYear_Slope <- qaqc(data, query, query_message, values_chec
 errors_FuelsFine_CrossYear_Slope <- errors_FuelsFine_CrossYear_Slope %>%
   separate(Error, sep = ". Conflicting slopes = Y", into = c("Error")) %>% 
   separate(Error, sep = "date = ", into = c("Test", "Date"), remove = F) %>% 
-  arrange(MacroPlot.Name, Transect, Date) %>% 
-  group_by(SavedQuery, MacroPlot.Name, Transect) %>% 
+  arrange(Macroplot_Name, MethodData_Transect, Date) %>% 
+  group_by(SavedQuery, AdminUnit_Name, SampleEvent_TreatmentUnit, Macroplot_Name, MethodData_Transect) %>% 
   summarize(
     Error = paste(Error, collapse = "; "),
     Fixed = "",
@@ -488,10 +488,10 @@ errors_FuelsFine_CrossYear_Slope <- errors_FuelsFine_CrossYear_Slope %>%
 data <- merge(FuelsFine_data_CrossYear, data_temp_merge_Azimuth, all = T) %>% 
   filter(AzimuthDiff >= max_Azimuth)
 query <- "Fuel Fine Azimuth" 
-query_message <- paste0("Azimuth = ", data$Azimuth, ". ", "Earliest date = ", data$Date, ". ", "Conflicting azimuths")
+query_message <- paste0("Azimuth = ", data$MethodData_Azimuth_deg, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Conflicting azimuths")
 values_data <- data$Azimuth_Change
 values_valid <- "Y"
-values_check <- (values_data != values_valid) %>%  replace_na(TRUE)
+values_check <- (values_data != values_valid) %>% replace_na(TRUE)
 
 # Identify errors
 errors_FuelsFine_CrossYear_Azimuth <- qaqc(data, query, query_message, values_check)
@@ -500,8 +500,8 @@ errors_FuelsFine_CrossYear_Azimuth <- qaqc(data, query, query_message, values_ch
 errors_FuelsFine_CrossYear_Azimuth <- errors_FuelsFine_CrossYear_Azimuth %>%
   separate(Error, sep = ". Conflicting azimuths = Y", into = c("Error")) %>% 
   separate(Error, sep = "date = ", into = c("Test", "Date"), remove = F) %>% 
-  arrange(MacroPlot.Name, Transect, Date) %>% 
-  group_by(SavedQuery, MacroPlot.Name, Transect) %>% 
+  arrange(Macroplot_Name, MethodData_Transect, Date) %>% 
+  group_by(SavedQuery, AdminUnit_Name, SampleEvent_TreatmentUnit, Macroplot_Name, MethodData_Transect) %>% 
   summarize(
     Error = paste(Error, collapse = "; "),
     Fixed = "",
@@ -515,7 +515,7 @@ errors_FuelsFine_CrossYear_Azimuth <- errors_FuelsFine_CrossYear_Azimuth %>%
 
 ```{r}
 errors_Fuels_CrossYear <- rbind(errors_Fuels1000_CrossYear_Slope, errors_FuelsFine_CrossYear_Slope, errors_FuelsFine_CrossYear_Azimuth) %>% 
-  arrange(MacroPlot.Name, Transect)
+  arrange(Macroplot_Name, MethodData_Transect)
 
 remove(errors_Fuels1000_CrossYear_Slope, errors_FuelsFine_CrossYear_Slope, errors_FuelsFine_CrossYear_Azimuth)
 ```
@@ -526,16 +526,16 @@ remove(errors_Fuels1000_CrossYear_Slope, errors_FuelsFine_CrossYear_Slope, error
 # Add blank rows between each tag number
 errors_Fuels_CrossYear_blanks <- errors_Fuels_CrossYear[1, ]
 for (i in 2:nrow(errors_Fuels_CrossYear)) {
-  if (errors_Fuels_CrossYear[i, "MacroPlot.Name"] != errors_Fuels_CrossYear[i - 1, "MacroPlot.Name"]) {
-    errors_Fuels_CrossYear_blanks <- rbind(errors_Fuels_CrossYear_blanks, errors_blank_fuels, errors_Fuels_CrossYear[i, ])
+  if (errors_Fuels_CrossYear[i, "Macroplot_Name"] != errors_Fuels_CrossYear[i - 1, "Macroplot_Name"]) {
+    errors_Fuels_CrossYear_blanks <- rbind(errors_Fuels_CrossYear_blanks, errors_blank, errors_Fuels_CrossYear[i, ])
   } else {
     errors_Fuels_CrossYear_blanks <- rbind(errors_Fuels_CrossYear_blanks, errors_Fuels_CrossYear[i, ])
   }
 }
 
 # Add conditional formating to ouput
-errors_Fuels_CrossYear_blanks <- condformat(errors_Fuels_CrossYear_blanks[1:(nrow(errors_Fuels_CrossYear_blanks)), 1:7]) %>%
-  rule_fill_discrete(columns = 1:7,
+errors_Fuels_CrossYear_blanks <- condformat(errors_Fuels_CrossYear_blanks[1:(nrow(errors_Fuels_CrossYear_blanks)), 1:ncol(errors_Fuels_CrossYear)]) %>%
+  rule_fill_discrete(columns = 1:ncol(errors_Fuels_CrossYear),
                      expression = SavedQuery != "",
                      colours = c("TRUE" = "#C6E0B4"),
                      na.value = "#FFFFFF")
@@ -565,14 +565,14 @@ errors_blank <- data.frame("SavedQuery" = "",
                            "AdminUnit_Name" = "", 
                            "SampleEvent_TreatmentUnit" = "", 
                            "Macroplot_Name" = "", 
-                           "TagNo" = "", 
+                           "MethodData_TagNo" = "", 
                            "Error" = "", 
                            "Fixed" = "", 
                            "Explanation" = "", 
                            "Queryers" = "")
 
 # Edit error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "TagNo", "Error")
+errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "MethodData_TagNo", "Error")
 ```
 
 ### Trees DBH
@@ -590,13 +590,13 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "TagNo", "Er
 ```{r}
 # Set parameters 
 data <- merge(Trees_data_CrossYear, data_temp_merge_DBH, all = T) %>% 
-  filter(Status == "L", !is.na(DBH),
+  filter(MethodData_Status == "L", !is.na(MethodData_DBH_cm),
          # set threshold of concern
          MaxDBHDiff >= max_DBH)
 query <- "Trees DBH" 
-query_message <- paste0("Status = ", data$Status, ". ", "DBH decreases over time. ", "Max DBH = ", data$MaxDBH, " on date")
+query_message <- paste0("Status = ", data$MethodData_Status, ". ", "DBH decreases over time. ", "Max DBH = ", data$MaxDBH, " on date")
 values_data <- data$MaxDBHDate
-values_valid <- data$Date
+values_valid <- data$SampleEvent_Date
 values_check <- values_data >= values_valid
 
 # Identify errors
