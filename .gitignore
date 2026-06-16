@@ -16,3 +16,9 @@
 
 /output/reports/*
 !/output/reports/.gitkeep
+
+/output/*
+!/output/.gitkeep
+
+/crew/*
+!/crew/.gitkeep
