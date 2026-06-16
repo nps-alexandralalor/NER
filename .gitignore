@@ -17,9 +17,6 @@
 /output/reports/*
 !/output/reports/.gitkeep
 
-/output/photos/*
-!/output/photos/.gitkeep
-
 /output/*
 !/output/.gitkeep
 
