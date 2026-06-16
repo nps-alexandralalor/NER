@@ -4,7 +4,15 @@
 .Ruserdata
 
 !.gitignore
+
 /output/data_clean/*
+!/output/data_clean/.gitkeep
+
 /output/errors/*
+!/output/errors/.gitkeep
+
 /output/graphs/*
+!/output/graphs/.gitkeep
+
 /output/reports/*
+!/output/reports/.gitkeep
