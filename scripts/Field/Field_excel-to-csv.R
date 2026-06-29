@@ -35,12 +35,13 @@ library(here)
 here()
 
 # select target park
-target_park <- "SHEN"
+target_park <- "FRSP"
 target_year <- 2026
 
 # load in data and name them based on file path
 # change file path based on user name!
 my_path_file <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/Data Collection/"
+#my_path_file <- "C:/Users/tkaminsky/DOI/Lalor, Alexandra R - NER/FireFX/Data Collection/"
 my_path_data <- paste0(my_path_file, target_park, "/", target_year, "/Collected/")
 my_path_csv <- paste0(my_path_file, target_park, "/", target_year, "/Collected/CSV_Import to FFI/")
 
@@ -148,12 +149,12 @@ for (i in 1:nrow(file_names_df)) {
   
   # Delete empty rows, change numbers in index column into ascending order, replace commas with semicolons
   if (!is.null(Fuels1000)) {
-    Fuels1000 <- subset(Fuels1000, Dia != "") %>%
+    Fuels1000 <- subset(Fuels1000, !(Dia == "" & Comment == "")) %>%
     mutate(Index = row_number()) %>% 
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(FuelsDuffLitt)) {
-  FuelsDuffLitt <- subset(FuelsDuffLitt, LittDep != "" & DuffDep != "") %>%
+  FuelsDuffLitt <- subset(FuelsDuffLitt, !(LittDep == "" & DuffDep == "" & Comment == "")) %>%
     mutate(Index = row_number()) %>% 
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
