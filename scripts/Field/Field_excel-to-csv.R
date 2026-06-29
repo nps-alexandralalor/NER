@@ -173,12 +173,12 @@ for (i in 1:nrow(file_names_df)) {
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(HerbsSpComp)) {
-  HerbsSpComp_test <- subset(HerbsSpComp, !`Seen?` %in% c("N", "n")) %>%
+  HerbsSpComp <- subset(HerbsSpComp, !`Seen?` %in% c("N", "n")) %>%
     mutate(Species = toupper(Species)) %>%
     distinct(Species, Spp_GUID) %>% 
     mutate(Status = "L") %>% 
-    mutate(Index = row_number()) %>%
     arrange(Species) %>% 
+    mutate(Index = row_number()) %>%
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(Seedlings)) {
