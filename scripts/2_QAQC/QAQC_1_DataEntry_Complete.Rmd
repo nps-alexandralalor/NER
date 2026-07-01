@@ -29,6 +29,8 @@ This code is intended to quality check all FFI CSV exports for missing data. Mis
 
         -   There may be an issue exporting the data out of FFI. [Make sure to troubleshoot data exports, and contact FFI developers if the issue cannot be resolved.]{.underline}
 
+            -   Possible reason: Seems like plots with no monitoring status will not be exported
+
 This code uses the Macroplot Report and Sample Event Report from FFI as the reference file for how much data there is "supposed to be". These reports have been combined into a clean "Metadata Report", using the Clean+Merge.Rmd script.
 
 -   MetadataReport.csv
