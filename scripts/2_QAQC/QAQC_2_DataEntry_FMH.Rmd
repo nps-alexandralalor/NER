@@ -41,10 +41,6 @@ This code is intended to quality check plot data for protocols listed below. The
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
-```
-
-```{r install packages, include=FALSE}
-## Install packages (if needed)
 
 # install.packages("tidyverse")
 # install.packages("plyr")
@@ -106,8 +102,8 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "SampleEvent
 # designate target values
 # 2025 parks: "CATO" "GETT" "MONO" "NERI" "RICH" "SHEN"
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-target_park <- c("RICH")
-target_years <- c(2009:2025)
+target_park <- c("FRSP")
+target_years <- c(2026)
 ```
 
 ### Adjust File Paths {.hidden}
@@ -171,10 +167,6 @@ unknowns <- unique(c(unknowns_genus, unknowns_generic))
 
 substrates <- c("BARE","BOLE","2BOLE", "DUFF","FUNG","FUNGUS","HAY","LICH","LICHEN","LITT","LITTER","2LTR","MOSS","ROCK","ROOT","SCAT","SOIL","WATER","WOOD","DDTREE")
 ```
-
-# Selected park(s): [`r target_park`]{style="color:red"}
-
-# Selected year(s): [`r target_years`]{style="color:red"}
 
 # PROTOCOL - SURFACE FUELS
 
@@ -1641,17 +1633,17 @@ values_check <- values_data %in% values_valid
 errors_Trees_CrwnCl_L_Overstory <- qaqc(data, query, query_message, values_check)
 ```
 
--   Filter by DBH = Pole. Check that CrwnCl = X or blank
+-   Filter by DBH = Pole. Check that CrwnCl = X or blank or DD
 
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
   filter(MethodData_DBH_cm <= 15.0)
-data$CrwnCl[is.na(data$MethodData_CrwnCl)] <- ""
+data$MethodData_CrwnCl[is.na(data$MethodData_CrwnCl)] <- ""
 query <- "Trees Crown Class" 
 query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "DBH = pole. Crown Class") 
 values_data <- data$MethodData_CrwnCl
-values_valid <- c("X", "")
+values_valid <- c("X", "", "DD")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -3105,7 +3097,7 @@ if(nrow(errors_Seedlings_Count) > 1) {
 
 [Procedure:]{.underline}
 
--   Sort by Height. Check that Height = 4 or 5
+-   Sort by Height. Check that Height = 1, 2, 3, 4, or 5
 
 ```{r}
 # Set parameters 
@@ -3113,7 +3105,7 @@ data <- Seedlings_data
 query <- "Dens Quad Height" 
 query_message <- paste0("SubFrac = ", data$MethodData_SubFrac, ". ", "Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Height")
 values_data <- data$MethodData_Height_m
-values_valid <- c(4, 5)
+values_valid <- c(1, 2, 3, 4, 5)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -3796,7 +3788,7 @@ errors_HerbsSpComp_Cover <- qaqc(data, query, query_message, values_check)
 
 ### HerbsSpComp Species
 
-[Problem:]{.underline} Species has not been identified. Species native/invasive status needs to be checked.
+[Problem:]{.underline} Species has not been identified.
 
 [Procedure:]{.underline}
 
@@ -4638,7 +4630,7 @@ errors_all <- rbind(errors_blank_Fuels1000, errors_blank, errors_Fuels1000, erro
 ```{r}
 # Create conditional formatting rules
 errors_all_cf <- errors_all %>% 
-  mutate(Color = ifelse((grepl("PROTOCOL", errors_all_cf$SavedQuery) == TRUE), 
+  mutate(Color = ifelse((grepl("PROTOCOL", errors_all$SavedQuery) == TRUE), 
                         "Protocol",
                         ifelse(SavedQuery == "", NA, "Standard")))
 
