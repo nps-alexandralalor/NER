@@ -35,7 +35,7 @@ library(here)
 here()
 
 # select target park
-target_park <- "FRSP"
+target_park <- "RICH"
 target_year <- 2026
 
 # load in data and name them based on file path
@@ -173,7 +173,8 @@ for (i in 1:nrow(file_names_df)) {
     map_df(str_replace_all, pattern = ",", replacement = ";")
   }
   if (!is.null(HerbsSpComp)) {
-  HerbsSpComp <- subset(HerbsSpComp, !`Seen?` %in% c("N", "n")) %>%
+  HerbsSpComp <- subset(HerbsSpComp, !(`Seen?` %in% c("N", "n"))) %>%
+    filter(Species != "") %>% 
     mutate(Species = toupper(Species)) %>%
     distinct(Species, Spp_GUID) %>% 
     mutate(Status = "L") %>% 
