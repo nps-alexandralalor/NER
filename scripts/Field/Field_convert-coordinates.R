@@ -14,11 +14,12 @@ library(purrr)
 library(here)
 
 # designate target park(s)
-target_park <- "ANTI"
+target_park <- "NERI"
 
 # Adjust filr paths
-path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports_Clean/FFI/"
-path_output <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/data_clean/"
+path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_data <- paste0(path_main, "Exports_clean/FFI/")
+path_output <- paste0(here(), "/output/data_clean/")
 
 # Load and filter data
 data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
@@ -26,7 +27,7 @@ data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>%
 
 # Group
 df_locations <- data_raw %>% 
-  select(!c(SampleEvent_Who, SampleEvent_Comment, SampleEvent_Date, SampleEvent_Date_Year, SampleEvent_LegacyMonitoringStatus, 
+  select(!c(SampleEvent_Who, SampleEvent_Comment, SampleEvent_Date, SampleEvent_LegacyMonitoringStatus, 
             SampleEvent_Protocols, SampleEvent_Visited, MonitoringStatus_Name)) %>% 
   distinct() %>% 
   select(c(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, ProjectUnit_Name,
