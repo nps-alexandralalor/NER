@@ -16,8 +16,8 @@ library(here)
 
 
 # load in data.
-path_data <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports_Clean/FFI/"
-path_output <- "C:/Users/alalor/OneDrive - DOI/R/NER/output/data_clean/"
+path_data <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/Exports_clean/FFI/"
+path_output <- paste0(here(), "/output/data_clean/")
 parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 
 

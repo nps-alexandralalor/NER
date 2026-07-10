@@ -17,8 +17,7 @@ library(here)
 target_park <- "NERI"
 
 # Adjust filr paths
-path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_clean/FFI/")
+path_data <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/Exports_clean/FFI/"
 path_output <- paste0(here(), "/output/data_clean/")
 
 # Load and filter data
