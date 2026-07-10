@@ -540,7 +540,7 @@ errors_Fuels_CrossYear_blanks <- condformat(errors_Fuels_CrossYear_blanks[1:(nro
 
 #write_xlsx(errors_Fuels_CrossYear, paste0(path_errors, "errors_Fuels_CrossYear.xlsx"))
 # Formatted
-condformat2excel(errors_Fuels_CrossYear_blanks, paste0(path_errors, "errors_CrossYear_Fuels_formatted.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+condformat2excel(errors_Fuels_CrossYear_blanks, paste0(path_errors, "Errors_DataEntry_CrossYear_Fuels.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
 
 # PROTOCOL - TREES
@@ -771,5 +771,5 @@ path_errors
 
 #write_xlsx(errors_Trees_CrossYear, paste0(path_errors, "errors_CrossYear.xlsx"))
 # Formatted
-condformat2excel(errors_Trees_CrossYear_blanks, paste0(path_errors, "errors_CrossYear_Trees_formatted.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+condformat2excel(errors_Trees_CrossYear_blanks, paste0(path_errors, "Errors_DataEntry_CrossYear_Trees.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
