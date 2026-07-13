@@ -48,7 +48,7 @@ for(i in parks) {
 
 
 
-## All parks, all FMH plots
+## All parks, all FMH & RA plots
 
   # load CSV
   data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
