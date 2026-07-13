@@ -52,7 +52,8 @@ for(i in parks) {
 
   # load CSV
   data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
-    filter(Macroplot_Purpose == "Fire Monitoring Handbook")
+    filter(Macroplot_Purpose != "Composite Burn Index") %>% 
+    filter(Macroplot_Purpose != "Inventory & Monitoring")
   
   # group
   data_locations <- data_raw %>%
