@@ -66,7 +66,7 @@ for(i in parks) {
            !is.na(Macroplot_Long_dd))
     
   # save file
-  write.csv(data_final, paste0(path_output, "NER_FMH_PlotLocations.csv"), quote=FALSE, row.names = FALSE)
+  write.csv(data_final, paste0(path_output, "_NER_FMH_PlotLocations.csv"), quote=FALSE, row.names = FALSE)
 
     
     
@@ -84,7 +84,7 @@ for(i in parks) {
     distinct()
   
   # save file
-  write.csv(data_locations, paste0(path_output, "NER_ALL_PlotLocations.csv"), quote=FALSE, row.names = FALSE)
+  write.csv(data_locations, paste0(path_output, "_NER_ALL_PlotLocations.csv"), quote=FALSE, row.names = FALSE)
   
   
   
