@@ -38,9 +38,8 @@ df_filtered <- df_locations %>%
          !is.na(Macroplot_UtmX_m))
 
 
-#write.csv(df_filtered, paste0(path_output, target_park, "_PlotCoordinates.csv"), quote=FALSE, row.names = FALSE, na = "") 
-# path_data <- "C:/Users/alalor/OneDrive - DOI/Desktop/ANTI_PlotCoordinates.csv"
-# df_filtered <- read.csv((path_data))
+# write.csv(df_filtered, paste0(path_output, target_park, "_PlotCoordinates.csv"), quote=FALSE, row.names = FALSE, na = "") 
+# df_filtered <- read.csv(paste0(here(), "/output/data_clean/", target_park, "_PlotCoordinates.csv"))
 
 ################
 # Functions to convert coordinates
