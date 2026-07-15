@@ -48,12 +48,11 @@ for(i in parks) {
 
 
 
-## All parks, all FMH & RA plots
+## All parks, all FMH
 
   # load CSV
   data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
-    filter(Macroplot_Purpose != "Composite Burn Index") %>% 
-    filter(Macroplot_Purpose != "Inventory & Monitoring")
+    filter(Macroplot_Purpose == "Fire Monitoring Handbook")
   
   # group
   data_locations <- data_raw %>%
@@ -68,6 +67,76 @@ for(i in parks) {
     
   # save file
   write.csv(data_final, paste0(path_output, "_NER_FMH_PlotLocations.csv"), quote=FALSE, row.names = FALSE)
+  
+  
+  
+  
+  
+## All parks, all RA
+  
+  # load CSV
+  data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
+    filter(Macroplot_Purpose == "Rapid Assessment")
+  
+  # group
+  data_locations <- data_raw %>%
+    select(c(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, ProjectUnit_Name, Macroplot_UV1, Macroplot_UV2, 
+             Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum)) %>%
+    distinct()
+  
+  # filter
+  data_final <- data_locations %>%
+    filter(!is.na(Macroplot_Lat_dd),
+           !is.na(Macroplot_Long_dd))
+  
+  # save file
+  write.csv(data_final, paste0(path_output, "_NER_RA_PlotLocations.csv"), quote=FALSE, row.names = FALSE)
+  
+  
+  
+  
+## All parks, all CBI
+  
+  # load CSV
+  data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
+    filter(Macroplot_Purpose == "Composite Burn Index")
+  
+  # group
+  data_locations <- data_raw %>%
+    select(c(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, ProjectUnit_Name, Macroplot_UV1, Macroplot_UV2, 
+             Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum)) %>%
+    distinct()
+  
+  # filter
+  data_final <- data_locations %>%
+    filter(!is.na(Macroplot_Lat_dd),
+           !is.na(Macroplot_Long_dd))
+  
+  # save file
+  write.csv(data_final, paste0(path_output, "_NER_CBI_PlotLocations.csv"), quote=FALSE, row.names = FALSE)
+
+  
+  
+  
+## All parks, all I&M
+  
+  # load CSV
+  data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
+    filter(Macroplot_Purpose == "Inventory & Monitoring")
+  
+  # group
+  data_locations <- data_raw %>%
+    select(c(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, ProjectUnit_Name, Macroplot_UV1, Macroplot_UV2, 
+             Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum)) %>%
+    distinct()
+  
+  # filter
+  data_final <- data_locations %>%
+    filter(!is.na(Macroplot_Lat_dd),
+           !is.na(Macroplot_Long_dd))
+  
+  # save file
+  write.csv(data_final, paste0(path_output, "_NER_I&M_PlotLocations.csv"), quote=FALSE, row.names = FALSE)
 
     
     
