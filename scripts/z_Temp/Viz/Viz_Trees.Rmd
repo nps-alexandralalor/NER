@@ -1,0 +1,241 @@
+---
+title: "FFI Database Summary"
+subtitle: "Grand Canyon"
+output: 
+  html_document:
+    theme: readable
+    highlight: 
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      smooth_scroll: yes
+    code_download: true
+date: "`r Sys.Date()`"
+---
+
+# Purpose
+
+### Setup
+
+```{r}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+## Install packages (if needed)
+
+# install.packages("tidyverse")
+# install.packages("kableExtra")
+# install.packages("ggplot2")
+# install.packages("readxl")
+```
+
+```{r}
+## Load Packages
+
+# "here" helps you easily find and reference your working directory
+library(here)
+# "tidyverse" has lots of useful functions for data cleaning
+library(tidyverse)
+# "kableExtra" is used to produce formatted tables
+library(kableExtra)
+library(ggplot2)
+library(readxl)
+```
+
+### Target Values {.hidden}
+
+```{r}
+# designate target values
+
+# parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+target_park <- "SHEN"
+```
+
+### Adjust File Paths
+
+```{r}
+# Adjust File Paths
+#path_data <- "X:/FFI Data Management/Exports from FFI/GRCA_FMH/2025-01-23/"
+path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_data <- paste0(path_main, "Exports_Clean/FFI/")
+path_errors <- paste0(here(), "/output/errors/")
+```
+
+### Load Data
+
+```{r}
+# Load in data
+Trees_all <- read.csv(paste0(path_data, "metric_trees_individuals.csv"))
+errors_Trees_CrossYear <- read_excel(paste0(path_errors, "Errors_DataEntry_CrossYear_Trees.xlsx"))
+```
+
+### Clean Data
+
+```{r}
+Trees_all <- Trees_all %>%
+  # Reformat Date column
+  mutate(SampleEvent_Date = as.Date(SampleEvent_Date)) %>%
+  mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>%
+  relocate(SampleEvent_Date_Year, .after = SampleEvent_Date)
+```
+
+### Filter Data
+
+```{r}
+Trees_data <- Trees_all %>%
+  # Filter for target park
+  filter(AdminUnit_Name == target_park)
+```
+
+# Data Viz - Trees
+
+#### Mutate Data for Graphing
+
+```{r}
+graph_Trees_data <- Trees_data %>% 
+  mutate(MethodData_Status = ifelse(MethodData_CrwnCl == "DD", "DD", MethodData_Status)) %>% 
+  mutate(MethodData_SubFrac = factor(MethodData_SubFrac),
+         MethodData_TagNo = factor(MethodData_TagNo),
+         MethodData_Status = factor(MethodData_Status, levels = c("L", "D", "DD")),
+         MethodData_CrwnCl = factor(MethodData_CrwnCl, levels = c("X", "",
+                                            "SC", "I", "C", "D",
+                                            "RS", "LBS", "CS", "BAD", 
+                                            "BBD", "CUS", "DD")))
+```
+
+#### Define Target Plot & Isolate Problematic Tree Tags
+
+```{r}
+##################################################################################
+unique(errors_Trees_CrossYear$Macroplot_Name)
+target_plot <- "Pine Oak 02"
+##################################################################################
+
+badtags_DBH <- errors_Trees_CrossYear %>% 
+  filter(grepl("DBH", errors_Trees_CrossYear$SavedQuery)) %>% 
+  filter(Macroplot_Name == target_plot)
+badtags_DBH <- unique(badtags_DBH$MethodData_TagNo)
+
+badtags_Height <- errors_Trees_CrossYear %>% 
+  filter(grepl("Height", errors_Trees_CrossYear$SavedQuery)) %>% 
+  filter(Macroplot_Name == target_plot)
+badtags_Height <- unique(badtags_Height$MethodData_TagNo)
+
+badtags_Species <- errors_Trees_CrossYear %>% 
+  filter(grepl("Species", errors_Trees_CrossYear$SavedQuery)) %>% 
+  filter(Macroplot_Name == target_plot)
+badtags_Species <- unique(badtags_Species$MethodData_TagNo)
+
+badtags_Status <- errors_Trees_CrossYear %>% 
+  filter(grepl("Status", errors_Trees_CrossYear$SavedQuery)) %>% 
+  filter(Macroplot_Name == target_plot)
+badtags_Status <- unique(badtags_Status$MethodData_TagNo)
+```
+
+## [`r target_plot`]{style="color:red"}
+
+### Status
+
+```{r}
+graph_Trees_data %>% 
+  filter(Macroplot_Name == target_plot,
+         MethodData_TagNo %in% c(badtags_Status)) %>% 
+  arrange(SampleEvent_Date) %>% 
+  ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_TagNo)) +
+  geom_line(aes(group = MethodData_TagNo, color = MethodData_Status), size = 1) +
+  geom_point(aes(fill = MethodData_Status), shape = 21, size = 3) +
+  scale_fill_manual(values = c("L" = "forestgreen", "D" = "darkorange", "DD" = "red")) +
+  scale_color_manual(values=c("L" = "forestgreen", "D" = "darkorange", "DD" = "red")) +
+  labs(title = target_plot) +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 12, face="italic", hjust = 0.5),
+        axis.title = element_text(size = 12, face="bold"),
+        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+        axis.text.y = element_text(size = 5),
+        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
+```
+
+### Species
+
+```{r}
+graph_Trees_data %>% 
+  filter(Macroplot_Name == target_plot,
+         MethodData_TagNo %in% c(badtags_Species)) %>% 
+  arrange(SampleEvent_Date) %>% 
+  ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_TagNo)) +
+  geom_line(aes(group = MethodData_TagNo, color = MethodData_LocalSpeciesSymbol), size = 1) +
+  geom_point(aes(fill = MethodData_Status), shape = 21, size = 3) +
+  scale_fill_manual(values = c("L" = "forestgreen", "D" = "darkorange", "DD" = "red")) +
+  labs(title = target_plot) +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 12, face="italic", hjust = 0.5),
+        axis.title = element_text(size = 12, face="bold"),
+        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+        axis.text.y = element_text(size = 5),
+        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
+```
+
+### DBH
+
+Live trees should only increase DBH. Dead trees should only decrease DBH.
+
+```{r}
+graph_Trees_data %>% 
+  filter(Macroplot_Name == target_plot,
+         MethodData_TagNo %in% c(badtags_DBH)
+         # !is.na(MethodData_DBH_cm),
+         # MethodData_Status != "DD") 
+         ) %>% 
+  arrange(SampleEvent_Date) %>% 
+  ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_DBH_cm)) +
+  geom_line(aes(group = MethodData_TagNo, color = MethodData_TagNo), size = 1) +
+  geom_point(aes(fill = MethodData_Status), shape = 21, size = 3) +
+  scale_fill_manual(values=c("L" = "forestgreen", "D" = "darkorange")) +
+  labs(title = target_plot) +
+  #facet_wrap(~MethodData_Status) +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 12, face="italic", hjust = 0.5),
+        axis.title = element_text(size = 12, face="bold"),
+        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+        axis.text.y = element_text(size = 5),
+        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
+```
+
+### Height
+
+Live trees should only increase in height. Dead trees should only decrease in height.
+
+```{r}
+graph_Trees_data %>% 
+  filter(Macroplot_Name == target_plot,
+         MethodData_TagNo %in% c(badtags_Height),
+         !is.na(MethodData_Ht_m),
+         MethodData_Status != "DD") %>% 
+  arrange(SampleEvent_Date) %>% 
+  ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_Ht_m)) +
+  geom_line(aes(group = MethodData_TagNo, color = MethodData_TagNo), size = 1) +
+  geom_point(aes(fill = MethodData_Status), shape = 21, size = 3) +
+  scale_fill_manual(values=c("L" = "forestgreen", "D" = "darkorange")) +
+  labs(title = target_plot) +
+  #facet_wrap(~MethodData_Status) +
+  theme_light() +
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        plot.title = element_text(size = 20, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(size = 12, face="italic", hjust = 0.5),
+        axis.title = element_text(size = 12, face="bold"),
+        axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+        axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+        axis.text.y = element_text(size = 5),
+        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
+```
