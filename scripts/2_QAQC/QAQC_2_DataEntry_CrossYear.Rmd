@@ -63,7 +63,7 @@ source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
 # designate target values
 
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-target_park <- "FRSP"
+target_park <- "NERI"
 ```
 
 ### Adjust File Paths
@@ -96,9 +96,9 @@ for (name in df_names) {
   
   # filter data for target park
   filtered_df <- current_df %>% 
-    # mutate(SampleEvent_Date = as.Date(SampleEvent_Date)) %>% 
-    # mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
-    # relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>% 
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date)) %>%
+    mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>%
+    relocate(SampleEvent_Date_Year, .after = SampleEvent_Date) %>%
     filter(
       AdminUnit_Name == target_park
       )
@@ -118,10 +118,10 @@ This QAQC check isolates *incorrect* changes in the following values. Setting th
 max_Azimuth <- 30
 
 # DBH (centimeters)
-max_DBH <- 5
+max_DBH <- 1
 
 # Height (meters)
-max_Ht <- 5
+max_Ht <- 2
 ```
 
 ## Add Columns
@@ -136,7 +136,7 @@ max_Ht <- 5
 # Find data with multiple slopes
 Fuels1000_data_CrossYear_Slope <- Fuels1000_data_CrossYear %>% 
   group_by(Macroplot_Name, MethodData_Transect) %>% 
-  mutate(Slope_Count = n_distinct(unique(MethodData_Slope_pct))) %>% 
+  mutate(Slope_Count = n_distinct(unique(abs(MethodData_Slope_pct)))) %>% 
   ungroup() %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Transect)
 
@@ -154,7 +154,7 @@ remove(Fuels1000_data_CrossYear_Slope)
 # Find data with multiple slopes
 FuelsFine_data_CrossYear_Slope <- FuelsFine_data_CrossYear %>% 
   group_by(Macroplot_Name, MethodData_Transect) %>% 
-  mutate(Slope_Count = n_distinct(unique(MethodData_Slope_pct))) %>% 
+  mutate(Slope_Count = n_distinct(unique(abs(MethodData_Slope_pct)))) %>% 
   ungroup() %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Transect)
 
@@ -514,6 +514,24 @@ remove(errors_Fuels1000_CrossYear_Slope, errors_FuelsFine_CrossYear_Slope, error
 ```
 
 ```{r}
+errors_Fuels_CrossYear <- errors_Fuels_CrossYear %>% 
+  mutate(MethodData_TagNo = NA) %>% 
+  relocate(MethodData_TagNo, .before = Error)
+
+# Edit blank data frame for preferred error log template.
+errors_blank <- data.frame("SavedQuery" = "", 
+                           "AdminUnit_Name" = "", 
+                           "SampleEvent_TreatmentUnit" = "", 
+                           "Macroplot_Name" = "", 
+                           "MethodData_Transect" = as.integer(NA), 
+                           "MethodData_TagNo" = "",
+                           "Error" = "", 
+                           "Fixed" = "", 
+                           "Explanation" = "", 
+                           "Queryers" = "")
+```
+
+```{r}
 # Formatting
 
 # Add blank rows between each tag number
@@ -745,6 +763,24 @@ remove(errors_Trees_CrossYear_DBH_Live, errors_Trees_CrossYear_DBH_Dead, errors_
 ```
 
 ```{r}
+errors_Trees_CrossYear <- errors_Trees_CrossYear %>% 
+  mutate(MethodData_Transect = NA) %>% 
+  relocate(MethodData_Transect, .after = Macroplot_Name)
+
+# Edit blank data frame for preferred error log template.
+errors_blank <- data.frame("SavedQuery" = "", 
+                           "AdminUnit_Name" = "", 
+                           "SampleEvent_TreatmentUnit" = "", 
+                           "Macroplot_Name" = "", 
+                           "MethodData_Transect" = as.integer(NA), 
+                           "MethodData_TagNo" = "",
+                           "Error" = "", 
+                           "Fixed" = "", 
+                           "Explanation" = "", 
+                           "Queryers" = "")
+```
+
+```{r}
 # Formatting
 
 # Add blank rows between each tag number
@@ -757,9 +793,9 @@ for (i in 2:nrow(errors_Trees_CrossYear)) {
   }
 }
 
-# Add conditional formating to ouput
-errors_Trees_CrossYear_blanks <- condformat(errors_Trees_CrossYear_blanks[1:(nrow(errors_Trees_CrossYear_blanks)), 1:7]) %>%
-  rule_fill_discrete(columns = 1:7,
+# # Add conditional formating to ouput
+errors_Trees_CrossYear_blanks <- condformat(errors_Trees_CrossYear_blanks[1:(nrow(errors_Trees_CrossYear_blanks)), 1:ncol(errors_Trees_CrossYear)]) %>%
+  rule_fill_discrete(columns = 1:ncol(errors_Trees_CrossYear),
                      expression = SavedQuery != "",
                      colours = c("TRUE" = "#C6E0B4"),
                      na.value = "#FFFFFF")
@@ -771,5 +807,13 @@ path_errors
 
 #write_xlsx(errors_Trees_CrossYear, paste0(path_errors, "errors_CrossYear.xlsx"))
 # Formatted
-condformat2excel(errors_Trees_CrossYear_blanks, paste0(path_errors, "Errors_DataEntry_CrossYear_Trees.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+# condformat2excel(errors_Trees_CrossYear_blanks, paste0(path_errors, "Errors_DataEntry_CrossYear_Trees.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+```
+
+## COMBINE ERRORS
+
+```{r}
+errors_CrossYear_blanks <- rbind(errors_Fuels_CrossYear_blanks, errors_blank, errors_Trees_CrossYear_blanks)
+
+condformat2excel(errors_CrossYear_blanks, paste0(path_errors, target_park,  "_Errors_DataEntry_CrossYear.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
