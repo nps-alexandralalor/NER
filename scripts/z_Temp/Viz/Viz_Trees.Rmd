@@ -50,7 +50,7 @@ library(readxl)
 # designate target values
 
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-target_park <- "SHEN"
+target_park <- "NERI"
 ```
 
 ### Adjust File Paths
@@ -68,7 +68,7 @@ path_errors <- paste0(here(), "/output/errors/")
 ```{r}
 # Load in data
 Trees_all <- read.csv(paste0(path_data, "metric_trees_individuals.csv"))
-errors_Trees_CrossYear <- read_excel(paste0(path_errors, "Errors_DataEntry_CrossYear_Trees.xlsx"))
+errors_Trees_CrossYear <- read_excel(paste0(path_errors, target_park,  "_Errors_DataEntry_CrossYear.xlsx"))
 ```
 
 ### Clean Data
@@ -110,7 +110,7 @@ graph_Trees_data <- Trees_data %>%
 ```{r}
 ##################################################################################
 unique(errors_Trees_CrossYear$Macroplot_Name)
-target_plot <- "Pine Oak 02"
+target_plot <- "Plot 03"
 ##################################################################################
 
 badtags_DBH <- errors_Trees_CrossYear %>% 
