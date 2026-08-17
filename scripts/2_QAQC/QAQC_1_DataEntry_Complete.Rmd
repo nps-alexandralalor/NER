@@ -64,10 +64,6 @@ These protocols are included in the code and have been cleaned using the Clean+M
 ```{r setup, include=FALSE}
 ## Markdown Options
 knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
-```
-
-```{r install packages, include=FALSE}
-## Install packages (if needed)
 
 # install.packages("tidyverse")
 # install.packages("janitor")
@@ -607,7 +603,7 @@ errors_all <- rbind(errors_blank_Fuels1000, errors_blank, errors_Fuels1000, erro
 # Create conditional formatting rules
 errors_all_cf <- errors_all %>% 
   mutate(Color = ifelse((grepl("PROTOCOL|REPORT", 
-                               errors_all_cf$SavedQuery) == TRUE), "Protocol",
+                               errors_all$SavedQuery) == TRUE), "Protocol",
                         ifelse(SavedQuery == "", NA, "Standard")))
 
 # Add conditional formating to ouput
