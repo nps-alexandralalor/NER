@@ -61,7 +61,7 @@ source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
 
 ```{r target values, include=FALSE}
 # designate target values
-
+# parks with fuels or trees data
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
 target_park <- "NERI"
 ```
