@@ -874,7 +874,7 @@ errors_FuelsFine_TenHrTranLen <- qaqc(data, query, query_message, values_check)
 # Set parameters  
 data <- FuelsFine_data
 query <- "Fuel Fine Header" 
-query_message <- "Hundrend Hour Transect Length"  
+query_message <- "Hundred Hour Transect Length"  
 values_data <- data$MethodData_HunHrTranLen_ft
 values_valid <- 12
 values_check <- values_data == values_valid
@@ -1959,17 +1959,16 @@ values_check <- values_data == values_valid
 errors_Trees_Height_Overstory <- qaqc(data, query, query_message, values_check)
 ```
 
--   Filter for Pole trees. Check that Ht = 1, 2, 3, 4, 5, 6, 7, 8, 9, or 10 or blank.
+-   Filter for Pole trees. Check that Ht = 1 - 25 m.
 
 ```{r}
 # Set parameters 
 data <- Trees_data %>% 
   filter(MethodData_DBH_cm <= 15.0)
-data$MethodData_Ht_m[is.na(data$MethodData_Ht_m)] <- ""
 query <- "Trees Height" 
 query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "DBH = pole. Height")
 values_data <- data$MethodData_Ht_m
-values_valid <- c("", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+values_valid <- seq(1, 25, by = 1)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -2901,13 +2900,13 @@ path_errors
 #write_xlsx(errors_Trees, paste0(path_errors, "errors_GRCA_FMH_Trees.xlsx"))
 ```
 
-# PROTOCOL - SEEDLINGS
+# PROTOCOL - DENS QUAD SEEDLINGS
 
 This code conducts quality control checks on seedling data within the "Density - Quadrats (metric)" data set.
 
 It checks for errors in: headers, seedling counts, subplot fractions, heights, status, and life form.
 
-### Seedlings Header
+### Dens Quad Header
 
 [Problem:]{.underline} Incorrect header information entered for FMH plots.
 
@@ -3034,7 +3033,7 @@ if(nrow(errors_Seedlings_Header) > 1) {
   errors_Seedlings_Header <- errors_Seedlings_Header}
 ```
 
-### Seedlings Count
+### Dens Quad Count
 
 [Problem:]{.underline} Seedling count values missing, zero, or excessively high.
 
@@ -3091,7 +3090,7 @@ if(nrow(errors_Seedlings_Count) > 1) {
   errors_Seedlings_Count <- errors_Seedlings_Count}
 ```
 
-### Seedlings Height
+### Dens Quad Height
 
 [Problem:]{.underline} Incorrect values entered for height or height values missing.
 
@@ -3112,7 +3111,7 @@ values_check <- values_data %in% values_valid
 errors_Seedlings_Height <- qaqc(data, query, query_message, values_check)
 ```
 
-### Seedlings LifeForm
+### Dens Quad LifeForm
 
 [Problem:]{.underline} Species entered that are not trees.
 
@@ -3133,7 +3132,7 @@ values_check <- values_data == values_valid
 errors_Seedlings_LifeForm <- qaqc(data, query, query_message, values_check)
 ```
 
-### Seedlings Quadrat
+### Dens Quad Quadrat
 
 [Problem:]{.underline} Incorrect values entered for quadrat.
 
@@ -3154,7 +3153,7 @@ values_check <- values_data == values_valid
 errors_Seedlings_Quadrat <- qaqc(data, query, query_message, values_check)
 ```
 
-### Seedlings Status
+### Dens Quad Status
 
 [Problem:]{.underline} Species do not have an entry for status or have an entry that we don’t use.
 
@@ -3175,7 +3174,7 @@ values_check <- values_data %in% values_valid
 errors_Seedlings_Status <- qaqc(data, query, query_message, values_check)
 ```
 
-### Seedlings SubFrac
+### Dens Quad SubFrac
 
 [Problem:]{.underline} Incorrect subplot fraction entered or subplot fraction missing for FMH plots.
 
@@ -3196,7 +3195,7 @@ values_check <- values_data %in% values_valid
 errors_Seedlings_SubFrac <- qaqc(data, query, query_message, values_check)
 ```
 
-### Seedlings Transect
+### Dens Quad Transect
 
 [Problem:]{.underline} Incorrect values entered for transect.
 
@@ -3217,7 +3216,7 @@ values_check <- values_data == values_valid
 errors_Seedlings_Transect <- qaqc(data, query, query_message, values_check)
 ```
 
-### Seedlings Zero
+### Dens Quad Zero
 
 [Problem:]{.underline}  Values entered for columns which should be blank.
 
@@ -3269,7 +3268,7 @@ if(nrow(errors_Seedlings_Zero) > 1) {
   errors_Seedlings_Zero <- errors_Seedlings_Zero}
 ```
 
-### Seedlings Errors
+### Dens Quad Errors
 
 ```{r}
 errors_Seedlings <- rbind(errors_Seedlings_Header, errors_blank, errors_Seedlings_Count, errors_blank, errors_Seedlings_Height, errors_blank, errors_Seedlings_LifeForm,  errors_blank, errors_Seedlings_Quadrat, errors_blank, errors_Seedlings_Status, errors_blank, errors_Seedlings_SubFrac, errors_blank, errors_Seedlings_Transect, errors_blank, errors_Seedlings_Zero)
@@ -3287,13 +3286,13 @@ path_errors
 #write_xlsx(errors_Seedlings, paste0(path_errors, "errors_GRCA_FMH_Seedlings.xlsx"))
 ```
 
-# PROTOCOL - SHRUBS
+# PROTOCOL - DENS BELTS SHRUBS
 
 This code conducts quality control checks on shrub data within the "Density - Belts (metric)" data set.
 
 It checks for errors in: heades, age class, shrub counts, life form, status, subbelt, subplot fraction, and transect.
 
-### Shrubs Header
+### Dens Belts Header
 
 [Problem:]{.underline} Incorrect header information entered.
 
@@ -3421,7 +3420,7 @@ if(nrow(errors_Shrubs_Header) > 1) {
   errors_Shrubs_Header <- errors_Shrubs_Header}
 ```
 
-### Shrubs AgeCl
+### Dens Belts AgeCl
 
 [Problem:]{.underline} Species do not have an entry for age class or have an entry that we don’t use.
 
@@ -3442,7 +3441,7 @@ values_check <- values_data %in% values_valid
 errors_Shrubs_AgeCl <- qaqc(data, query, query_message, values_check)
 ```
 
-### Shrubs Count
+### Dens Belts Count
 
 [Problem:]{.underline} Count values missing, zero, or excessively high (\>100 is possible, but should be verified).
 
@@ -3499,7 +3498,7 @@ if(nrow(errors_Shrubs_Count) > 1) {
   errors_Shrubs_Count <- errors_Shrubs_Count}
 ```
 
-### Shrubs LifeForm
+### Dens Belts LifeForm
 
 [Problem:]{.underline} Species entered that are not shrubs.
 
@@ -3520,7 +3519,7 @@ values_check <- values_data %in% values_valid
 errors_Shrubs_LifeForm <- qaqc(data, query, query_message, values_check)
 ```
 
-### Shrubs Status
+### Dens Belts Status
 
 [Problem:]{.underline} Species do not have an entry for status or have an entry that we don’t use.
 
@@ -3541,7 +3540,7 @@ values_check <- values_data %in% values_valid
 errors_Shrubs_Status <- qaqc(data, query, query_message, values_check)
 ```
 
-### Shrubs SubBelt
+### Dens Belts SubBelt
 
 [Problem:]{.underline} Incorrect subbelt values entered or subbelt values missing.
 
@@ -3562,7 +3561,7 @@ values_check <- values_data %in% values_valid
 errors_Shrubs_SubBelt <- qaqc(data, query, query_message, values_check)
 ```
 
-### Shrubs SubFrac
+### Dens Belts SubFrac
 
 [Problem:]{.underline} Subplot fraction missing or incorrect.
 
@@ -3583,7 +3582,7 @@ values_check <- values_data %in% values_valid
 errors_Shrubs_SubFrac <- qaqc(data, query, query_message, values_check)
 ```
 
-### Shrubs Transect
+### Dens Belts Transect
 
 [Problem:]{.underline} Incorrect transect numbers entered or transect number missing.
 
@@ -3604,7 +3603,7 @@ values_check <- values_data %in% values_valid
 errors_Shrubs_Transect <- qaqc(data, query, query_message, values_check)
 ```
 
-### Shrubs Zero
+### Dens Belts Zero
 
 [Problem:]{.underline}  Values entered for columns which should be blank.
 
@@ -3656,7 +3655,7 @@ if(nrow(errors_Shrubs_Zero) > 1) {
   errors_Shrubs_Zero <- errors_Shrubs_Zero}
 ```
 
-### Shrubs Errors
+### Dens Belts Errors
 
 ```{r}
 errors_Shrubs <- rbind(errors_Shrubs_Header, errors_blank, errors_Shrubs_AgeCl, errors_blank, errors_Shrubs_Count, errors_blank, errors_Shrubs_LifeForm, errors_blank, errors_Shrubs_Status, errors_blank, errors_Shrubs_SubBelt, errors_blank, errors_Shrubs_SubFrac, errors_blank, errors_Shrubs_Transect, errors_blank, errors_Shrubs_Zero)
@@ -3674,13 +3673,13 @@ path_errors
 #write_xlsx(errors_Shrubs, paste0(path_errors, "errors_GRCA_FMH_Shrubs.xlsx"))
 ```
 
-# PROTOCOL - HERBS SPECIES COMP
+# PROTOCOL - COVER SPECIES COMP
 
 This code conducts quality control checks on observed herbaceous data within the "Cover - Species Composition (metric)" data set.
 
 It checks for errors in: cover, species, and status.
 
-### HerbsSpComp Header
+### Cvr SpComp Header
 
 [Problem:]{.underline} Incorrect header information entered.
 
@@ -3702,16 +3701,15 @@ values_check <- values_data == values_valid
 errors_HerbsSpComp_MinCovLevel <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Area is blank
+-   Check that Area is 0.1 ha
 
 ```{r}
 # Set parameters  
 data <- HerbsSpComp_data
-data$MethodData_Area_ha[is.na(data$MethodData_Area_ha)] <- ""
 query <- "Cvr SpComp Header" 
 query_message <- "Area"  
 values_data <- data$MethodData_Area_ha
-values_valid <- ""
+values_valid <- 0.1
 values_check <- values_data == values_valid
 
 # Identify errors
@@ -3764,7 +3762,7 @@ if(nrow(errors_HerbsSpComp_Header) > 1) {
   errors_HerbsSpComp_Header <- errors_HerbsSpComp_Header}
 ```
 
-### HerbsSpComp Cover
+### Cvr SpComp Cover
 
 [Problem:]{.underline} Cover values are entered for herbaceous species in FMH plots.
 
@@ -3786,7 +3784,7 @@ values_check <- values_data == values_valid
 errors_HerbsSpComp_Cover <- qaqc(data, query, query_message, values_check)
 ```
 
-### HerbsSpComp Species
+### Cvr SpComp Species
 
 [Problem:]{.underline} Species has not been identified.
 
@@ -3837,7 +3835,7 @@ if(nrow(errors_HerbsSpComp_Species) > 1) {
   errors_HerbsSpComp_Species <- errors_HerbsSpComp_Species}
 ```
 
-### HerbsSpComp Status
+### Cvr SpComp Status
 
 [Problem:]{.underline} Species do not have an entry for status or have an entry that we don’t use.
 
@@ -3859,7 +3857,7 @@ values_check <- values_data %in% values_valid
 errors_HerbsSpComp_Status <- qaqc(data, query, query_message, values_check)
 ```
 
-### HerbsSpComp Zero
+### Cvr SpComp Zero
 
 [Problem:]{.underline}  Values entered for columns which should be blank.
 
@@ -3927,7 +3925,7 @@ if(nrow(errors_HerbsSpComp_Zero) > 1) {
   errors_HerbsSpComp_Zero <- errors_HerbsSpComp_Zero}
 ```
 
-### HerbsSpComp Errors
+### Cvr SpComp Errors
 
 ```{r}
 errors_HerbsSpComp <- rbind(errors_HerbsSpComp_Header, errors_blank, errors_HerbsSpComp_Cover, errors_blank, errors_HerbsSpComp_Species, errors_blank, errors_HerbsSpComp_Status, errors_blank, errors_HerbsSpComp_Zero)
@@ -3945,13 +3943,13 @@ path_errors
 #write_xlsx(errors_HerbsSpComp, paste0(path_errors, "errors_GRCA_FMH_HerbsSpComp.xlsx"))
 ```
 
-# PROTOCOL - HERBS POINTS
+# PROTOCOL - COVER POINTS
 
 This code conducts quality control checks on point line intercept herbaceous data within the "Cover - Points (metric)" data set.
 
 It checks for errors in: height, order, points, status, tape, and transect.
 
-### HerbsPoints Complete
+### Cvr Points Complete
 
 [Problem:]{.underline} Sample points are missing from data.
 
@@ -4020,7 +4018,7 @@ if(nrow(errors_HerbsPoints_Complete) > 1) {
   errors_HerbsPoints_Complete <- errors_HerbsPoints_Complete}
 ```
 
-### HerbsPoints Header
+### Cvr Points Header
 
 [Problem:]{.underline} Incorrect header information entered.
 
@@ -4132,7 +4130,7 @@ if(nrow(errors_HerbsPoints_Header) > 1) {
   errors_HerbsPoints_Header <- errors_HerbsPoints_Header}
 ```
 
-### HerbsPoints Height
+### Cvr Points Height
 
 [Problem:]{.underline} Height measurements entered incorrectly.
 
@@ -4236,7 +4234,7 @@ if(nrow(errors_HerbsPoints_Height) > 1) {
   errors_HerbsPoints_Height <- errors_HerbsPoints_Height}
 ```
 
-### HerbsPoints Order
+### Cvr Points Order
 
 [Problem:]{.underline} Order numbers entered incorretly.
 
@@ -4307,7 +4305,7 @@ if(nrow(errors_HerbsPoints_Order) > 1) {
   errors_HerbsPoints_Order <- errors_HerbsPoints_Order}
 ```
 
-### HerbsPoints Point
+### Cvr Points Point
 
 [Problem:]{.underline} Incorrect point numbers entered or point number missing.
 
@@ -4398,7 +4396,7 @@ if(nrow(errors_HerbsPoints_Point) > 1) {
   errors_HerbsPoints_Point <- errors_HerbsPoints_Point}
 ```
 
-### HerbsPoints Species
+### Cvr Points Species
 
 [Problem:]{.underline} Species has not been identified. Species native/invasive status needs to be checked.
 
@@ -4449,7 +4447,7 @@ if(nrow(errors_HerbsPoints_Species) > 1) {
   errors_HerbsPoints_Species <- errors_HerbsPoints_Species}
 ```
 
-### HerbsPoints Status
+### Cvr Points Status
 
 [Problem:]{.underline} Species do not have an entry for status or have an entry that we don’t use.
 
@@ -4518,7 +4516,7 @@ if(nrow(errors_HerbsPoints_Status) > 1) {
   errors_HerbsPoints_Status <- errors_HerbsPoints_Status}
 ```
 
-### HerbsPoints Tape
+### Cvr Points Tape
 
 [Problem:]{.underline} Incorrect tape numbers entered or tape number missing.
 
@@ -4539,7 +4537,7 @@ values_check <- values_data %in% values_valid
 errors_HerbsPoints_Tape <- qaqc(data, query, query_message, values_check)
 ```
 
-### HerbsPoints Transect
+### Cvr Points Transect
 
 [Problem:]{.underline} Incorrect transect numbers entered or transect number missing.
 
@@ -4560,7 +4558,7 @@ values_check <- values_data %in% values_valid
 errors_HerbsPoints_Transect <- qaqc(data, query, query_message, values_check)
 ```
 
-### HerbsPoints Zero
+### Cvr Points Zero
 
 [Problem:]{.underline}  Values entered for columns which should be blank.
 
@@ -4582,7 +4580,7 @@ values_check <- values_data == values_valid
 errors_HerbsPoints_Zero <- qaqc(data, query, query_message, values_check)
 ```
 
-### HerbsPoints Errors
+### Cvr Points Errors
 
 ```{r}
 errors_HerbsPoints <- rbind(errors_HerbsPoints_Complete, errors_blank, errors_HerbsPoints_Header, errors_blank, errors_HerbsPoints_Height, errors_blank, errors_HerbsPoints_Order, errors_blank, errors_HerbsPoints_Point, errors_blank, errors_HerbsPoints_Species, errors_blank, errors_HerbsPoints_Status, errors_blank, errors_HerbsPoints_Tape, errors_blank, errors_HerbsPoints_Transect, errors_blank, errors_HerbsPoints_Zero)
