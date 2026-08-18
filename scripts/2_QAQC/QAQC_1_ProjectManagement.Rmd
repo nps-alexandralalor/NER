@@ -15,9 +15,9 @@ output:
     toc_depth: '3'
 ---
 
-# Purpose
+# PURPOSE
 
-This code is intended to quality check plot metadata, including the Macroplot Report and Sample Event Report, which have been combined into a single flat file using the Clean_1_All.Rmd script.
+This code is intended to quality check plot metadata, including the Macroplot Report and Sample Event Report, which have been combined into a single flat file using the Clean+Merge.Rmd script.
 
 -   MetadataReport.csv
 
@@ -39,8 +39,6 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 ```
 
 ```{r load packages, include=FALSE}
-## Load Packages
-
 # tidyverse and dplyr have lots of useful functions for data cleaning
 library(tidyverse)
 library(dplyr)
@@ -85,7 +83,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "Error")
 ```{r target values, include=FALSE}
 # designate target park(s)
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-target_park <- "PRWI"
+target_park <- "NERI"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -110,8 +108,6 @@ MetadataReport_all <- read.csv(paste0(path_data, "all_metadata.csv"))
 MetadataReport <- MetadataReport_all %>%
   filter(AdminUnit_Name %in% target_park)
 ```
-
-# Park: [`r target_park`]{style="color:red"}
 
 # MACROPLOT REPORT
 

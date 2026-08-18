@@ -15,7 +15,7 @@ output:
     toc_depth: 1
 ---
 
-# Purpose
+# PURPOSE
 
 This code is intended to combine FFI files into flat files to be used with subsequent R scripts.
 

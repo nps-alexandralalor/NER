@@ -15,9 +15,9 @@ output:
     toc_depth: '3'
 ---
 
-# Purpose
+# PURPOSE
 
-This code is intended to quality check plot data for protocols listed below. These protocols been cleaned using the Clean_1_All.Rmd script.
+This code is intended to quality check plot data year-by-year for protocols listed below. These protocols been cleaned using the Clean+Merge.Rmd script.
 
 -   Surface Fuels - 1000Hr
 
@@ -53,8 +53,6 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ```
 
 ```{r load packages, include=FALSE}
-## Load Packages
-
 # tidyverse and dplyr have lots of useful functions for data cleaning
 library(tidyverse)
 library(dplyr)

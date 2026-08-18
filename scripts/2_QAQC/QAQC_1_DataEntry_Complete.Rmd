@@ -10,7 +10,7 @@ output:
   pdf_document:
 ---
 
-# Purpose
+# PURPOSE
 
 This code is intended to quality check all FFI CSV exports for missing data. Missing data is especially difficult to catch because it relies on information on how much data there is "supposed to be" vs how much data actually was exported. There is added complexity because certain protocols may not contain data for valid reasons (e.g. no trees, no coarse woody debris, no seedlings, no shrubs, etc...). Each error should be carefully checked and considered as a potential major error. Sample events with errors are [entirely absent]{.underline} from FFI CSV exports. Follow the guide below to determine what action is needed.
 
@@ -73,8 +73,6 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 ```
 
 ```{r load packages, include=FALSE}
-## Load Packages
-
 # tidyverse and dplyr have lots of useful functions for data cleaning
 library(tidyverse)
 library(dplyr)
