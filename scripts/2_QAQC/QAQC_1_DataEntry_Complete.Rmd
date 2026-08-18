@@ -1,6 +1,6 @@
 ---
 title: Complete CSVs
-author: Alexandra Lalor
+author: NPS Northeast Region Fire Effects Monitoring Program
 output:
   html_document:
     theme: readable
@@ -617,8 +617,9 @@ errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:ncol(errors_al
 QAQC file saved to:
 
 ```{r}
-# Save as CSV or XLSX 
 path_errors
+
+# Save as CSV or XLSX 
 errors_all <- errors_all %>% 
   mutate(SampleEvent_Date = as.character(SampleEvent_Date))
 condformat2excel(errors_all, paste0(path_errors, paste0(target_park, "_Errors_DataEntry_Complete.xlsx")), sheet_name = path_errors_name, overwrite_wb = TRUE)

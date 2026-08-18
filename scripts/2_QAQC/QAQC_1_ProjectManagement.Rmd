@@ -1,6 +1,6 @@
 ---
-title: QAQC MetaData
-author: Alexandra Lalor
+title: QAQC Project Data
+author: NPS Northeast Region Fire Effects Monitoring Program
 output:
   html_document:
     theme: readable
@@ -133,7 +133,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_MacroplotNum <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Purpose is not blank and is written correctly ("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Fuels", "Inventory & Monitoring").
+-   Check that Purpose is not blank and is written correctly ("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Inventory & Monitoring").
 
 ```{r}
 # Set parameters 
@@ -141,7 +141,7 @@ data <- MetadataReport
 query <- "Macroplot Report - Installation"
 query_message <- "Purpose" 
 values_data <- data$Macroplot_Purpose
-values_valid <- c("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Fuels", "Inventory & Monitoring")
+values_valid <- c("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Inventory & Monitoring")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -315,106 +315,106 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 -   Check that Elevation is not blank
 
 ```{r}
-# # Set parameters
-# data <- MetadataReport
-# query <- "Macroplot Report - Site Characteristics"
-# query_message <- "Elevation"
-# values_data <- data$Macroplot_Elevation
-# values_valid <- ""
-# values_check <- values_data != values_valid
-# 
-# # Identify errors
-# errors_MacroplotReport_Elevation <- qaqc(data, query, query_message, values_check)
+# Set parameters
+data <- MetadataReport
+query <- "Macroplot Report - Site Characteristics"
+query_message <- "Elevation"
+values_data <- data$Macroplot_Elevation
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_MacroplotReport_Elevation <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that ElevationUnits = feet
 
 ```{r}
-# # Set parameters
-# data <- MetadataReport
-# query <- "Macroplot Report - Site Characteristics"
-# query_message <- "Elevation Units"
-# values_data <- data$Macroplot_ElevationUnits
-# values_valid <- c("feet")
-# values_check <- values_data %in% values_valid
-# 
-# # Identify errors
-# errors_MacroplotReport_ElevationUnits <- qaqc(data, query, query_message, values_check)
+# Set parameters
+data <- MetadataReport
+query <- "Macroplot Report - Site Characteristics"
+query_message <- "Elevation Units"
+values_data <- data$Macroplot_ElevationUnits
+values_valid <- c("feet")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_MacroplotReport_ElevationUnits <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Azimuth values are reasonable
 
 ```{r}
-# # Set parameters
-# data <- MetadataReport
-# query <- "Macroplot Report - Site Characteristics"
-# query_message <- "Azimuth"
-# values_data <- data$Macroplot_Azimuth
-# values_valid <- seq(0, 359, by = 1)
-# values_check <- values_data %in% values_valid
-# 
-# # Identify errors
-# errors_MacroplotReport_Azimuth <- qaqc(data, query, query_message, values_check)
+# Set parameters
+data <- MetadataReport
+query <- "Macroplot Report - Site Characteristics"
+query_message <- "Azimuth"
+values_data <- data$Macroplot_Azimuth
+values_valid <- seq(0, 359, by = 1)
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_MacroplotReport_Azimuth <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Aspect values are reasonable
 
 ```{r}
-# # Set parameters
-# data <- MetadataReport
-# query <- "Macroplot Report - Site Characteristics"
-# query_message <- "Aspect"
-# values_data <- data$Macroplot_Aspect
-# values_valid <- seq(0, 359, by = 1)
-# values_check <- values_data %in% values_valid
-# 
-# # Identify errors
-# errors_MacroplotReport_Aspect <- qaqc(data, query, query_message, values_check)
+# Set parameters
+data <- MetadataReport
+query <- "Macroplot Report - Site Characteristics"
+query_message <- "Aspect"
+values_data <- data$Macroplot_Aspect
+values_valid <- seq(0, 359, by = 1)
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_MacroplotReport_Aspect <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that SlopeHill values are reasonable
+-   Check that SlopeHill values are reasonable. Slope is measured in percent, where a 45 degree angle is 100% slope. Slope should generally not exceed 50%.
 
 ```{r}
-# # Set parameters
-# data <- MetadataReport
-# query <- "Macroplot Report - Site Characteristics"
-# query_message <- "Slope Hill"
-# values_data <- data$Macroplot_SlopeHill_pct
-# values_valid <- seq(0, 40, by = 1)
-# values_check <- values_data %in% values_valid
-# 
-# # Identify errors
-# errors_MacroplotReport_SlopeHill <- qaqc(data, query, query_message, values_check)
+# Set parameters
+data <- MetadataReport
+query <- "Macroplot Report - Site Characteristics"
+query_message <- "Slope Hill"
+values_data <- data$Macroplot_SlopeHill_pct
+values_valid <- seq(-50, 50, by = 1)
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_MacroplotReport_SlopeHill <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that SlopeTransect values are reasonable
+-   Check that SlopeTransect values are reasonable. Slope is measured in percent, where a 45 degree angle is 100% slope. Slope should generally not exceed 50%.
 
 ```{r}
-# # Set parameters
-# data <- MetadataReport
-# query <- "Macroplot Report - Site Characteristics"
-# query_message <- "Slope Transect"
-# values_data <- data$Macroplot_SlopeTransect_pct
-# values_valid <- seq(0, 40, by = 1)
-# values_check <- values_data %in% values_valid
-# 
-# # Identify errors
-# errors_MacroplotReport_SlopeTransect <- qaqc(data, query, query_message, values_check)
+# Set parameters
+data <- MetadataReport
+query <- "Macroplot Report - Site Characteristics"
+query_message <- "Slope Transect"
+values_data <- data$Macroplot_SlopeTransect_pct
+values_valid <- seq(-50, 50, by = 1)
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_MacroplotReport_SlopeTransect <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Site Characteristics Errors {.hidden}
 
 ```{r}
-# # Combine
-# errors_MacroplotReport_SiteCharacteristics <- unique(rbind(errors_MacroplotReport_Elevation, errors_MacroplotReport_ElevationUnits, errors_MacroplotReport_Azimuth, errors_MacroplotReport_Aspect, errors_MacroplotReport_SlopeHill, errors_MacroplotReport_SlopeTransect))
-# 
-# remove(errors_MacroplotReport_Elevation, errors_MacroplotReport_ElevationUnits, errors_MacroplotReport_Azimuth, errors_MacroplotReport_Aspect, errors_MacroplotReport_SlopeHill, errors_MacroplotReport_SlopeTransect)
-# 
-# if(nrow(errors_MacroplotReport_SiteCharacteristics) > 1) {
-#   errors_MacroplotReport_SiteCharacteristics <- errors_MacroplotReport_SiteCharacteristics %>%
-#     filter(Error != "No Error")
-# } else {
-#   errors_MacroplotReport_SiteCharacteristics <- errors_MacroplotReport_SiteCharacteristics}
+# Combine
+errors_MacroplotReport_SiteCharacteristics <- unique(rbind(errors_MacroplotReport_Elevation, errors_MacroplotReport_ElevationUnits, errors_MacroplotReport_Azimuth, errors_MacroplotReport_Aspect, errors_MacroplotReport_SlopeHill, errors_MacroplotReport_SlopeTransect))
+
+remove(errors_MacroplotReport_Elevation, errors_MacroplotReport_ElevationUnits, errors_MacroplotReport_Azimuth, errors_MacroplotReport_Aspect, errors_MacroplotReport_SlopeHill, errors_MacroplotReport_SlopeTransect)
+
+if(nrow(errors_MacroplotReport_SiteCharacteristics) > 1) {
+  errors_MacroplotReport_SiteCharacteristics <- errors_MacroplotReport_SiteCharacteristics %>%
+    filter(Error != "No Error")
+} else {
+  errors_MacroplotReport_SiteCharacteristics <- errors_MacroplotReport_SiteCharacteristics}
 ```
 
 ### Sample Events
@@ -486,7 +486,7 @@ if(nrow(errors_MacroplotReport_SampleEvent) > 1) {
 ### Combine Macroplot Report Errors {.hidden}
 
 ```{r}
-errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SampleEvent)
+errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_MacroplotReport_Location, errors_MacroplotReport_SiteCharacteristics, errors_MacroplotReport_SampleEvent)
 ```
 
 # SAMPLE EVENT REPORT
@@ -519,7 +519,7 @@ data <- MetadataReport %>%
 query <- "Sample Event Report"
 query_message <- paste0("Date = ", data$SampleEvent_Date, ". Read = ", data$MonitoringStatus_Name, ". Protocol")
 values_data <- data$SampleEvent_Protocols
-values_valid <- c("Surface Fuels", "Surface Fuels - 1000Hr", "Surface Fuels - Duff_Litter", "Surface Fuels - Fine", "Post Burn Severity (metric)", "Trees - Individuals (metric)", "Density - Quadrats (metric)", "Density - Belts (metric)", "Cover - Species Composition (metric)", "Cover - Points (metric)", "CBI")
+values_valid <- c("Surface Fuels", "Surface Fuels - 1000Hr", "Surface Fuels - Duff_Litter", "Surface Fuels - Fine", "Post Burn Severity", "Post Burn Severity (metric)", "Trees - Individuals (metric)", "Density - Quadrats (metric)", "Density - Belts (metric)", "Cover - Species Composition (metric)", "Cover - Points (metric)", "CBI", "Disturbance History")
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -605,8 +605,7 @@ errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:ncol(errors_al
 ```
 
 ```{r}
-# Table of results for quick check
-kable(errors_all, "pipe")
+path_errors
 
 # Save as CSV or XLSX 
 condformat2excel(errors_all, paste0(path_errors, paste0(target_park, "_Errors_ProjectManagement.xlsx")), sheet_name = path_errors_name, overwrite_wb = TRUE)

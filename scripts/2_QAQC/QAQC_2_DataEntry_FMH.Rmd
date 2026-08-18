@@ -1,6 +1,6 @@
 ---
 title: QAQC FMH Data
-author: Alexandra Lalor
+author: NPS Northeast Region Fire Effects Monitoring Program
 output:
   html_document:
     theme: readable
@@ -17,7 +17,7 @@ output:
 
 # PURPOSE
 
-This code is intended to quality check plot data year-by-year for protocols listed below. These protocols been cleaned using the Clean+Merge.Rmd script.
+This code is intended to quality check plot data year-by-year for protocols listed below. These protocols have been cleaned using the Clean+Merge.Rmd script.
 
 -   Surface Fuels - 1000Hr
 
@@ -404,7 +404,7 @@ errors_Fuels1000_LogNo <- qaqc(data, query, query_message, values_check)
 
 [Procedure:]{.underline}
 
--   Check that Slope values are reasonable.
+-   Check that Slope values are reasonable. Slope is measured in percent, where a 45 degree angle is 100% slope. Slope should generally not exceed 50%.
 
 ```{r}
 # Set parameters
@@ -412,7 +412,7 @@ data <- Fuels1000_data
 query <- "Fuel 1000 Slope"
 query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Slope")
 values_data <- data$MethodData_Slope_pct
-values_valid <- seq(-40, 40, by = 1)
+values_valid <- seq(-50, 50, by = 1)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -976,7 +976,7 @@ errors_FuelsFine_FuelConst <- qaqc(data, query, query_message, values_check)
 
 [Procedure:]{.underline}
 
--   Check that Slope values are reasonable.
+-   Check that Slope values are reasonable. Slope is measured in percent, where a 45 degree angle is 100% slope. Slope should generally not exceed 50%.
 
 ```{r}
 # Set parameters
@@ -984,7 +984,7 @@ data <- FuelsFine_data
 query <- "Fuel Fine Slope"
 query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Slope")
 values_data <- data$MethodData_Slope_pct
-values_valid <- seq(-40, 40, by = 1)
+values_valid <- seq(-50, 50, by = 1)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -4641,8 +4641,7 @@ errors_all <- condformat(errors_all_cf[1:(nrow(errors_all_cf)), 1:ncol(errors_al
 ```
 
 ```{r}
-# Table of results for quick check
-kable(errors_all, "pipe")
+path_errors
 
 # Save as CSV or XLSX 
 errors_all <- errors_all %>% 

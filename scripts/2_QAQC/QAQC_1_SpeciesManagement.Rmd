@@ -1,6 +1,6 @@
 ---
-title: QAQC MetaData
-author: Alexandra Lalor
+title: QAQC Species Data
+author: NPS Northeast Region Fire Effects Monitoring Program
 output:
   html_document:
     theme: readable
@@ -419,8 +419,7 @@ errors_all <- condformat(errors_SpeciesReport_blanks[1:(nrow(errors_SpeciesRepor
 ```
 
 ```{r}
-# Table of results for quick check
-kable(errors_all, "pipe")
+path_errors
 
 # Save as CSV or XLSX
 condformat2excel(errors_all, paste0(path_errors, target_park, "_Errors_SpeciesManagement.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
