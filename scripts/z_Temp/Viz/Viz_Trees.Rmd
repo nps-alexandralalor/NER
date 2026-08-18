@@ -1,29 +1,26 @@
 ---
-title: "FFI Database Summary"
-subtitle: "Grand Canyon"
-output: 
+title: QAQC Cross Year Trees Data Viz
+subtitle: NPS Northeast Region Fire Effects Monitoring Program
+output:
   html_document:
     theme: readable
     highlight: 
     toc: yes
-    toc_depth: 3
+    toc_depth: 1
     toc_float:
       smooth_scroll: yes
     code_download: true
-date: "`r Sys.Date()`"
 ---
 
 # Purpose
 
-### Setup
+This code is to help visualize tree data across years to identify errors. It only shows problem trees which have an error in one or more data point (Status, Species, DBH, Height). If a graph appears blank, it means that there were no tree issues for that particular data point. It uses the error sheet produced from the QAQC_DataEntry_CrossYear.Rmd script.
+
+### Setup {.hidden}
 
 ```{r}
 ## Markdown Options
 knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
-```
-
-```{r}
-## Install packages (if needed)
 
 # install.packages("tidyverse")
 # install.packages("kableExtra")
@@ -32,8 +29,6 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 ```
 
 ```{r}
-## Load Packages
-
 # "here" helps you easily find and reference your working directory
 library(here)
 # "tidyverse" has lots of useful functions for data cleaning
@@ -48,30 +43,28 @@ library(readxl)
 
 ```{r}
 # designate target values
-
-# parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+# parks <- c("ANTI", "APCO", "CATO", "CUVA", "FRSP", "NERI", "RICH", "SHEN")
 target_park <- "NERI"
 ```
 
-### Adjust File Paths
+### Adjust File Paths {.hidden}
 
 ```{r}
 # Adjust File Paths
-#path_data <- "X:/FFI Data Management/Exports from FFI/GRCA_FMH/2025-01-23/"
 path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
 path_data <- paste0(path_main, "Exports_Clean/FFI/")
-path_errors <- paste0(here(), "/output/errors/")
+path_errors <- paste0(path_main, "/QAQC/")
 ```
 
-### Load Data
+### Load Data {.hidden}
 
 ```{r}
 # Load in data
 Trees_all <- read.csv(paste0(path_data, "metric_trees_individuals.csv"))
-errors_Trees_CrossYear <- read_excel(paste0(path_errors, target_park,  "_Errors_DataEntry_CrossYear.xlsx"))
+errors_Trees_CrossYear <- read_excel(paste0(path_errors, target_park, "/", target_park, "_Errors_DataEntry_CrossYear_MasterRecord.xlsx"))
 ```
 
-### Clean Data
+### Clean Data {.hidden}
 
 ```{r}
 Trees_all <- Trees_all %>%
@@ -81,21 +74,22 @@ Trees_all <- Trees_all %>%
   relocate(SampleEvent_Date_Year, .after = SampleEvent_Date)
 ```
 
-### Filter Data
+### Filter Data {.hidden}
 
 ```{r}
 Trees_data <- Trees_all %>%
   # Filter for target park
   filter(AdminUnit_Name == target_park)
+
+year_max <- as.numeric(format(Sys.Date(), "%Y"))
+year_min <- as.numeric((min(Trees_data$SampleEvent_Date_Year)) - 1)
 ```
 
-# Data Viz - Trees
-
-#### Mutate Data for Graphing
+### Mutate Data for Graphing {.hidden}
 
 ```{r}
 graph_Trees_data <- Trees_data %>% 
-  mutate(MethodData_Status = ifelse(MethodData_CrwnCl == "DD", "DD", MethodData_Status)) %>% 
+  mutate(MethodData_Status = ifelse(!is.na(MethodData_CrwnCl) & MethodData_CrwnCl == "DD", "DD", MethodData_Status)) %>% 
   mutate(MethodData_SubFrac = factor(MethodData_SubFrac),
          MethodData_TagNo = factor(MethodData_TagNo),
          MethodData_Status = factor(MethodData_Status, levels = c("L", "D", "DD")),
@@ -105,12 +99,12 @@ graph_Trees_data <- Trees_data %>%
                                             "BBD", "CUS", "DD")))
 ```
 
-#### Define Target Plot & Isolate Problematic Tree Tags
+### Define Target Plot & Isolate Problematic Tree Tags
 
 ```{r}
 ##################################################################################
 unique(errors_Trees_CrossYear$Macroplot_Name)
-target_plot <- "Plot 03"
+target_plot <- "Plot 04"
 ##################################################################################
 
 badtags_DBH <- errors_Trees_CrossYear %>% 
@@ -134,9 +128,13 @@ badtags_Status <- errors_Trees_CrossYear %>%
 badtags_Status <- unique(badtags_Status$MethodData_TagNo)
 ```
 
-## [`r target_plot`]{style="color:red"}
+# Data Viz - Trees
+
+## [`r target_park`]{style="color:red"} [`r target_plot`]{style="color:red"}
 
 ### Status
+
+Status changes from dead to live ("zombie trees").
 
 ```{r}
 graph_Trees_data %>% 
@@ -144,10 +142,15 @@ graph_Trees_data %>%
          MethodData_TagNo %in% c(badtags_Status)) %>% 
   arrange(SampleEvent_Date) %>% 
   ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_TagNo)) +
-  geom_line(aes(group = MethodData_TagNo, color = MethodData_Status), size = 1) +
-  geom_point(aes(fill = MethodData_Status), shape = 21, size = 3) +
+  geom_line(aes(group = MethodData_TagNo, color = MethodData_Status), size = 2) +
+  geom_point(aes(fill = MethodData_Status), shape = 21, size = 4) +
   scale_fill_manual(values = c("L" = "forestgreen", "D" = "darkorange", "DD" = "red")) +
   scale_color_manual(values=c("L" = "forestgreen", "D" = "darkorange", "DD" = "red")) +
+  scale_x_continuous(
+    limits = c(year_min, year_max),
+    breaks = seq(year_min, year_max, by = 1),
+    expand = expansion(mult = c(0, 0))
+  ) +
   labs(title = target_plot) +
   theme_light() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -156,11 +159,13 @@ graph_Trees_data %>%
         axis.title = element_text(size = 12, face="bold"),
         axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
         axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-        axis.text.y = element_text(size = 5),
+        axis.text.y = element_text(size = 10),
         axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
 ```
 
 ### Species
+
+Individual trees species changes over time.
 
 ```{r}
 graph_Trees_data %>% 
@@ -168,9 +173,14 @@ graph_Trees_data %>%
          MethodData_TagNo %in% c(badtags_Species)) %>% 
   arrange(SampleEvent_Date) %>% 
   ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_TagNo)) +
-  geom_line(aes(group = MethodData_TagNo, color = MethodData_LocalSpeciesSymbol), size = 1) +
-  geom_point(aes(fill = MethodData_Status), shape = 21, size = 3) +
+  geom_line(aes(group = MethodData_TagNo, color = MethodData_LocalSpeciesSymbol), size = 2) +
+  geom_point(aes(fill = MethodData_Status), shape = 21, size = 4) +
   scale_fill_manual(values = c("L" = "forestgreen", "D" = "darkorange", "DD" = "red")) +
+  scale_x_continuous(
+    limits = c(year_min, year_max),
+    breaks = seq(year_min, year_max, by = 1),
+    expand = expansion(mult = c(0, 0))
+  ) +
   labs(title = target_plot) +
   theme_light() +
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
@@ -179,7 +189,7 @@ graph_Trees_data %>%
         axis.title = element_text(size = 12, face="bold"),
         axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
         axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-        axis.text.y = element_text(size = 5),
+        axis.text.y = element_text(size = 10),
         axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
 ```
 
@@ -197,8 +207,13 @@ graph_Trees_data %>%
   arrange(SampleEvent_Date) %>% 
   ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_DBH_cm)) +
   geom_line(aes(group = MethodData_TagNo, color = MethodData_TagNo), size = 1) +
-  geom_point(aes(fill = MethodData_Status), shape = 21, size = 3) +
+  geom_point(aes(fill = MethodData_Status), shape = 21, size = 4) +
   scale_fill_manual(values=c("L" = "forestgreen", "D" = "darkorange")) +
+  scale_x_continuous(
+    limits = c(year_min, year_max),
+    breaks = seq(year_min, year_max, by = 1),
+    expand = expansion(mult = c(0, 0))
+  ) +
   labs(title = target_plot) +
   #facet_wrap(~MethodData_Status) +
   theme_light() +
@@ -208,7 +223,7 @@ graph_Trees_data %>%
         axis.title = element_text(size = 12, face="bold"),
         axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
         axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-        axis.text.y = element_text(size = 5),
+        axis.text.y = element_text(size = 10),
         axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
 ```
 
@@ -225,8 +240,13 @@ graph_Trees_data %>%
   arrange(SampleEvent_Date) %>% 
   ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_Ht_m)) +
   geom_line(aes(group = MethodData_TagNo, color = MethodData_TagNo), size = 1) +
-  geom_point(aes(fill = MethodData_Status), shape = 21, size = 3) +
+  geom_point(aes(fill = MethodData_Status), shape = 21, size = 4) +
   scale_fill_manual(values=c("L" = "forestgreen", "D" = "darkorange")) +
+    scale_x_continuous(
+    limits = c(year_min, year_max),
+    breaks = seq(year_min, year_max, by = 1),
+    expand = expansion(mult = c(0, 0))
+  ) +
   labs(title = target_plot) +
   #facet_wrap(~MethodData_Status) +
   theme_light() +
@@ -236,6 +256,6 @@ graph_Trees_data %>%
         axis.title = element_text(size = 12, face="bold"),
         axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
         axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-        axis.text.y = element_text(size = 5),
+        axis.text.y = element_text(size = 10),
         axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1))
 ```
