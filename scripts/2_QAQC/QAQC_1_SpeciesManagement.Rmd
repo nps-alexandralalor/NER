@@ -110,18 +110,333 @@ SpeciesReport <- SpeciesReport_all %>%
 ### Define Codes {.hidden}
 
 ```{r define codes, include=FALSE}
-unknowns_genus <- c("ACALY","ACALYP","ACASPP","ACER","ACHILLEA","AGESPP","AGROS","AGRSPP","ALLIUM","ALLSPP","AMELA","AMESPP","ANDRO","ANDROP","ANDSPP","ANEMO","ANESPP","ANTEN","ANTENN","ANTSPP","APOCY","APOCYNUM","APOSPP", "ARABIS","ARALI","ARISPP","ARIST","ASCLE","ASCLEPIAS","ASCSPP","ASPSPP","ASTER","ASTERACEAE","ASTEspp","BETULA","BIDENS","BOTRY","BOTRYCH","BOTSPP","BRASSICACE","BRASPP","BRASS2","BROMU","bromus","BROMUS","BROSPP","CALAM","CALYSTEGIA","CARDA","CAREX","CAREX2","CARSPP","CARSP1","CARSPP2","CARSP2","CARSP3","CARYA","CASSPP","CENTAUREA","CHIMA","CIRCAE","CIRSI","CIRSPP","CLISPP","CONVO","CONVOL","CONVOLVULU","CONVULVULA","CORNspp","CORSPP","CORNU","CORNUS","CRASPP","CRATA","CRATAEGUS","CUSCU","CUSCUTA","CUSSPP","CYPER","CYPSPP","DANSPP","DATSP","DDTREE","DESMO","DESMODIUM","DESSPP","DICHAN","DICHANTHEL","DICSPP","DICSP1","DICSPP1","DICSP2","DICSPP2","DICSPP3","DICSP5","DIGITA","DIGSPP1","DIGSPP","DIOSC","DIOSPP","ELEOCHARIS","ELESPP","ELYMUS","EPILOBIUM","EPISPP","EPISP1","ERAGR","ERASPP","ERAGROSTIS","ERIGE2","ERIGERON","ERISP","ERISPP","EUPATOR","EUPATORIUM","EUPSPP","EURSPP","EURYB","FABSPP","FABA","FESTUC","FESTUCA","FIMBRI","FRASPP","FRAXINUS","FRAXspp","GALIU","GALIUM","GALSP","GALSPP","GENTI","GEUM","GILLSP", "GLYCERIA","GNASPP","HELIAN","HEPAT","HIERA","HIERAC","HIERACIUM","HIESPP","HOUSTO","HYPER","HYPERICUM","HYPPER","HYPSPP","IMPATIENS","IPOMO","IPOMOE","IPOMOEA","IPOSPP","IRIS","JUNCUS","JUNIspp","JUNSPP","KRIGI","LACSPP","LACTU","LAMSPP","LESPE","LESSPP","LIASPP","LIATR","LINSPP","LINUM","LITHO3","LONIC","LONICE","LONICERA","LONSPP","LOTUS","LYCHN","LYCOPODIUM","LYCOPUS","LYSIM","LYSSSP","MAGNOLIA","MALUS","MEDICAGO","MELILOTUS","MONARDA","MONSPP","MUHLE","MUHLEN","MUHSPP","MYRIO","NABSPP", "OSMOR","OSMSPP","OXALI","OXALIS","OXASPP","PACKER","PACKERA","PACSPP","PANIC","PANICUM","PANSPP","PASPAL","PASSPP","PASSP1","PENSSP","PERSPP","PHLEU","PHYSPP","PINSPP","PINUS","POA","POACEAE","POLYG2","POLYG4","POLYGO","POLYGONUM","POPSPP","POPULUS","POTENT","POTENTILLA","PRESPP","PRUNE","PRUNU","PRUNUS","PRUSPP","PYCNA","PYCNANTHEM","PYRUS","QUERC","QUERCUS","QUESPP","RANSPP","RANUNCULUS","RHAMNUS","RHEXI","RHODO","RIBES","ROSA","ROSSPP","ROSA5","RUBIACEAE","RUBSPP","RUBUS","RUDBECKIA","RUMEX","RUMSPP","SALIX","SAMBU","SANICULA","SANSPP","SCIRP","SCIRPUS","SCLSPP","SCUSPP","SCUTELLARI","SETARIA","SETSPP","SISSPP","SISYR","SMILAX","SMISPP","SOLID","SOLIDAGO","SOLSPP","SOLSP1","SPIRA","SPIRA2","SPIRAE","SPIRAN","STELL","STELLARIA","STIPA","SYMPHY","Symphy2","SYMPHYOTRI","SYMSPP","SYMSP1","SYMSPP1","TARAX","TARSPP","THALICTRUM","TRIFOL","TRIFOLIUM","TRILL","TRILLIUM","TRISPP","ULMSPP","ULMUS","UVUSP","VACCI","VACCIN","VACCINIUM","VACSPP","VERBA","VERBENA","VERON","VERONICA","VIBURN","VIBURNUM","VICIA","VICSPP","VIOLA","VIOSPP","VIOSPP1","VITIS","VITSPP","YPINE")
-
-unknowns_generic <- c("ASTER","FERN","GRASS","GRSSPP","GRASSSP","GRASSSP1","GRASP1","GRASSP1","GRSSP1","GRSPP1","GRSPP2","2GL","GRASS_LIG","GRASS_THIN","UNKSPP","UNKSNAG","UNK_001","UNK_002","UNKN_98","UNKSP1","UNSKP1","UNKSP2","UNKN_FORB","UNKN_SHRUB","UNKN_WOODY","2AB","2FERN","2FORB","2FORBD","2FORBM","2GRAM","2LICH","2PLANT","2SHRUBD","2TDBD","2TREE","2VINEHERB","2VINEWOOD","NOSP","NODATA")
-
-unknowns <- unique(c(unknowns_genus, unknowns_generic))
-
-substrates <- c("BARE","BOLE","2BOLE", "DUFF","2FF","FUNG","FUNGI","FUNGUS","HAY","LICH","LICHEN","LITT","LITTER","2LTR","MOSS","ROCK","ROOT","SCAT","SOIL","WATER","WOOD","DDTREE")
+# unknowns_genus <- c("ACALY","ACALYP","ACASPP","ACER","ACHILLEA","AGESPP","AGROS","AGRSPP","ALLIUM","ALLSPP","AMELA","AMESPP","ANDRO","ANDROP","ANDSPP","ANEMO","ANESPP","ANTEN","ANTENN","ANTSPP","APOCY","APOCYNUM","APOSPP", "ARABIS","ARALI","ARISPP","ARIST","ASCLE","ASCLEPIAS","ASCSPP","ASPSPP","ASTER","ASTERACEAE","ASTEspp","BETULA","BIDENS","BOTRY","BOTRYCH","BOTSPP","BRASSICACE","BRASPP","BRASS2","BROMU","bromus","BROMUS","BROSPP","CALAM","CALYSTEGIA","CARDA","CAREX","CAREX2","CARSPP","CARSP1","CARSPP2","CARSP2","CARSP3","CARYA","CASSPP","CENTAUREA","CHIMA","CIRCAE","CIRSI","CIRSPP","CLISPP","CONVO","CONVOL","CONVOLVULU","CONVULVULA","CORNspp","CORSPP","CORNU","CORNUS","CRASPP","CRATA","CRATAEGUS","CUSCU","CUSCUTA","CUSSPP","CYPER","CYPSPP","DANSPP","DATSP","DDTREE","DESMO","DESMODIUM","DESSPP","DICHAN","DICHANTHEL","DICSPP","DICSP1","DICSPP1","DICSP2","DICSPP2","DICSPP3","DICSP5","DIGITA","DIGSPP1","DIGSPP","DIOSC","DIOSPP","ELEOCHARIS","ELESPP","ELYMUS","EPILOBIUM","EPISPP","EPISP1","ERAGR","ERASPP","ERAGROSTIS","ERIGE2","ERIGERON","ERISP","ERISPP","EUPATOR","EUPATORIUM","EUPSPP","EURSPP","EURYB","FABSPP","FABA","FESTUC","FESTUCA","FIMBRI","FRASPP","FRAXINUS","FRAXspp","GALIU","GALIUM","GALSP","GALSPP","GENTI","GEUM","GILLSP", "GLYCERIA","GNASPP","HELIAN","HEPAT","HIERA","HIERAC","HIERACIUM","HIESPP","HOUSTO","HYPER","HYPERICUM","HYPPER","HYPSPP","IMPATIENS","IPOMO","IPOMOE","IPOMOEA","IPOSPP","IRIS","JUNCUS","JUNIspp","JUNSPP","KRIGI","LACSPP","LACTU","LAMSPP","LESPE","LESSPP","LIASPP","LIATR","LINSPP","LINUM","LITHO3","LONIC","LONICE","LONICERA","LONSPP","LOTUS","LYCHN","LYCOPODIUM","LYCOPUS","LYSIM","LYSSSP","MAGNOLIA","MALUS","MEDICAGO","MELILOTUS","MONARDA","MONSPP","MUHLE","MUHLEN","MUHSPP","MYRIO","NABSPP", "OSMOR","OSMSPP","OXALI","OXALIS","OXASPP","PACKER","PACKERA","PACSPP","PANIC","PANICUM","PANSPP","PASPAL","PASSPP","PASSP1","PENSSP","PERSPP","PHLEU","PHYSPP","PINSPP","PINUS","POA","POACEAE","POLYG2","POLYG4","POLYGO","POLYGONUM","POPSPP","POPULUS","POTENT","POTENTILLA","PRESPP","PRUNE","PRUNU","PRUNUS","PRUSPP","PYCNA","PYCNANTHEM","PYRUS","QUERC","QUERCUS","QUESPP","RANSPP","RANUNCULUS","RHAMNUS","RHEXI","RHODO","RIBES","ROSA","ROSSPP","ROSA5","RUBIACEAE","RUBSPP","RUBUS","RUDBECKIA","RUMEX","RUMSPP","SALIX","SAMBU","SANICULA","SANSPP","SCIRP","SCIRPUS","SCLSPP","SCUSPP","SCUTELLARI","SETARIA","SETSPP","SISSPP","SISYR","SMILAX","SMISPP","SOLID","SOLIDAGO","SOLSPP","SOLSP1","SPIRA","SPIRA2","SPIRAE","SPIRAN","STELL","STELLARIA","STIPA","SYMPHY","Symphy2","SYMPHYOTRI","SYMSPP","SYMSP1","SYMSPP1","TARAX","TARSPP","THALICTRUM","TRIFOL","TRIFOLIUM","TRILL","TRILLIUM","TRISPP","ULMSPP","ULMUS","UVUSP","VACCI","VACCIN","VACCINIUM","VACSPP","VERBA","VERBENA","VERON","VERONICA","VIBURN","VIBURNUM","VICIA","VICSPP","VIOLA","VIOSPP","VIOSPP1","VITIS","VITSPP","YPINE")
 ```
 
 # SPECIES REPORT
 
-[Problem:]{.underline} Species Report is missing information
+## Step 1 - Verify Substrates and Unknown Species
+
+Start with unknown species.
+
+```{r}
+Substrates_temp <- c("2AB","BARE","BOLE","2BOLE", "DUFF", "FUNG","FUNGI","FUNGUS","2FF","HAY","LICH","LICHEN","2LICH","LITT","LITTER","2LTR","MOSS","ROCK","ROOT","SCAT","SOIL","WATER","WOOD","DDTREE")
+
+Unknowns_MysteryPlants_temp <- c("UNKSPP","UNK_001","UNK_002","UNKN_98","UNKSP1","UNSKP1","UNKSP2","2PLANT","NOSP","NODATA")
+
+Unknowns_LifeFormOnly_temp <- c(
+    "FERN","2FERN",
+    "UNKN_FORB","2FORB","2FORBD","2FORBM",
+    "GRASS","GRSSPP","GRASSSP","GRASSSP1","GRASP1","GRASSP1","GRSSP1","GRSPP1",
+    "GRSPP2","2GL","GRASS_LIG","GRASS_THIN","2GRAM",
+    "UNKSNAG","2TREE","2TDBD","UNKN_SHRUB","2SHRUBD","2SHRUB","UNKN_WOODY",
+    "2VINEHERB","2VINEWOOD"
+    )
+```
+
+### Unknowns
+
+#### Substrates, Mystery Plants, and Life Form Only Plants
+
+[Problem:]{.underline} Substrate or unknown plant where no taxonomic information is known, but taxonomic fields have data entered.
+
+[Procedure:]{.underline}
+
+-   Filter for unknowns. Make sure that Family, Genus, and Scientific Name columns are blank.
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(Species_LocalSpeciesSymbol %in% c(Substrates_temp, Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp))
+data$Species_Family[is.na(data$Species_Family)] <- ""
+query <- "Species_Unknown_Taxa"
+query_message <- paste0("Family should be blank. Family")
+values_data <- data$Species_Family
+values_valid <- ""
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Unknown_Taxa_Family <- qaqc(data, query, query_message, values_check)
+```
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(Species_LocalSpeciesSymbol %in% c(Substrates_temp, Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp))
+data$Species_Genus[is.na(data$Species_Genus)] <- ""
+query <- "Species_Unknown_LifeFormOnly"
+query_message <- paste0("Genus should be blank. Genus")
+values_data <- data$Species_Genus
+values_valid <- ""
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Unknown_Taxa_Genus <- qaqc(data, query, query_message, values_check)
+```
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(Species_LocalSpeciesSymbol %in% c(Substrates_temp, Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp))
+data$Species_ScientificName[is.na(data$Species_ScientificName)] <- ""
+query <- "Species_Unknown_Taxa"
+query_message <- paste0("Scientific Name should be blank. Scientific Name")
+values_data <- data$Species_ScientificName
+values_valid <- ""
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Unknown_Taxa_ScientificName <- qaqc(data, query, query_message, values_check)
+```
+
+##### Combine Unknown Taxa Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Unknown_Taxa <- unique(rbind(errors_SpeciesReport_Unknown_Taxa_Family, errors_SpeciesReport_Unknown_Taxa_Genus, errors_SpeciesReport_Unknown_Taxa_ScientificName))
+
+remove(errors_SpeciesReport_Unknown_Taxa_Family, errors_SpeciesReport_Unknown_Taxa_Genus, errors_SpeciesReport_Unknown_Taxa_ScientificName)
+
+if(nrow(errors_SpeciesReport_Unknown_Taxa) > 1) {
+  errors_SpeciesReport_Unknown_Taxa <- errors_SpeciesReport_Unknown_Taxa %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Unknown_Taxa <- errors_SpeciesReport_Unknown_Taxa}
+```
+
+#### Family Known {.hidden}
+
+[Problem:]{.underline} Unknown plant where only the family is known, but other taxonomic fields have data entered.
+
+[Procedure:]{.underline}
+
+-   If Family column has data, make sure that Genus and Scientific Name columns are blank.
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!is.na(Species_Family),
+         is.na(Species_ScientificName) | grepl("species|spp", Species_ScientificName))
+data$Species_Genus[is.na(data$Species_Genus)] <- ""
+query <- "Species_Unknown_FamilyOnly"
+query_message <- paste0("Genus should be blank. Genus")
+values_data <- data$Species_Genus
+values_valid <- ""
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Unknown_FamilyOnly_Genus <- qaqc(data, query, query_message, values_check)
+```
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!is.na(Species_Family),
+         is.na(Species_Genus) | grepl("species|spp", Species_Genus))
+data$Species_ScientificName[is.na(data$Species_ScientificName)] <- ""
+query <- "Species_Unknown_FamilyOnly"
+query_message <- paste0("Scientific Name should be blank. Scientific Name")
+values_data <- data$Species_ScientificName
+values_valid <- ""
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Unknown_FamilyOnly_ScientificName <- qaqc(data, query, query_message, values_check)
+```
+
+##### Combine Family Known Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Unknown_FamilyOnly <- unique(rbind(errors_SpeciesReport_Unknown_FamilyOnly_Genus, errors_SpeciesReport_Unknown_FamilyOnly_ScientificName))
+
+remove(errors_SpeciesReport_Unknown_FamilyOnly_Genus, errors_SpeciesReport_Unknown_FamilyOnly_ScientificName)
+
+if(nrow(errors_SpeciesReport_Unknown_FamilyOnly) > 1) {
+  errors_SpeciesReport_Unknown_FamilyOnly <- errors_SpeciesReport_Unknown_FamilyOnly %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Unknown_FamilyOnly <- errors_SpeciesReport_Unknown_FamilyOnly}
+```
+
+#### Combine Unknown Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Unknown <- unique(rbind(errors_SpeciesReport_Unknown_Taxa, errors_SpeciesReport_Unknown_FamilyOnly))
+
+remove(errors_SpeciesReport_Unknown_Taxa, errors_SpeciesReport_Unknown_FamilyOnly)
+
+if(nrow(errors_SpeciesReport_Unknown) > 1) {
+  errors_SpeciesReport_Unknown <- errors_SpeciesReport_Unknown %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Unknown <- errors_SpeciesReport_Unknown}
+```
+
+### Lifeform
+
+-   Substrate. Check that Species_LifeFormNameLocal = Undefined
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(Species_LocalSpeciesSymbol %in% Substrates_temp)
+query <- "Species_LifeFormNameLocal"
+query_message <- paste0("Substrate. Life Form should be 'Undefined'. Life Form")
+values_data <- data$Species_LifeFormNameLocal
+values_valid <- "Undefined"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_LifeForm_Substrate <- qaqc(data, query, query_message, values_check)
+```
+
+-   Unknown plant. Check that Species_LifeFormNameLocal = Unknown
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(Species_LocalSpeciesSymbol %in% Unknowns_MysteryPlants_temp)
+query <- "Species_LifeFormNameLocal"
+query_message <- paste0("Mystery plant. Life Form should be 'Unknown'. Life Form")
+values_data <- data$Species_LifeFormNameLocal
+values_valid <- "Unknown"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_LifeForm_Unknown <- qaqc(data, query, query_message, values_check)
+```
+
+-   Known plant. Check that Species_LifeFormNameLocal is [not]{.underline} Unknown or Undefined
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!Species_LocalSpeciesSymbol %in% Substrates_temp,
+         !Species_LocalSpeciesSymbol %in% Unknowns_MysteryPlants_temp)
+query <- "Species_LifeFormNameLocal"
+query_message <- paste0("Life Form")
+values_data <- data$Species_LifeFormNameLocal
+values_valid <- c("Undefined", "Unknown")
+values_check <- !values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_LifeForm_Known <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine LifeForm Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_LifeForm <- unique(rbind(errors_SpeciesReport_LifeForm_Substrate, errors_SpeciesReport_LifeForm_Unknown, errors_SpeciesReport_LifeForm_Known))
+
+remove(errors_SpeciesReport_LifeForm_Substrate, errors_SpeciesReport_LifeForm_Unknown, errors_SpeciesReport_LifeForm_Known)
+
+if(nrow(errors_SpeciesReport_LifeForm) > 1) {
+  errors_SpeciesReport_LifeForm <- errors_SpeciesReport_LifeForm %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_LifeForm <- errors_SpeciesReport_LifeForm}
+```
+
+### Combine and Save Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Step1 <- unique(rbind(errors_SpeciesReport_Unknown, errors_SpeciesReport_LifeForm)) %>% 
+  arrange(AdminUnit_Name, SavedQuery, Species_LocalSpeciesSymbol)
+
+remove(errors_SpeciesReport_Unknown, errors_SpeciesReport_LifeForm)
+
+if(nrow(errors_SpeciesReport_Step1) > 1) {
+  errors_SpeciesReport_Step1 <- errors_SpeciesReport_Step1 %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Step1 <- errors_SpeciesReport_Step1}
+```
+
+```{r}
+# Formatting
+
+# Add blank rows between each tag number
+errors_SpeciesReport_Step1_blanks <- errors_SpeciesReport_Step1[1, ]
+for (i in 2:nrow(errors_SpeciesReport_Step1)) {
+  if (errors_SpeciesReport_Step1[i, "AdminUnit_Name"] != errors_SpeciesReport_Step1[i - 1, "AdminUnit_Name"]) {
+    errors_SpeciesReport_Step1_blanks <- rbind(errors_SpeciesReport_Step1_blanks, errors_blank, errors_SpeciesReport_Step1[i, ])
+  } else {
+    errors_SpeciesReport_Step1_blanks <- rbind(errors_SpeciesReport_Step1_blanks, errors_SpeciesReport_Step1[i, ])
+  }
+}
+
+# Add conditional formating to ouput
+errors_Step1_all <- condformat(errors_SpeciesReport_Step1_blanks[1:(nrow(errors_SpeciesReport_Step1_blanks)), 1:ncol(errors_SpeciesReport_Step1_blanks)]) %>%
+  rule_fill_discrete(columns = 1:(ncol(errors_SpeciesReport_Step1_blanks)),
+                     expression = SavedQuery != "",
+                     colours = c("TRUE" = "#C6E0B4"),
+                     na.value = "#FFFFFF")
+
+# Save as CSV or XLSX
+condformat2excel(errors_Step1_all, paste0(path_errors, target_park, "_Errors_SpeciesManagement_Step1.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+```
+
+## Step 2 - Verify Known Species Info
+
+Now that we fixed unknowns, we can use these codes
+
+```{r}
+Substrates <- SpeciesReport %>%
+  filter(Species_LifeFormNameLocal == "Undefined") %>% 
+  pull(Species_LocalSpeciesSymbol)
+
+Unknowns_MysteryPlants <- SpeciesReport %>%
+  filter(Species_LifeFormNameLocal == "Unknown") %>% 
+  pull(Species_LocalSpeciesSymbol)
+
+Unknowns_LifeFormOnly <- SpeciesReport %>%
+  filter(!Species_LifeFormNameLocal %in% c("Undefined", "Unknown"),
+         is.na(Species_Family) & is.na(Species_Genus)) %>% 
+  pull(Species_LocalSpeciesSymbol)
+
+Unknowns_FamilyOnly <- SpeciesReport %>%
+  filter(!Species_LifeFormNameLocal %in% c("Undefined", "Unknown"),
+         !is.na(Species_Family) & is.na(Species_Genus) & is.na(Species_ScientificName)) %>% 
+  pull(Species_LocalSpeciesSymbol)
+
+# Unknowns_GenusOnly <- SpeciesReport %>% 
+#   filter(Species_ScientificName == Species_Genus) %>% 
+#   pull(Species_LocalSpeciesSymbol)
+
+Unknowns <- unique(c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly))
+```
+
+### Taxonomy
+
+[Problem:]{.underline} Species Report is missing taxonomic information
+
+[Procedure:]{.underline}
+
+-   
+
+#### Genus Known {.hidden}
+
+[Problem:]{.underline} Unknown plant where the genus is known, but taxonomic fields have data entered incorrectly.
+
+[Procedure:]{.underline}
+
+-   Filter for unknowns. Check that life cycle is defined
+
+```{r}
+# # Set parameters 
+# data <- SpeciesReport %>% 
+#   filter(!Species_LocalSpeciesSymbol %in% c(Substrates_temp, Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp, Unknowns_FamilyOnly, Unknowns_GenusOnly))
+# data$Species_LifeCycleLocal[is.na(data$Species_LifeCycleLocal)] <- ""
+# query <- "Species_Unknown_GenusOnly"
+# query_message <- paste0("Life Cycle")
+# values_data <- data$Species_LifeCycleLocal
+# values_valid <- ""
+# values_check <- values_data != values_valid
+# 
+# # Identify errors
+# errors_SpeciesReport_Unknown_GenusOnly <- qaqc(data, query, query_message, values_check)
+```
+
+[Problem:]{.underline} Species Report is missing taxonomic information
 
 [Procedure:]{.underline}
 
@@ -130,16 +445,16 @@ substrates <- c("BARE","BOLE","2BOLE", "DUFF","2FF","FUNG","FUNGI","FUNGUS","HAY
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% substrates,
-         !Species_LocalSpeciesSymbol %in% unknowns)
-query <- "Species_ScientificName"
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns)
+query <- "Species Taxa"
 query_message <- paste0("Scientific Name") 
 values_data <- data$Species_ScientificName
 values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_SpeciesReport_ScientificName <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Taxa_ScientificName <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Species_Genus is not blank.
@@ -147,33 +462,33 @@ errors_SpeciesReport_ScientificName <- qaqc(data, query, query_message, values_c
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% substrates,
-         !Species_LocalSpeciesSymbol %in% unknowns)
-query <- "Species_Genus"
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns)
+query <- "Species Taxa"
 query_message <- paste0("Genus") 
 values_data <- data$Species_Genus
 values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_SpeciesReport_Genus <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Taxa_Genus <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Species_Family is not blank. (Field cannot be edited in FFI)
+-   Check that Species_Family is not blank. (Field sometimes cannot be edited in FFI)
 
 ```{r}
-# # Set parameters 
-# data <- SpeciesReport %>% 
-#   filter(!Species_LocalSpeciesSymbol %in% substrates,
-#          !Species_LocalSpeciesSymbol %in% unknowns)
-# query <- "Species_Family"
-# query_message <- paste0("Family") 
-# values_data <- data$Species_Family
-# values_valid <- ""
-# values_check <- values_data != values_valid
-# 
-# # Identify errors
-# errors_SpeciesReport_Family <- qaqc(data, query, query_message, values_check)
+# Set parameters
+data <- SpeciesReport %>%
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly))
+query <- "Species Taxa"
+query_message <- paste0("Family")
+values_data <- data$Species_Family
+values_valid <- ""
+values_check <- values_data != values_valid
+
+# Identify errors
+errors_SpeciesReport_Taxa_Family <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Species_ITIS_TSN is not blank. (Field cannot be edited in FFI)
@@ -181,63 +496,83 @@ errors_SpeciesReport_Genus <- qaqc(data, query, query_message, values_check)
 ```{r}
 # # Set parameters 
 # data <- SpeciesReport %>% 
-#   filter(!Species_LocalSpeciesSymbol %in% substrates,
-#          !Species_LocalSpeciesSymbol %in% unknowns)
-# query <- "Species_ITIS_TSN"
+#   filter(!Species_LocalSpeciesSymbol %in% Substrates,
+#          !Species_LocalSpeciesSymbol %in% Unknowns)
+# query <- "Species Taxa"
 # query_message <- paste0("TSN") 
 # values_data <- data$Species_ITISTaxonomicSerialNumber
 # values_valid <- ""
 # values_check <- values_data != values_valid
 # 
 # # Identify errors
-# errors_SpeciesReport_TSN <- qaqc(data, query, query_message, values_check)
+# errors_SpeciesReport_Taxa_TSN <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Species_NotBiological = False. (Field cannot be edited in FFI).
+-   Check that Species_NotBiological = False. (Field sometimes cannot be edited in FFI).
 
 ```{r}
 # # Set parameters 
 # data <- SpeciesReport %>% 
-#   filter(!Species_LocalSpeciesSymbol %in% substrates)
-# query <- "Species_NotBiological"
+#   filter(!Species_LocalSpeciesSymbol %in% Substrates)
+# query <- "Species Taxa"
 # query_message <- paste0("Not Biological") 
 # values_data <- data$Species_NotBiological
 # values_valid <- "False"
 # values_check <- values_data == values_valid
 # 
 # # Identify errors
-# errors_SpeciesReport_NotBiological_F <- qaqc(data, query, query_message, values_check)
+# errors_SpeciesReport_Taxa_NotBiological_F <- qaqc(data, query, query_message, values_check)
 ```
 
 ```{r}
 # # Set parameters 
 # data <- SpeciesReport %>% 
-#   filter(Species_LocalSpeciesSymbol %in% substrates)
-# query <- "Species_NotBiological"
+#   filter(Species_LocalSpeciesSymbol %in% Substrates)
+# query <- "Species Taxa"
 # query_message <- paste0("Substrate. Not Biological") 
 # values_data <- data$Species_NotBiological
 # values_valid <- "True"
 # values_check <- values_data == values_valid
 # 
 # # Identify errors
-# errors_SpeciesReport_NotBiological_T <- qaqc(data, query, query_message, values_check)
+# errors_SpeciesReport_Taxa_NotBiological_T <- qaqc(data, query, query_message, values_check)
 ```
+
+#### Combine Taxonomy Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Taxa <- unique(rbind(errors_SpeciesReport_Taxa_Family, errors_SpeciesReport_Taxa_Genus, errors_SpeciesReport_Taxa_ScientificName))
+
+remove(errors_SpeciesReport_Taxa_Family, errors_SpeciesReport_Taxa_Genus, errors_SpeciesReport_Taxa_ScientificName)
+
+if(nrow(errors_SpeciesReport_Taxa) > 1) {
+  errors_SpeciesReport_Taxa <- errors_SpeciesReport_Taxa %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Taxa <- errors_SpeciesReport_Taxa}
+```
+
+### Local Characteristics
+
+[Problem:]{.underline} Species Report is missing locally defined information
+
+[Procedure:]{.underline}
 
 -   Check that Species_CommonNameLocal is not blank
 
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% substrates,
-         !Species_LocalSpeciesSymbol %in% unknowns)
-query <- "Species_CommonNameLocal"
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns)
+query <- "Species Local"
 query_message <- paste0("Common Name")
 values_data <- data$Species_CommonNameLocal
 values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_SpeciesReport_CommonName <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Local_CommonName <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Species_LifeCycleLocal = Perennial, Biennial, or Annual
@@ -245,17 +580,85 @@ errors_SpeciesReport_CommonName <- qaqc(data, query, query_message, values_check
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% substrates,
-         !Species_LocalSpeciesSymbol %in% unknowns)
-query <- "Species_LifeCycleLocal"
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns)
+query <- "Species Local"
 query_message <- paste0("Life Cycle")
 values_data <- data$Species_LifeCycleLocal
 values_valid <- c("Perennial", "Biennial", "Annual")
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_SpeciesReport_LifeCycle <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Local_LifeCycle <- qaqc(data, query, query_message, values_check)
 ```
+
+-   Check that Species_Cultural = True or False
+
+```{r}
+data <- SpeciesReport %>% 
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns)
+query <- "Species Local"
+query_message <- paste0("Cultural")
+values_data <- data$Species_Cultural
+values_valid <- c("True", "False")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_Local_Cultural <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Species_Concern = True or False
+
+```{r}
+data <- SpeciesReport %>% 
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns)
+query <- "Species Local"
+query_message <- paste0("Concern")
+values_data <- data$Species_Concern
+values_valid <- c("True", "False")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_Local_Concern <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Species_Retired = True or False
+
+```{r}
+data <- SpeciesReport %>% 
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns)
+query <- "Species Local"
+query_message <- paste0("Retired")
+values_data <- data$Species_Retired
+values_valid <- c("True", "False")
+values_check <- values_data %in% values_valid
+
+# Identify errors
+errors_SpeciesReport_Local_Retired <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Local Characteristics Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Local <- unique(rbind(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Cultural, errors_SpeciesReport_Local_Concern, errors_SpeciesReport_Local_Retired))
+
+remove(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Cultural, errors_SpeciesReport_Local_Concern, errors_SpeciesReport_Local_Retired)
+
+if(nrow(errors_SpeciesReport_Local) > 1) {
+  errors_SpeciesReport_Local <- errors_SpeciesReport_Local %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Local <- errors_SpeciesReport_Local}
+```
+
+### Nativity
+
+[Problem:]{.underline} Species Report is has inconsistent information on species nativity.
+
+[Procedure:]{.underline}
 
 -   Sort by Native = True. Check that Invasive = False
 
@@ -263,7 +666,7 @@ errors_SpeciesReport_LifeCycle <- qaqc(data, query, query_message, values_check)
 # Set parameters
 data <- SpeciesReport %>% 
   filter(Species_NativityLocal == "True")
-query <- "Species_NativityLocal"
+query <- "Species_Nativity"
 query_message <- paste0("Native = True. Invasive")
 values_data <- data$Species_Invasive
 values_valid <- c("False")
@@ -277,11 +680,11 @@ errors_SpeciesReport_Native <- qaqc(data, query, query_message, values_check)
 
 ```{r}
 # # Set parameters
-# data <- SpeciesReport %>% 
+# data <- SpeciesReport %>%
 #   filter(Species_NativityLocal == "False",
-#          !Species_LocalSpeciesSymbol %in% substrates,
-#          !Species_LocalSpeciesSymbol %in% unknowns)
-# query <- "Species_Invasive"
+#          !Species_LocalSpeciesSymbol %in% Substrates,
+#          !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp, Unknowns_FamilyOnly, Unknowns_GenusOnly))
+# query <- "Species_Nativity"
 # query_message <- paste0("Native = False. Invasive")
 # values_data <- data$Species_Invasive
 # values_valid <- c("True")
@@ -291,147 +694,18 @@ errors_SpeciesReport_Native <- qaqc(data, query, query_message, values_check)
 # errors_SpeciesReport_NonNative <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Species_Cultural = True or False
+#### Combine Nativity Errors {.hidden}
 
 ```{r}
-data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% substrates,
-         !Species_LocalSpeciesSymbol %in% unknowns)
-query <- "Species_Cultural"
-query_message <- paste0("Cultural")
-values_data <- data$Species_Cultural
-values_valid <- c("True", "False")
-values_check <- values_data %in% values_valid
+errors_SpeciesReport_Nativity <- unique(rbind(errors_SpeciesReport_Native))
 
-# Identify errors
-errors_SpeciesReport_Cultural <- qaqc(data, query, query_message, values_check)
-```
+remove(errors_SpeciesReport_Native)
 
--   Check that Species_Concern = True or False
-
-```{r}
-data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% substrates,
-         !Species_LocalSpeciesSymbol %in% unknowns)
-query <- "Species_Concern"
-query_message <- paste0("Concern")
-values_data <- data$Species_Concern
-values_valid <- c("True", "False")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_SpeciesReport_Concern <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Species_Retired = True or False
-
-```{r}
-data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% substrates,
-         !Species_LocalSpeciesSymbol %in% unknowns)
-query <- "Species_Retired"
-query_message <- paste0("Retired")
-values_data <- data$Species_Retired
-values_valid <- c("True", "False")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_SpeciesReport_Retired <- qaqc(data, query, query_message, values_check)
-```
-
-### Lifeform
-
--   Check that Species_LifeFormNameLocal = Nonvascular, Lichenous, Graminoid, Grass-like, Fern, Forb/herb, Vine, Shrub, Subshrub, or Tree
-
-```{r}
-# Set parameters 
-data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% substrates,
-         !Species_LocalSpeciesSymbol %in% unknowns)
-query <- "Species_LifeFormNameLocal"
-query_message <- paste0("Life Form")
-values_data <- data$Species_LifeFormNameLocal
-values_valid <- c("Nonvascular", "Lichenous", "Graminoid", "Grass-like", "Fern", "Forb/herb", "Vine", "Shrub", "Subshrub", "Tree")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_SpeciesReport_LifeForm <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Species_LifeFormNameLocal = Undefined for [substrates]{.underline}
-
-```{r}
-# Set parameters 
-data <- SpeciesReport %>% 
-  filter(Species_LocalSpeciesSymbol %in% substrates)
-query <- "Species_LifeFormNameLocal"
-query_message <- paste0("Substrate. Life Form")
-values_data <- data$Species_LifeFormNameLocal
-values_valid <- c("Undefined")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_SpeciesReport_LifeForm_Substrate <- qaqc(data, query, query_message, values_check)
-```
-
-#### Combine LifeForm Errors {.hidden}
-
-```{r}
-# errors_SpeciesReport_LifeForm <- unique(rbind())
-# 
-# remove()
-# 
-# if(nrow(errors_SpeciesReport_LifeForm ) > 1) {
-#   errors_SpeciesReport_LifeForm  <- errors_SpeciesReport_LifeForm  %>%
-#     filter(Error != "No Error")
-# } else {
-#   errors_SpeciesReport_LifeForm  <- errors_SpeciesReport_LifeForm }
-```
-
-### Unknowns
-
-[Problem:]{.underline} Unknown species codes should have unique identifiers that allow them to be searchable.
-
--   Completely unknowns species (UNKSPP)
-
--   Plants where the lifeform is known (GRASS)
-
--   Plants where the genus is known but the species is not (CAREX, CARSPP)
-
-[Procedure:]{.underline}
-
--   Unknown genus. Filter out substrate codes. Filter for Life Form == Undefined. Check that Genus == Scientific Name. If this is true, Life Form should be known (not "Undefined).
-
-```{r}
-# Set parameters 
-data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% substrates)
-query <- "Species Unknowns"
-query_message <- paste0("Life form")
-values_data <- data$Species_LifeFormNameLocal
-values_valid <- "Undefined"
-values_check <- values_data != values_valid
-
-# Identify errors
-errors_SpeciesReport_Unknown_Genus <- qaqc(data, query, query_message, values_check)
-```
-
--   If this is false...
-
-```{r}
-# Set parameters 
-data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% substrates,
-         Species_LifeFormNameLocal == "Undefined") %>%
-  mutate(UnkGenus = ifelse(Species_ScientificName == Species_Genus, "Y", "N"))
-query <- "Species Unknowns"
-query_message <- paste0("Life form = ", data$Species_LifeFormNameLocal, ". Unknown Genus")
-values_data <- data$UnkGenus
-values_valid <- c("Y", "N")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_SpeciesReport_Unknown_Genus <- qaqc(data, query, query_message, values_check)
+if(nrow(errors_SpeciesReport_Nativity) > 1) {
+  errors_SpeciesReport_Nativity <- errors_SpeciesReport_Nativity %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Nativity <- errors_SpeciesReport_Nativity}
 ```
 
 # ALL ERRORS
