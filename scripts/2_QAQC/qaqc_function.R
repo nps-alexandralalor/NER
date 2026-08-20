@@ -14,7 +14,7 @@ qaqc <- function(data, query, query_message, values_check) {
     # If there is no data, default to "No Error" data frame
     errors <- errors_blank %>%
       mutate("SavedQuery" = query,
-             "Error" = "No Error")
+             "Error" = "No Data")
     # If there is data, perform error check
   } else {
     
