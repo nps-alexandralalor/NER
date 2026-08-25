@@ -361,46 +361,7 @@ if(nrow(errors_SpeciesReport_Unknown) > 1) {
   errors_SpeciesReport_Unknown <- errors_SpeciesReport_Unknown}
 ```
 
-### Combine and Save Errors {.hidden}
-
-```{r}
-# errors_SpeciesReport_Step1 <- unique(rbind(errors_SpeciesReport_Unknown, errors_SpeciesReport_LifeForm)) %>% 
-#   arrange(AdminUnit_Name, SavedQuery, Species_LocalSpeciesSymbol)
-# 
-# remove(errors_SpeciesReport_Unknown, errors_SpeciesReport_LifeForm)
-# 
-# if(nrow(errors_SpeciesReport_Step1) > 1) {
-#   errors_SpeciesReport_Step1 <- errors_SpeciesReport_Step1 %>%
-#     filter(Error != "No Error")
-# } else {
-#   errors_SpeciesReport_Step1 <- errors_SpeciesReport_Step1}
-```
-
-```{r}
-# # Formatting
-# 
-# # Add blank rows between each tag number
-# errors_SpeciesReport_Step1_blanks <- errors_SpeciesReport_Step1[1, ]
-# for (i in 2:nrow(errors_SpeciesReport_Step1)) {
-#   if (errors_SpeciesReport_Step1[i, "AdminUnit_Name"] != errors_SpeciesReport_Step1[i - 1, "AdminUnit_Name"]) {
-#     errors_SpeciesReport_Step1_blanks <- rbind(errors_SpeciesReport_Step1_blanks, errors_blank, errors_SpeciesReport_Step1[i, ])
-#   } else {
-#     errors_SpeciesReport_Step1_blanks <- rbind(errors_SpeciesReport_Step1_blanks, errors_SpeciesReport_Step1[i, ])
-#   }
-# }
-# 
-# # Add conditional formating to ouput
-# errors_Step1_all <- condformat(errors_SpeciesReport_Step1_blanks[1:(nrow(errors_SpeciesReport_Step1_blanks)), 1:ncol(errors_SpeciesReport_Step1_blanks)]) %>%
-#   rule_fill_discrete(columns = 1:(ncol(errors_SpeciesReport_Step1_blanks)),
-#                      expression = SavedQuery != "",
-#                      colours = c("TRUE" = "#C6E0B4"),
-#                      na.value = "#FFFFFF")
-# 
-# # Save as CSV or XLSX
-# condformat2excel(errors_Step1_all, paste0(path_errors, target_park, "_Errors_SpeciesManagement_Step1.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
-```
-
-## Step 2 - Verify Known Species Info
+## Step 2 - Local Species Info
 
 Now that we fixed unknowns, we can use these codes
 
@@ -433,35 +394,6 @@ Unknowns <- c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly
 ```
 
 ### Taxonomy
-
-[Problem:]{.underline} Species Report is missing taxonomic information
-
-[Procedure:]{.underline}
-
--   
-
-#### Genus Known {.hidden}
-
-[Problem:]{.underline} Unknown plant where the genus is known, but taxonomic fields have data entered incorrectly.
-
-[Procedure:]{.underline}
-
--   Filter for unknowns. Check that life cycle is defined
-
-```{r}
-# # Set parameters 
-# data <- SpeciesReport %>% 
-#   filter(!Species_LocalSpeciesSymbol %in% c(Substrates_temp, Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp, Unknowns_FamilyOnly, Unknowns_GenusOnly))
-# data$Species_LifeCycleLocal[is.na(data$Species_LifeCycleLocal)] <- ""
-# query <- "Species_Unknown_GenusOnly"
-# query_message <- paste0("Life Cycle")
-# values_data <- data$Species_LifeCycleLocal
-# values_valid <- ""
-# values_check <- values_data != values_valid
-# 
-# # Identify errors
-# errors_SpeciesReport_Unknown_GenusOnly <- qaqc(data, query, query_message, values_check)
-```
 
 [Problem:]{.underline} Species Report is missing taxonomic information
 
@@ -507,7 +439,7 @@ errors_SpeciesReport_Taxa_Genus <- qaqc(data, query, query_message, values_check
 # Set parameters
 data <- SpeciesReport %>%
   filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly))
+         !Species_LocalSpeciesSymbol %in% Unknowns)
 query <- "Species Taxa"
 query_message <- paste0("Family")
 values_data <- data$Species_Family
@@ -516,53 +448,6 @@ values_check <- values_data != values_valid
 
 # Identify errors
 errors_SpeciesReport_Taxa_Family <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Species_ITIS_TSN is not blank. (Field cannot be edited in FFI)
-
-```{r}
-# # Set parameters 
-# data <- SpeciesReport %>% 
-#   filter(!Species_LocalSpeciesSymbol %in% Substrates,
-#          !Species_LocalSpeciesSymbol %in% Unknowns)
-# query <- "Species Taxa"
-# query_message <- paste0("TSN") 
-# values_data <- data$Species_ITISTaxonomicSerialNumber
-# values_valid <- ""
-# values_check <- values_data != values_valid
-# 
-# # Identify errors
-# errors_SpeciesReport_Taxa_TSN <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Species_NotBiological = False. (Field sometimes cannot be edited in FFI).
-
-```{r}
-# # Set parameters 
-# data <- SpeciesReport %>% 
-#   filter(!Species_LocalSpeciesSymbol %in% Substrates)
-# query <- "Species Taxa"
-# query_message <- paste0("Not Biological") 
-# values_data <- data$Species_NotBiological
-# values_valid <- "False"
-# values_check <- values_data == values_valid
-# 
-# # Identify errors
-# errors_SpeciesReport_Taxa_NotBiological_F <- qaqc(data, query, query_message, values_check)
-```
-
-```{r}
-# # Set parameters 
-# data <- SpeciesReport %>% 
-#   filter(Species_LocalSpeciesSymbol %in% Substrates)
-# query <- "Species Taxa"
-# query_message <- paste0("Substrate. Not Biological") 
-# values_data <- data$Species_NotBiological
-# values_valid <- "True"
-# values_check <- values_data == values_valid
-# 
-# # Identify errors
-# errors_SpeciesReport_Taxa_NotBiological_T <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Taxonomy Errors {.hidden}
@@ -602,7 +487,7 @@ values_check <- values_data != values_valid
 errors_SpeciesReport_Local_CommonName <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Species_LifeCycleLocal = Perennial, Biennial, or Annual
+-   Check that Species_LifeCycleLocal is not blank
 
 ```{r}
 # Set parameters 
@@ -612,95 +497,27 @@ data <- SpeciesReport %>%
 query <- "Species Local"
 query_message <- paste0("Life Cycle")
 values_data <- data$Species_LifeCycleLocal
-values_valid <- c("Perennial", "Biennial", "Annual")
-values_check <- values_data %in% values_valid
+values_valid <- "Not Defined"
+values_check <- values_data != values_valid
 
 # Identify errors
 errors_SpeciesReport_Local_LifeCycle <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Species_Cultural = True or False
-
-```{r}
-data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns)
-query <- "Species Local"
-query_message <- paste0("Cultural")
-values_data <- data$Species_Cultural
-values_valid <- c("True", "False")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_SpeciesReport_Local_Cultural <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Species_Concern = True or False
-
-```{r}
-data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns)
-query <- "Species Local"
-query_message <- paste0("Concern")
-values_data <- data$Species_Concern
-values_valid <- c("True", "False")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_SpeciesReport_Local_Concern <- qaqc(data, query, query_message, values_check)
-```
-
--   Check that Species_Retired = True or False
-
-```{r}
-data <- SpeciesReport %>% 
-  filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns)
-query <- "Species Local"
-query_message <- paste0("Retired")
-values_data <- data$Species_Retired
-values_valid <- c("True", "False")
-values_check <- values_data %in% values_valid
-
-# Identify errors
-errors_SpeciesReport_Local_Retired <- qaqc(data, query, query_message, values_check)
-```
-
-#### Combine Local Characteristics Errors {.hidden}
-
-```{r}
-errors_SpeciesReport_Local <- unique(rbind(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Cultural, errors_SpeciesReport_Local_Concern, errors_SpeciesReport_Local_Retired))
-
-remove(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Cultural, errors_SpeciesReport_Local_Concern, errors_SpeciesReport_Local_Retired)
-
-if(nrow(errors_SpeciesReport_Local) > 1) {
-  errors_SpeciesReport_Local <- errors_SpeciesReport_Local %>%
-    filter(Error != "No Error")
-} else {
-  errors_SpeciesReport_Local <- errors_SpeciesReport_Local}
-```
-
-### Nativity
-
-[Problem:]{.underline} Species Report is has inconsistent information on species nativity.
-
-[Procedure:]{.underline}
-
--   Sort by Native = True. Check that Invasive = False
+-   Sort by Native = True. Check that Invasive = False. Native Species should not be invasive.
 
 ```{r}
 # Set parameters
 data <- SpeciesReport %>% 
   filter(Species_NativityLocal == "True")
-query <- "Species_Nativity"
+query <- "Species_Local"
 query_message <- paste0("Native = True. Invasive")
 values_data <- data$Species_Invasive
 values_valid <- c("False")
 values_check <- values_data %in% values_valid
 
 # Identify errors
-errors_SpeciesReport_Native <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Local_Native <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Sort by Native = False. Check that Invasive = True (Nonnative & noninvasive species ok, but should be double checked)
@@ -710,29 +527,173 @@ errors_SpeciesReport_Native <- qaqc(data, query, query_message, values_check)
 # data <- SpeciesReport %>%
 #   filter(Species_NativityLocal == "False",
 #          !Species_LocalSpeciesSymbol %in% Substrates,
-#          !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp, Unknowns_FamilyOnly, Unknowns_GenusOnly))
-# query <- "Species_Nativity"
+#          !Species_LocalSpeciesSymbol %in% Unknowns)
+# query <- "Species_Local"
 # query_message <- paste0("Native = False. Invasive")
 # values_data <- data$Species_Invasive
 # values_valid <- c("True")
 # values_check <- values_data %in% values_valid
 # 
 # # Identify errors
-# errors_SpeciesReport_NonNative <- qaqc(data, query, query_message, values_check)
+# errors_SpeciesReport_Local_NonNative <- qaqc(data, query, query_message, values_check)
 ```
 
-#### Combine Nativity Errors {.hidden}
+-   Check that Species_ScientificName is not duplicated
 
 ```{r}
-errors_SpeciesReport_Nativity <- unique(rbind(errors_SpeciesReport_Native))
+# Check for species duplication and store results in new column
+data_temp <- SpeciesReport %>% 
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns) %>% 
+  get_dupes(AdminUnit_Name, Species_ScientificName)
 
-remove(errors_SpeciesReport_Native)
+# Set parameters 
+data <- merge(SpeciesReport, data_temp, all.x = T)
+data$dupe_count[is.na(data$dupe_count)] <- 0
+query <- "Species_Local" 
+query_message <- paste0("Species = ", data$Species_ScientificName, ". Duplicates")
+values_data <- data$dupe_count
+values_valid <- 0
+values_check <- values_data == values_valid
 
-if(nrow(errors_SpeciesReport_Nativity) > 1) {
-  errors_SpeciesReport_Nativity <- errors_SpeciesReport_Nativity %>%
+# Identify errors
+errors_SpeciesReport_Local_Duplicate <- qaqc(data, query, query_message, values_check)
+```
+
+-   Trees UV fields
+
+```{r}
+
+```
+
+#### Combine Local Characteristics Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Local <- unique(rbind(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Native, errors_SpeciesReport_Local_Duplicate))
+
+remove(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Native, errors_SpeciesReport_Local_Duplicate)
+
+if(nrow(errors_SpeciesReport_Local) > 1) {
+  errors_SpeciesReport_Local <- errors_SpeciesReport_Local %>%
     filter(Error != "No Error")
 } else {
-  errors_SpeciesReport_Nativity <- errors_SpeciesReport_Nativity}
+  errors_SpeciesReport_Local <- errors_SpeciesReport_Local}
+```
+
+### Combine and Save Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Step2 <- unique(rbind(errors_SpeciesReport_Taxa, errors_SpeciesReport_Local))
+
+remove(errors_SpeciesReport_Unknown, errors_SpeciesReport_LifeForm)
+
+if(nrow(errors_SpeciesReport_Step2) > 1) {
+  errors_SpeciesReport_Step2 <- errors_SpeciesReport_Step2 %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Step2 <- errors_SpeciesReport_Step2}
+```
+
+```{r}
+# # Formatting
+# 
+# # Add blank rows between each tag number
+# errors_SpeciesReport_Step1_blanks <- errors_SpeciesReport_Step1[1, ]
+# for (i in 2:nrow(errors_SpeciesReport_Step1)) {
+#   if (errors_SpeciesReport_Step1[i, "AdminUnit_Name"] != errors_SpeciesReport_Step1[i - 1, "AdminUnit_Name"]) {
+#     errors_SpeciesReport_Step1_blanks <- rbind(errors_SpeciesReport_Step1_blanks, errors_blank, errors_SpeciesReport_Step1[i, ])
+#   } else {
+#     errors_SpeciesReport_Step1_blanks <- rbind(errors_SpeciesReport_Step1_blanks, errors_SpeciesReport_Step1[i, ])
+#   }
+# }
+# 
+# # Add conditional formating to ouput
+# errors_Step1_all <- condformat(errors_SpeciesReport_Step1_blanks[1:(nrow(errors_SpeciesReport_Step1_blanks)), 1:ncol(errors_SpeciesReport_Step1_blanks)]) %>%
+#   rule_fill_discrete(columns = 1:(ncol(errors_SpeciesReport_Step1_blanks)),
+#                      expression = SavedQuery != "",
+#                      colours = c("TRUE" = "#C6E0B4"),
+#                      na.value = "#FFFFFF")
+# 
+# # Save as CSV or XLSX
+# condformat2excel(errors_Step1_all, paste0(path_errors, target_park, "_Errors_SpeciesManagement_Step1.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+```
+
+## Step 3 - Cross Park Inconsistencies
+
+### Inconsistencies
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>%
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns) %>% 
+  dplyr::group_by(Species_ScientificName) %>%
+  dplyr::mutate(n_families = dplyr::n_distinct(Species_Family)) %>%
+  dplyr::ungroup()
+query <- "Species Duplicates" 
+query_message <- paste0("Species = ", data$Species_ScientificName, ". Family = ", data$Species_Family, ". Family count")
+values_data <- data$n_families
+values_valid <- 1
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Duplicate_Family <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Duplicate_Family <- errors_SpeciesReport_Duplicate_Family %>% 
+  arrange(errors_SpeciesReport_Duplicate_Family$Error)
+```
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>%
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns) %>% 
+  dplyr::group_by(Species_ScientificName) %>%
+  dplyr::mutate(n_lifeform = dplyr::n_distinct(Species_LifeFormNameLocal)) %>%
+  dplyr::ungroup()
+query <- "Species Duplicates" 
+query_message <- paste0("Species = ", data$Species_ScientificName, ". Lifeform = ", data$Species_LifeFormNameLocal, ". Life form count")
+values_data <- data$n_lifeform
+values_valid <- 1
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Duplicate_Lifeform <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Duplicate_Lifeform <- errors_SpeciesReport_Duplicate_Lifeform %>% 
+  arrange(errors_SpeciesReport_Duplicate_Lifeform$Error)
+```
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>%
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns) %>% 
+  dplyr::group_by(Species_ScientificName) %>%
+  dplyr::mutate(n_invasive = dplyr::n_distinct(Species_Invasive)) %>%
+  dplyr::ungroup()
+query <- "Species Duplicates" 
+query_message <- paste0("Species = ", data$Species_ScientificName, ". Invasive = ", data$Species_Invasive, ". Invasive count")
+values_data <- data$n_invasive
+values_valid <- 1
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Duplicate_Invasive <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Duplicate_Invasive <- errors_SpeciesReport_Duplicate_Invasive %>% 
+  arrange(errors_SpeciesReport_Duplicate_Invasive$Error)
+```
+
+### Combine Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Step3 <- unique(rbind(errors_SpeciesReport_Duplicate_Family, errors_SpeciesReport_Duplicate_Lifeform, errors_SpeciesReport_Duplicate_Invasive))
+
+remove(errors_SpeciesReport_Duplicate_Family, errors_SpeciesReport_Duplicate_Lifeform, errors_SpeciesReport_Duplicate_Invasive)
+
+if(nrow(errors_SpeciesReport_Step3) > 1) {
+  errors_SpeciesReport_Step3 <- errors_SpeciesReport_Step3 %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Step3 <- errors_SpeciesReport_Step3}
 ```
 
 # ALL ERRORS
