@@ -142,7 +142,7 @@ Unknowns_LifeFormOnly_temp <- c(
 # Set parameters 
 data <- SpeciesReport %>% 
   filter(Species_LocalSpeciesSymbol %in% Substrates_temp)
-query <- "Species_LifeFormNameLocal"
+query <- "Species LifeForm"
 query_message <- paste0("Substrate. Life Form should be 'Undefined'. Life Form")
 values_data <- data$Species_LifeFormNameLocal
 values_valid <- "Undefined"
@@ -158,7 +158,7 @@ errors_SpeciesReport_LifeForm_Substrate <- qaqc(data, query, query_message, valu
 # Set parameters 
 data <- SpeciesReport %>% 
   filter(Species_LocalSpeciesSymbol %in% Unknowns_MysteryPlants_temp)
-query <- "Species_LifeFormNameLocal"
+query <- "Species LifeForm"
 query_message <- paste0("Mystery plant. Life Form should be 'Unknown'. Life Form")
 values_data <- data$Species_LifeFormNameLocal
 values_valid <- "Unknown"
@@ -175,7 +175,7 @@ errors_SpeciesReport_LifeForm_Unknown <- qaqc(data, query, query_message, values
 data <- SpeciesReport %>% 
   filter(!Species_LocalSpeciesSymbol %in% Substrates_temp,
          !Species_LocalSpeciesSymbol %in% Unknowns_MysteryPlants_temp)
-query <- "Species_LifeFormNameLocal"
+query <- "Species LifeForm"
 query_message <- paste0("Life Form")
 values_data <- data$Species_LifeFormNameLocal
 values_valid <- c("Undefined", "Unknown")
@@ -212,7 +212,7 @@ if(nrow(errors_SpeciesReport_LifeForm) > 1) {
 data <- SpeciesReport %>% 
   filter(Species_LocalSpeciesSymbol %in% c(Substrates_temp, Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp))
 data$Species_Family[is.na(data$Species_Family)] <- ""
-query <- "Species_Unknown_Taxa"
+query <- "Species Unknown"
 query_message <- paste0("Family should be blank. Family")
 values_data <- data$Species_Family
 values_valid <- ""
@@ -227,7 +227,7 @@ errors_SpeciesReport_Unknown_Taxa_Family <- qaqc(data, query, query_message, val
 data <- SpeciesReport %>% 
   filter(Species_LocalSpeciesSymbol %in% c(Substrates_temp, Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp))
 data$Species_Genus[is.na(data$Species_Genus)] <- ""
-query <- "Species_Unknown_Taxa"
+query <- "Species Unknown"
 query_message <- paste0("Genus should be blank. Genus")
 values_data <- data$Species_Genus
 values_valid <- ""
@@ -242,7 +242,7 @@ errors_SpeciesReport_Unknown_Taxa_Genus <- qaqc(data, query, query_message, valu
 data <- SpeciesReport %>% 
   filter(Species_LocalSpeciesSymbol %in% c(Substrates_temp, Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp))
 data$Species_ScientificName[is.na(data$Species_ScientificName)] <- ""
-query <- "Species_Unknown_Taxa"
+query <- "Species Unknown"
 query_message <- paste0("Scientific Name should be blank. Scientific Name")
 values_data <- data$Species_ScientificName
 values_valid <- ""
@@ -280,7 +280,7 @@ data <- SpeciesReport %>%
   filter(!is.na(Species_Family),
          is.na(Species_ScientificName) | grepl("species|spp", Species_ScientificName))
 data$Species_Genus[is.na(data$Species_Genus)] <- ""
-query <- "Species_Unknown_FamilyOnly"
+query <- "Species Unknown"
 query_message <- paste0("Genus should be blank. Genus")
 values_data <- data$Species_Genus
 values_valid <- ""
@@ -296,7 +296,7 @@ data <- SpeciesReport %>%
   filter(!is.na(Species_Family),
          is.na(Species_Genus) | grepl("species|spp", Species_Genus))
 data$Species_ScientificName[is.na(data$Species_ScientificName)] <- ""
-query <- "Species_Unknown_FamilyOnly"
+query <- "Species Unknown"
 query_message <- paste0("Scientific Name should be blank. Scientific Name")
 values_data <- data$Species_ScientificName
 values_valid <- ""
@@ -337,8 +337,8 @@ data_temp <- SpeciesReport %>%
 # Set parameters
 data <- data_temp %>% 
   filter(!Species_LocalSpeciesSymbol %in% c(Substrates_temp, Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp))
-query <- "Species_Unknown_GenusOnly"
-query_message <- paste0("Genus spelled incorrectly OR genus is unknown (check that family is filled out). Scientific Name = ", data$ScientificGenus, ". Genus")
+query <- "Species Unknown"
+query_message <- paste0("Family = ", data$Species_Family, ". Scientific Name = ", data$ScientificGenus, ". Genus")
 values_data <- data$Species_Genus
 values_valid <- data$ScientificGenus
 values_check <- values_data == values_valid
@@ -510,7 +510,7 @@ errors_SpeciesReport_Local_LifeCycle <- qaqc(data, query, query_message, values_
 # Set parameters
 data <- SpeciesReport %>% 
   filter(Species_NativityLocal == "True")
-query <- "Species_Local"
+query <- "Species Local"
 query_message <- paste0("Native = True. Invasive")
 values_data <- data$Species_Invasive
 values_valid <- c("False")
@@ -550,7 +550,7 @@ data_temp <- SpeciesReport %>%
 # Set parameters 
 data <- merge(SpeciesReport, data_temp, all.x = T)
 data$dupe_count[is.na(data$dupe_count)] <- 0
-query <- "Species_Local" 
+query <- "Species Local" 
 query_message <- paste0("Species = ", data$Species_ScientificName, ". Duplicates")
 values_data <- data$dupe_count
 values_valid <- 0
@@ -583,15 +583,7 @@ if(nrow(errors_SpeciesReport_Local) > 1) {
 ### Combine and Save Errors {.hidden}
 
 ```{r}
-errors_SpeciesReport_Step2 <- unique(rbind(errors_SpeciesReport_Taxa, errors_SpeciesReport_Local))
-
-remove(errors_SpeciesReport_Unknown, errors_SpeciesReport_LifeForm)
-
-if(nrow(errors_SpeciesReport_Step2) > 1) {
-  errors_SpeciesReport_Step2 <- errors_SpeciesReport_Step2 %>%
-    filter(Error != "No Error")
-} else {
-  errors_SpeciesReport_Step2 <- errors_SpeciesReport_Step2}
+errors_SpeciesReport_Step2 <- rbind(errors_SpeciesReport_LifeForm, errors_blank, errors_SpeciesReport_Unknown, errors_blank, errors_SpeciesReport_Taxa, errors_blank, errors_SpeciesReport_Local)
 ```
 
 ```{r}
@@ -630,16 +622,16 @@ data <- SpeciesReport %>%
   dplyr::group_by(Species_ScientificName) %>%
   dplyr::mutate(n_families = dplyr::n_distinct(Species_Family)) %>%
   dplyr::ungroup()
-query <- "Species Duplicates" 
+query <- "Species Cross Park" 
 query_message <- paste0("Species = ", data$Species_ScientificName, ". Family = ", data$Species_Family, ". Family count")
 values_data <- data$n_families
 values_valid <- 1
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SpeciesReport_Duplicate_Family <- qaqc(data, query, query_message, values_check)
-errors_SpeciesReport_Duplicate_Family <- errors_SpeciesReport_Duplicate_Family %>% 
-  arrange(errors_SpeciesReport_Duplicate_Family$Error)
+errors_SpeciesReport_CrossPark_Family <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_CrossPark_Family <- errors_SpeciesReport_CrossPark_Family %>% 
+  arrange(errors_SpeciesReport_CrossPark_Family$Error)
 ```
 
 ```{r}
@@ -650,50 +642,42 @@ data <- SpeciesReport %>%
   dplyr::group_by(Species_ScientificName) %>%
   dplyr::mutate(n_lifeform = dplyr::n_distinct(Species_LifeFormNameLocal)) %>%
   dplyr::ungroup()
-query <- "Species Duplicates" 
+query <- "Species Cross Park" 
 query_message <- paste0("Species = ", data$Species_ScientificName, ". Lifeform = ", data$Species_LifeFormNameLocal, ". Life form count")
 values_data <- data$n_lifeform
 values_valid <- 1
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SpeciesReport_Duplicate_Lifeform <- qaqc(data, query, query_message, values_check)
-errors_SpeciesReport_Duplicate_Lifeform <- errors_SpeciesReport_Duplicate_Lifeform %>% 
-  arrange(errors_SpeciesReport_Duplicate_Lifeform$Error)
+errors_SpeciesReport_CrossPark_Lifeform <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_CrossPark_Lifeform <- errors_SpeciesReport_CrossPark_Lifeform %>% 
+  arrange(errors_SpeciesReport_CrossPark_Lifeform$Error)
 ```
 
 ```{r}
-# Set parameters 
+# Set parameters
 data <- SpeciesReport %>%
   filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns) %>% 
+         !Species_LocalSpeciesSymbol %in% Unknowns) %>%
   dplyr::group_by(Species_ScientificName) %>%
   dplyr::mutate(n_invasive = dplyr::n_distinct(Species_Invasive)) %>%
   dplyr::ungroup()
-query <- "Species Duplicates" 
-query_message <- paste0("Species = ", data$Species_ScientificName, ". Invasive = ", data$Species_Invasive, ". Invasive count")
+query <- "Species Cross Park"
+query_message <- paste0("Species = ", data$Species_ScientificName, ". Native = ", data$Species_NativityLocal, ". Invasive = ", data$Species_Invasive, ". Invasive count")
 values_data <- data$n_invasive
 values_valid <- 1
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SpeciesReport_Duplicate_Invasive <- qaqc(data, query, query_message, values_check)
-errors_SpeciesReport_Duplicate_Invasive <- errors_SpeciesReport_Duplicate_Invasive %>% 
-  arrange(errors_SpeciesReport_Duplicate_Invasive$Error)
+errors_SpeciesReport_CrossPark_Invasive <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_CrossPark_Invasive <- errors_SpeciesReport_CrossPark_Invasive %>%
+  arrange(errors_SpeciesReport_CrossPark_Invasive$Error)
 ```
 
 ### Combine Errors {.hidden}
 
 ```{r}
-errors_SpeciesReport_Step3 <- unique(rbind(errors_SpeciesReport_Duplicate_Family, errors_SpeciesReport_Duplicate_Lifeform, errors_SpeciesReport_Duplicate_Invasive))
-
-remove(errors_SpeciesReport_Duplicate_Family, errors_SpeciesReport_Duplicate_Lifeform, errors_SpeciesReport_Duplicate_Invasive)
-
-if(nrow(errors_SpeciesReport_Step3) > 1) {
-  errors_SpeciesReport_Step3 <- errors_SpeciesReport_Step3 %>%
-    filter(Error != "No Error")
-} else {
-  errors_SpeciesReport_Step3 <- errors_SpeciesReport_Step3}
+errors_SpeciesReport_Step3 <- rbind(errors_SpeciesReport_CrossPark_Family, errors_blank, errors_SpeciesReport_CrossPark_Lifeform, errors_blank, errors_SpeciesReport_CrossPark_Invasive)
 ```
 
 # ALL ERRORS
