@@ -42,6 +42,7 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 library(tidyverse)
 library(dplyr)
 library(plyr)
+library(stringr)
 # janitor has functions to find duplicates
 library(janitor)
 # writexl is used to create excel output files
@@ -105,12 +106,6 @@ SpeciesReport_all <- read.csv(paste0(path_data, "all_species_info.csv"))
 ```{r filter data, include=FALSE}
 SpeciesReport <- SpeciesReport_all %>% 
   filter(AdminUnit_Name %in% target_park)
-```
-
-### Define Codes {.hidden}
-
-```{r define codes, include=FALSE}
-# unknowns_genus <- c("ACALY","ACALYP","ACASPP","ACER","ACHILLEA","AGESPP","AGROS","AGRSPP","ALLIUM","ALLSPP","AMELA","AMESPP","ANDRO","ANDROP","ANDSPP","ANEMO","ANESPP","ANTEN","ANTENN","ANTSPP","APOCY","APOCYNUM","APOSPP", "ARABIS","ARALI","ARISPP","ARIST","ASCLE","ASCLEPIAS","ASCSPP","ASPSPP","ASTER","ASTERACEAE","ASTEspp","BETULA","BIDENS","BOTRY","BOTRYCH","BOTSPP","BRASSICACE","BRASPP","BRASS2","BROMU","bromus","BROMUS","BROSPP","CALAM","CALYSTEGIA","CARDA","CAREX","CAREX2","CARSPP","CARSP1","CARSPP2","CARSP2","CARSP3","CARYA","CASSPP","CENTAUREA","CHIMA","CIRCAE","CIRSI","CIRSPP","CLISPP","CONVO","CONVOL","CONVOLVULU","CONVULVULA","CORNspp","CORSPP","CORNU","CORNUS","CRASPP","CRATA","CRATAEGUS","CUSCU","CUSCUTA","CUSSPP","CYPER","CYPSPP","DANSPP","DATSP","DDTREE","DESMO","DESMODIUM","DESSPP","DICHAN","DICHANTHEL","DICSPP","DICSP1","DICSPP1","DICSP2","DICSPP2","DICSPP3","DICSP5","DIGITA","DIGSPP1","DIGSPP","DIOSC","DIOSPP","ELEOCHARIS","ELESPP","ELYMUS","EPILOBIUM","EPISPP","EPISP1","ERAGR","ERASPP","ERAGROSTIS","ERIGE2","ERIGERON","ERISP","ERISPP","EUPATOR","EUPATORIUM","EUPSPP","EURSPP","EURYB","FABSPP","FABA","FESTUC","FESTUCA","FIMBRI","FRASPP","FRAXINUS","FRAXspp","GALIU","GALIUM","GALSP","GALSPP","GENTI","GEUM","GILLSP", "GLYCERIA","GNASPP","HELIAN","HEPAT","HIERA","HIERAC","HIERACIUM","HIESPP","HOUSTO","HYPER","HYPERICUM","HYPPER","HYPSPP","IMPATIENS","IPOMO","IPOMOE","IPOMOEA","IPOSPP","IRIS","JUNCUS","JUNIspp","JUNSPP","KRIGI","LACSPP","LACTU","LAMSPP","LESPE","LESSPP","LIASPP","LIATR","LINSPP","LINUM","LITHO3","LONIC","LONICE","LONICERA","LONSPP","LOTUS","LYCHN","LYCOPODIUM","LYCOPUS","LYSIM","LYSSSP","MAGNOLIA","MALUS","MEDICAGO","MELILOTUS","MONARDA","MONSPP","MUHLE","MUHLEN","MUHSPP","MYRIO","NABSPP", "OSMOR","OSMSPP","OXALI","OXALIS","OXASPP","PACKER","PACKERA","PACSPP","PANIC","PANICUM","PANSPP","PASPAL","PASSPP","PASSP1","PENSSP","PERSPP","PHLEU","PHYSPP","PINSPP","PINUS","POA","POACEAE","POLYG2","POLYG4","POLYGO","POLYGONUM","POPSPP","POPULUS","POTENT","POTENTILLA","PRESPP","PRUNE","PRUNU","PRUNUS","PRUSPP","PYCNA","PYCNANTHEM","PYRUS","QUERC","QUERCUS","QUESPP","RANSPP","RANUNCULUS","RHAMNUS","RHEXI","RHODO","RIBES","ROSA","ROSSPP","ROSA5","RUBIACEAE","RUBSPP","RUBUS","RUDBECKIA","RUMEX","RUMSPP","SALIX","SAMBU","SANICULA","SANSPP","SCIRP","SCIRPUS","SCLSPP","SCUSPP","SCUTELLARI","SETARIA","SETSPP","SISSPP","SISYR","SMILAX","SMISPP","SOLID","SOLIDAGO","SOLSPP","SOLSP1","SPIRA","SPIRA2","SPIRAE","SPIRAN","STELL","STELLARIA","STIPA","SYMPHY","Symphy2","SYMPHYOTRI","SYMSPP","SYMSP1","SYMSPP1","TARAX","TARSPP","THALICTRUM","TRIFOL","TRIFOLIUM","TRILL","TRILLIUM","TRISPP","ULMSPP","ULMUS","UVUSP","VACCI","VACCIN","VACCINIUM","VACSPP","VERBA","VERBENA","VERON","VERONICA","VIBURN","VIBURNUM","VICIA","VICSPP","VIOLA","VIOSPP","VIOSPP1","VITIS","VITSPP","YPINE")
 ```
 
 # SPECIES REPORT
@@ -338,7 +333,7 @@ data_temp <- SpeciesReport %>%
 data <- data_temp %>% 
   filter(!Species_LocalSpeciesSymbol %in% c(Substrates_temp, Unknowns_MysteryPlants_temp, Unknowns_LifeFormOnly_temp))
 query <- "Species Unknown"
-query_message <- paste0("Family = ", data$Species_Family, ". Scientific Name = ", data$ScientificGenus, ". Genus")
+query_message <- paste0("Genus misspelled. Family = ", data$Species_Family, ". Scientific Name = ", data$ScientificGenus, ". Genus")
 values_data <- data$Species_Genus
 values_valid <- data$ScientificGenus
 values_check <- values_data == values_valid
@@ -405,7 +400,7 @@ Unknowns <- c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly
 # Set parameters 
 data <- SpeciesReport %>% 
   filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns)
+         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly))
 query <- "Species Taxa"
 query_message <- paste0("Scientific Name") 
 values_data <- data$Species_ScientificName
@@ -422,7 +417,7 @@ errors_SpeciesReport_Taxa_ScientificName <- qaqc(data, query, query_message, val
 # Set parameters 
 data <- SpeciesReport %>% 
   filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns)
+         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly))
 query <- "Species Taxa"
 query_message <- paste0("Genus") 
 values_data <- data$Species_Genus
@@ -439,7 +434,7 @@ errors_SpeciesReport_Taxa_Genus <- qaqc(data, query, query_message, values_check
 # Set parameters
 data <- SpeciesReport %>%
   filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns)
+         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly))
 query <- "Species Taxa"
 query_message <- paste0("Family")
 values_data <- data$Species_Family
@@ -476,7 +471,7 @@ if(nrow(errors_SpeciesReport_Taxa) > 1) {
 # Set parameters 
 data <- SpeciesReport %>% 
   filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns)
+         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants))
 query <- "Species Local"
 query_message <- paste0("Common Name")
 values_data <- data$Species_CommonNameLocal
@@ -538,6 +533,32 @@ errors_SpeciesReport_Local_Native <- qaqc(data, query, query_message, values_che
 # errors_SpeciesReport_Local_NonNative <- qaqc(data, query, query_message, values_check)
 ```
 
+-   Trees UV fields
+
+```{r}
+
+```
+
+#### Combine Local Characteristics Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Local <- unique(rbind(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Native))
+
+remove(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Native)
+
+if(nrow(errors_SpeciesReport_Local) > 1) {
+  errors_SpeciesReport_Local <- errors_SpeciesReport_Local %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Local <- errors_SpeciesReport_Local}
+```
+
+### Duplicates
+
+[Problem:]{.underline} Species Report has duplicated species
+
+[Procedure:]{.underline}
+
 -   Check that Species_ScientificName is not duplicated
 
 ```{r}
@@ -550,64 +571,34 @@ data_temp <- SpeciesReport %>%
 # Set parameters 
 data <- merge(SpeciesReport, data_temp, all.x = T)
 data$dupe_count[is.na(data$dupe_count)] <- 0
-query <- "Species Local" 
+query <- "Species Duplicates" 
 query_message <- paste0("Species = ", data$Species_ScientificName, ". Duplicates")
 values_data <- data$dupe_count
 values_valid <- 0
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SpeciesReport_Local_Duplicate <- qaqc(data, query, query_message, values_check)
-```
-
--   Trees UV fields
-
-```{r}
-
-```
-
-#### Combine Local Characteristics Errors {.hidden}
-
-```{r}
-errors_SpeciesReport_Local <- unique(rbind(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Native, errors_SpeciesReport_Local_Duplicate))
-
-remove(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Native, errors_SpeciesReport_Local_Duplicate)
-
-if(nrow(errors_SpeciesReport_Local) > 1) {
-  errors_SpeciesReport_Local <- errors_SpeciesReport_Local %>%
-    filter(Error != "No Error")
-} else {
-  errors_SpeciesReport_Local <- errors_SpeciesReport_Local}
+errors_SpeciesReport_Duplicate <- qaqc(data, query, query_message, values_check)
 ```
 
 ### Combine and Save Errors {.hidden}
 
 ```{r}
-errors_SpeciesReport_Step2 <- rbind(errors_SpeciesReport_LifeForm, errors_blank, errors_SpeciesReport_Unknown, errors_blank, errors_SpeciesReport_Taxa, errors_blank, errors_SpeciesReport_Local)
+errors_SpeciesReport <- rbind(errors_SpeciesReport_LifeForm, errors_blank, errors_SpeciesReport_Unknown, errors_blank, errors_SpeciesReport_Taxa, errors_blank, errors_SpeciesReport_Local, errors_blank, errors_SpeciesReport_Duplicate)
 ```
 
 ```{r}
-# # Formatting
-# 
-# # Add blank rows between each tag number
-# errors_SpeciesReport_Step1_blanks <- errors_SpeciesReport_Step1[1, ]
-# for (i in 2:nrow(errors_SpeciesReport_Step1)) {
-#   if (errors_SpeciesReport_Step1[i, "AdminUnit_Name"] != errors_SpeciesReport_Step1[i - 1, "AdminUnit_Name"]) {
-#     errors_SpeciesReport_Step1_blanks <- rbind(errors_SpeciesReport_Step1_blanks, errors_blank, errors_SpeciesReport_Step1[i, ])
-#   } else {
-#     errors_SpeciesReport_Step1_blanks <- rbind(errors_SpeciesReport_Step1_blanks, errors_SpeciesReport_Step1[i, ])
-#   }
-# }
-# 
-# # Add conditional formating to ouput
-# errors_Step1_all <- condformat(errors_SpeciesReport_Step1_blanks[1:(nrow(errors_SpeciesReport_Step1_blanks)), 1:ncol(errors_SpeciesReport_Step1_blanks)]) %>%
-#   rule_fill_discrete(columns = 1:(ncol(errors_SpeciesReport_Step1_blanks)),
-#                      expression = SavedQuery != "",
-#                      colours = c("TRUE" = "#C6E0B4"),
-#                      na.value = "#FFFFFF")
-# 
-# # Save as CSV or XLSX
-# condformat2excel(errors_Step1_all, paste0(path_errors, target_park, "_Errors_SpeciesManagement_Step1.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+# Formatting
+
+# Add conditional formating to ouput
+errors_SpeciesReport_cf <- condformat(errors_SpeciesReport[1:(nrow(errors_SpeciesReport)), 1:ncol(errors_SpeciesReport)]) %>%
+  rule_fill_discrete(columns = 1:(ncol(errors_SpeciesReport)),
+                     expression = SavedQuery != "",
+                     colours = c("TRUE" = "#C6E0B4"),
+                     na.value = "#FFFFFF")
+
+# Save as CSV or XLSX
+# condformat2excel(errors_SpeciesReport_cf, paste0(path_errors, target_park, "_Errors_SpeciesManagement.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
 
 ## Step 3 - Cross Park Inconsistencies
@@ -618,40 +609,69 @@ errors_SpeciesReport_Step2 <- rbind(errors_SpeciesReport_LifeForm, errors_blank,
 # Set parameters 
 data <- SpeciesReport %>%
   filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns) %>% 
+         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly)) %>% 
   dplyr::group_by(Species_ScientificName) %>%
   dplyr::mutate(n_families = dplyr::n_distinct(Species_Family)) %>%
+  dplyr::mutate(family_change = ifelse(n_families > 1, "Y", "N")) %>% 
   dplyr::ungroup()
 query <- "Species Cross Park" 
-query_message <- paste0("Species = ", data$Species_ScientificName, ". Family = ", data$Species_Family, ". Family count")
-values_data <- data$n_families
-values_valid <- 1
+query_message <- paste0(data$Species_ScientificName, "- Family = ", data$Species_Family, ". Family change")
+values_data <- data$family_change
+values_valid <- "N"
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SpeciesReport_CrossPark_Family <- qaqc(data, query, query_message, values_check)
-errors_SpeciesReport_CrossPark_Family <- errors_SpeciesReport_CrossPark_Family %>% 
-  arrange(errors_SpeciesReport_CrossPark_Family$Error)
+errors_SpeciesReport_CrossPark_Family_1 <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_CrossPark_Family_1 <- errors_SpeciesReport_CrossPark_Family_1 %>% 
+  arrange(errors_SpeciesReport_CrossPark_Family_1$Error)
+
+
+# Consolidate species errors into one row
+errors_SpeciesReport_CrossPark_Family <- errors_SpeciesReport_CrossPark_Family_1 %>% 
+  separate(Error, sep = ". Family change = Y", into = c("Error")) %>% 
+  separate(Error, sep = "- ", into = c("Species_LocalSpeciesSymbol", "Error"), remove = F) %>% 
+  dplyr::group_by(SavedQuery, Species_LocalSpeciesSymbol) %>% 
+  dplyr::summarize(
+    AdminUnit_Name = paste(AdminUnit_Name, collapse = "; "),
+    Error = paste(Error, collapse = "; "),
+    Fixed = "",
+    Explanation = "",
+    Queryers = "") %>% 
+  relocate(AdminUnit_Name, .before = Species_LocalSpeciesSymbol)
 ```
 
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>%
   filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns) %>% 
+         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly)) %>% 
   dplyr::group_by(Species_ScientificName) %>%
   dplyr::mutate(n_lifeform = dplyr::n_distinct(Species_LifeFormNameLocal)) %>%
+  dplyr::mutate(lifeform_change = ifelse(n_lifeform > 1, "Y", "N")) %>% 
   dplyr::ungroup()
 query <- "Species Cross Park" 
-query_message <- paste0("Species = ", data$Species_ScientificName, ". Lifeform = ", data$Species_LifeFormNameLocal, ". Life form count")
-values_data <- data$n_lifeform
-values_valid <- 1
+query_message <- paste0(data$Species_ScientificName, "- Lifeform = ", data$Species_LifeFormNameLocal, ". Lifeform change")
+values_data <- data$lifeform_change
+values_valid <- "N"
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SpeciesReport_CrossPark_Lifeform <- qaqc(data, query, query_message, values_check)
-errors_SpeciesReport_CrossPark_Lifeform <- errors_SpeciesReport_CrossPark_Lifeform %>% 
-  arrange(errors_SpeciesReport_CrossPark_Lifeform$Error)
+errors_SpeciesReport_CrossPark_Lifeform_1 <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_CrossPark_Lifeform_1 <- errors_SpeciesReport_CrossPark_Lifeform_1 %>% 
+  arrange(errors_SpeciesReport_CrossPark_Lifeform_1$Error)
+
+# Consolidate species errors into one row
+errors_SpeciesReport_CrossPark_Lifeform <- errors_SpeciesReport_CrossPark_Lifeform_1 %>% 
+  separate(Error, sep = ". Lifeform change = Y", into = c("Error")) %>% 
+  separate(Error, sep = "- ", into = c("Species_LocalSpeciesSymbol", "Error"), remove = F) %>% 
+  dplyr::group_by(SavedQuery, Species_LocalSpeciesSymbol) %>% 
+  dplyr::summarize(
+    AdminUnit_Name = paste(AdminUnit_Name, collapse = "; "),
+    Error = paste(Error, collapse = "; "),
+    Fixed = "",
+    Explanation = "",
+    Queryers = "") %>% 
+  relocate(AdminUnit_Name, .before = Species_LocalSpeciesSymbol)
 ```
 
 ```{r}
@@ -659,25 +679,42 @@ errors_SpeciesReport_CrossPark_Lifeform <- errors_SpeciesReport_CrossPark_Lifefo
 data <- SpeciesReport %>%
   filter(!Species_LocalSpeciesSymbol %in% Substrates,
          !Species_LocalSpeciesSymbol %in% Unknowns) %>%
+  mutate(Nativity = ifelse(Species_NativityLocal == "True", "Native",
+                           ifelse(Species_Invasive == "True", "Invasive", 
+                                  "Non-Native"))) %>% 
   dplyr::group_by(Species_ScientificName) %>%
-  dplyr::mutate(n_invasive = dplyr::n_distinct(Species_Invasive)) %>%
+  dplyr::mutate(n_nativity = dplyr::n_distinct(Nativity)) %>%
+  dplyr::mutate(nativity_change = ifelse(n_nativity> 1, "Y", "N")) %>% 
   dplyr::ungroup()
 query <- "Species Cross Park"
-query_message <- paste0("Species = ", data$Species_ScientificName, ". Native = ", data$Species_NativityLocal, ". Invasive = ", data$Species_Invasive, ". Invasive count")
-values_data <- data$n_invasive
-values_valid <- 1
+query_message <- paste0(data$Species_ScientificName, "- Status = ", data$Nativity, ". Nativity change")
+values_data <- data$nativity_change
+values_valid <- "N"
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SpeciesReport_CrossPark_Invasive <- qaqc(data, query, query_message, values_check)
-errors_SpeciesReport_CrossPark_Invasive <- errors_SpeciesReport_CrossPark_Invasive %>%
-  arrange(errors_SpeciesReport_CrossPark_Invasive$Error)
+errors_SpeciesReport_CrossPark_Nativity_1 <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_CrossPark_Nativity_1 <- errors_SpeciesReport_CrossPark_Nativity_1 %>%
+  arrange(errors_SpeciesReport_CrossPark_Nativity_1$Error)
+
+# Consolidate species errors into one row
+errors_SpeciesReport_CrossPark_Nativity <- errors_SpeciesReport_CrossPark_Nativity_1 %>% 
+  separate(Error, sep = ". Nativity change = Y", into = c("Error")) %>% 
+  separate(Error, sep = "- ", into = c("Species_LocalSpeciesSymbol", "Error"), remove = F) %>% 
+  dplyr::group_by(SavedQuery, Species_LocalSpeciesSymbol) %>% 
+  dplyr::summarize(
+    AdminUnit_Name = paste(AdminUnit_Name, collapse = "; "),
+    Error = paste(Error, collapse = "; "),
+    Fixed = "",
+    Explanation = "",
+    Queryers = "") %>% 
+  relocate(AdminUnit_Name, .before = Species_LocalSpeciesSymbol)
 ```
 
 ### Combine Errors {.hidden}
 
 ```{r}
-errors_SpeciesReport_Step3 <- rbind(errors_SpeciesReport_CrossPark_Family, errors_blank, errors_SpeciesReport_CrossPark_Lifeform, errors_blank, errors_SpeciesReport_CrossPark_Invasive)
+errors_SpeciesReport_CrossPark <- rbind(errors_SpeciesReport_CrossPark_Family, errors_blank, errors_SpeciesReport_CrossPark_Lifeform, errors_blank, errors_SpeciesReport_CrossPark_Nativity)
 ```
 
 # ALL ERRORS
