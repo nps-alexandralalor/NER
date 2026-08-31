@@ -81,7 +81,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Species_LocalSpeciesSymbol", 
 ```{r target values, include=FALSE}
 # designate target park(s)
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-target_park <- "NERI"
+#target_park <- "NERI"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -91,7 +91,7 @@ target_park <- "NERI"
 path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
 path_data <- paste0(path_main, "Exports_Clean/FFI/")
 path_errors <- paste0(here(), "/output/errors/")
-path_errors_name <- paste0(target_park, " Species QAQC Errors")
+path_errors_name <- paste0("Species QAQC Errors")
 ```
 
 ### Load Data {.hidden}
@@ -104,8 +104,9 @@ SpeciesReport_all <- read.csv(paste0(path_data, "all_species_info.csv"))
 ### Filter Data
 
 ```{r filter data, include=FALSE}
-SpeciesReport <- SpeciesReport_all %>% 
-  filter(AdminUnit_Name %in% target_park)
+SpeciesReport <- SpeciesReport_all
+# SpeciesReport <- SpeciesReport_all %>% 
+#   filter(AdminUnit_Name %in% target_park)
 ```
 
 # SPECIES REPORT
@@ -533,12 +534,6 @@ errors_SpeciesReport_Local_Native <- qaqc(data, query, query_message, values_che
 # errors_SpeciesReport_Local_NonNative <- qaqc(data, query, query_message, values_check)
 ```
 
--   Trees UV fields
-
-```{r}
-
-```
-
 #### Combine Local Characteristics Errors {.hidden}
 
 ```{r}
@@ -581,7 +576,7 @@ values_check <- values_data == values_valid
 errors_SpeciesReport_Duplicate <- qaqc(data, query, query_message, values_check)
 ```
 
-### Combine and Save Errors {.hidden}
+## Combine and Save Errors {.hidden}
 
 ```{r}
 errors_SpeciesReport <- rbind(errors_SpeciesReport_LifeForm, errors_blank, errors_SpeciesReport_Unknown, errors_blank, errors_SpeciesReport_Taxa, errors_blank, errors_SpeciesReport_Local, errors_blank, errors_SpeciesReport_Duplicate)
@@ -591,12 +586,12 @@ errors_SpeciesReport <- rbind(errors_SpeciesReport_LifeForm, errors_blank, error
 # Formatting
 
 # Add conditional formating to ouput
-errors_SpeciesReport_cf <- condformat(errors_SpeciesReport[1:(nrow(errors_SpeciesReport)), 1:ncol(errors_SpeciesReport)]) %>%
+errors_all <- condformat(errors_SpeciesReport[1:(nrow(errors_SpeciesReport)), 1:ncol(errors_SpeciesReport)]) %>%
   rule_fill_discrete(columns = 1:(ncol(errors_SpeciesReport)),
                      expression = SavedQuery != "",
                      colours = c("TRUE" = "#C6E0B4"),
                      na.value = "#FFFFFF")
 
 # Save as CSV or XLSX
-condformat2excel(errors_SpeciesReport_cf, paste0(path_errors, target_park, "_Errors_SpeciesManagement.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+condformat2excel(errors_all, paste0(path_errors, "ALL_Errors_SpeciesManagement.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
