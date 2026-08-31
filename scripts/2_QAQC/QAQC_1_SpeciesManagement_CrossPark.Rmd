@@ -143,7 +143,7 @@ data <- SpeciesReport %>%
   dplyr::mutate(n_families = dplyr::n_distinct(Species_Family)) %>%
   dplyr::mutate(family_change = ifelse(n_families > 1, "Y", "N")) %>% 
   dplyr::ungroup()
-query <- "Species Cross Park" 
+query <- "Species Family" 
 query_message <- paste0(data$Species_ScientificName, "- Family = ", data$Species_Family, ". Family change")
 values_data <- data$family_change
 values_valid <- "N"
@@ -167,6 +167,8 @@ errors_SpeciesReport_CrossPark_Family <- errors_SpeciesReport_CrossPark_Family_1
     Explanation = "",
     Queryers = "") %>% 
   relocate(AdminUnit_Name, .before = Species_LocalSpeciesSymbol)
+
+remove(errors_SpeciesReport_CrossPark_Family_1)
 ```
 
 ```{r}
@@ -178,7 +180,7 @@ data <- SpeciesReport %>%
   dplyr::mutate(n_lifeform = dplyr::n_distinct(Species_LifeFormNameLocal)) %>%
   dplyr::mutate(lifeform_change = ifelse(n_lifeform > 1, "Y", "N")) %>% 
   dplyr::ungroup()
-query <- "Species Cross Park" 
+query <- "Species Lifeform" 
 query_message <- paste0(data$Species_ScientificName, "- Lifeform = ", data$Species_LifeFormNameLocal, ". Lifeform change")
 values_data <- data$lifeform_change
 values_valid <- "N"
@@ -201,6 +203,8 @@ errors_SpeciesReport_CrossPark_Lifeform <- errors_SpeciesReport_CrossPark_Lifefo
     Explanation = "",
     Queryers = "") %>% 
   relocate(AdminUnit_Name, .before = Species_LocalSpeciesSymbol)
+
+remove(errors_SpeciesReport_CrossPark_Lifeform_1)
 ```
 
 ```{r}
@@ -215,7 +219,7 @@ data <- SpeciesReport %>%
   dplyr::mutate(n_nativity = dplyr::n_distinct(Nativity)) %>%
   dplyr::mutate(nativity_change = ifelse(n_nativity> 1, "Y", "N")) %>% 
   dplyr::ungroup()
-query <- "Species Cross Park"
+query <- "Species Nativity"
 query_message <- paste0(data$Species_ScientificName, "- Status = ", data$Nativity, ". Nativity change")
 values_data <- data$nativity_change
 values_valid <- "N"
@@ -238,45 +242,22 @@ errors_SpeciesReport_CrossPark_Nativity <- errors_SpeciesReport_CrossPark_Nativi
     Explanation = "",
     Queryers = "") %>% 
   relocate(AdminUnit_Name, .before = Species_LocalSpeciesSymbol)
-```
 
-### Combine Errors {.hidden}
-
-```{r}
-errors_SpeciesReport_CrossPark <- rbind(errors_SpeciesReport_CrossPark_Family, errors_blank, errors_SpeciesReport_CrossPark_Lifeform, errors_blank, errors_SpeciesReport_CrossPark_Nativity)
+remove(errors_SpeciesReport_CrossPark_Nativity_1)
 ```
 
 # ALL ERRORS
 
 ```{r}
-errors_SpeciesReport <- rbind(errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_Native, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired) %>% 
-  arrange(Species_LocalSpeciesSymbol)
-
-remove(errors_SpeciesReport_ScientificName, errors_SpeciesReport_Genus, errors_SpeciesReport_CommonName, errors_SpeciesReport_LifeForm, errors_SpeciesReport_LifeCycle, errors_SpeciesReport_Native, errors_SpeciesReport_Cultural, errors_SpeciesReport_Concern, errors_SpeciesReport_Retired)
-
-if(nrow(errors_SpeciesReport) > 1) {
-  errors_SpeciesReport <- errors_SpeciesReport %>%
-    filter(Error != "No Error")
-} else {
-  errors_SpeciesReport <- errors_SpeciesReport}
+errors_SpeciesReport_CrossPark <- rbind(errors_SpeciesReport_CrossPark_Family, errors_blank, errors_SpeciesReport_CrossPark_Lifeform, errors_blank, errors_SpeciesReport_CrossPark_Nativity)
 ```
 
 ```{r}
 # Formatting
 
-# Add blank rows between each tag number
-errors_SpeciesReport_blanks <- errors_SpeciesReport[1, ]
-for (i in 2:nrow(errors_SpeciesReport)) {
-  if (errors_SpeciesReport[i, "Species_LocalSpeciesSymbol"] != errors_SpeciesReport[i - 1, "Species_LocalSpeciesSymbol"]) {
-    errors_SpeciesReport_blanks <- rbind(errors_SpeciesReport_blanks, errors_blank, errors_SpeciesReport[i, ])
-  } else {
-    errors_SpeciesReport_blanks <- rbind(errors_SpeciesReport_blanks, errors_SpeciesReport[i, ])
-  }
-}
-
 # Add conditional formating to ouput
-errors_all <- condformat(errors_SpeciesReport_blanks[1:(nrow(errors_SpeciesReport_blanks)), 1:ncol(errors_SpeciesReport_blanks)]) %>%
-  rule_fill_discrete(columns = 1:(ncol(errors_SpeciesReport_blanks)),
+errors_all <- condformat(errors_SpeciesReport_CrossPark[1:(nrow(errors_SpeciesReport_CrossPark)), 1:ncol(errors_SpeciesReport_CrossPark)]) %>%
+  rule_fill_discrete(columns = 1:(ncol(errors_SpeciesReport_CrossPark)),
                      expression = SavedQuery != "",
                      colours = c("TRUE" = "#C6E0B4"),
                      na.value = "#FFFFFF")
@@ -286,5 +267,5 @@ errors_all <- condformat(errors_SpeciesReport_blanks[1:(nrow(errors_SpeciesRepor
 path_errors
 
 # Save as CSV or XLSX
-condformat2excel(errors_all, paste0(path_errors, target_park, "_Errors_SpeciesManagement.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
+condformat2excel(errors_all, paste0(path_errors, "ALL_Errors_SpeciesManagement_CrossPark.xlsx"), sheet_name = path_errors_name, overwrite_wb = TRUE)
 ```
