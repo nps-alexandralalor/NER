@@ -432,26 +432,26 @@ errors_SpeciesReport_Taxa_Genus <- qaqc(data, query, query_message, values_check
 -   Check that Species_Family is not blank. (Field sometimes cannot be edited in FFI)
 
 ```{r}
-# Set parameters
-data <- SpeciesReport %>%
-  filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly))
-query <- "Species Taxa"
-query_message <- paste0("Family")
-values_data <- data$Species_Family
-values_valid <- ""
-values_check <- values_data != values_valid
-
-# Identify errors
-errors_SpeciesReport_Taxa_Family <- qaqc(data, query, query_message, values_check)
+# # Set parameters
+# data <- SpeciesReport %>%
+#   filter(!Species_LocalSpeciesSymbol %in% Substrates,
+#          !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly))
+# query <- "Species Taxa"
+# query_message <- paste0("Family")
+# values_data <- data$Species_Family
+# values_valid <- ""
+# values_check <- values_data != values_valid
+# 
+# # Identify errors
+# errors_SpeciesReport_Taxa_Family <- qaqc(data, query, query_message, values_check)
 ```
 
 #### Combine Taxonomy Errors {.hidden}
 
 ```{r}
-errors_SpeciesReport_Taxa <- unique(rbind(errors_SpeciesReport_Taxa_Family, errors_SpeciesReport_Taxa_Genus, errors_SpeciesReport_Taxa_ScientificName))
+errors_SpeciesReport_Taxa <- unique(rbind(errors_SpeciesReport_Taxa_Genus, errors_SpeciesReport_Taxa_ScientificName))
 
-remove(errors_SpeciesReport_Taxa_Family, errors_SpeciesReport_Taxa_Genus, errors_SpeciesReport_Taxa_ScientificName)
+remove(errors_SpeciesReport_Taxa_Genus, errors_SpeciesReport_Taxa_ScientificName)
 
 if(nrow(errors_SpeciesReport_Taxa) > 1) {
   errors_SpeciesReport_Taxa <- errors_SpeciesReport_Taxa %>%
@@ -573,7 +573,44 @@ values_valid <- 0
 values_check <- values_data == values_valid
 
 # Identify errors
-errors_SpeciesReport_Duplicate <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Duplicate_1 <- qaqc(data, query, query_message, values_check)
+```
+
+-   Check that Species_LocalSpeciesSymbol is not duplicated
+
+```{r}
+# Check for species duplication and store results in new column
+data_temp <- SpeciesReport %>% 
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% Unknowns) %>% 
+  get_dupes(AdminUnit_Name, Species_LocalSpeciesSymbol)
+
+# Set parameters 
+data <- merge(SpeciesReport, data_temp, all.x = T)
+data$dupe_count[is.na(data$dupe_count)] <- 0
+query <- "Species Duplicates" 
+query_message <- paste0("Species = ", data$Species_ScientificName, ". Duplicates")
+values_data <- data$dupe_count
+values_valid <- 0
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_SpeciesReport_Duplicate_2 <- qaqc(data, query, query_message, values_check)
+```
+
+#### Combine Duplicate Errors {.hidden}
+
+```{r}
+errors_SpeciesReport_Duplicate <- unique(rbind(errors_SpeciesReport_Duplicate_1, errors_SpeciesReport_Duplicate_2)) %>% 
+  arrange(AdminUnit_Name, Species_LocalSpeciesSymbol)
+
+remove(errors_SpeciesReport_Duplicate_1, errors_SpeciesReport_Duplicate_2)
+
+if(nrow(errors_SpeciesReport_Duplicate) > 1) {
+  errors_SpeciesReport_Duplicate <- errors_SpeciesReport_Duplicate %>%
+    filter(Error != "No Error")
+} else {
+  errors_SpeciesReport_Duplicate <- errors_SpeciesReport_Duplicate}
 ```
 
 ## Combine and Save Errors {.hidden}
