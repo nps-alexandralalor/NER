@@ -466,7 +466,7 @@ if(nrow(errors_SpeciesReport_Taxa) > 1) {
 
 [Procedure:]{.underline}
 
--   Check that Species_CommonNameLocal is not blank
+-   Check that Species_CommonNameLocal is not blank and not too long
 
 ```{r}
 # Set parameters 
@@ -480,7 +480,23 @@ values_valid <- ""
 values_check <- values_data != values_valid
 
 # Identify errors
-errors_SpeciesReport_Local_CommonName <- qaqc(data, query, query_message, values_check)
+errors_SpeciesReport_Local_CommonName_1 <- qaqc(data, query, query_message, values_check)
+```
+
+```{r}
+# Set parameters 
+data <- SpeciesReport %>% 
+  filter(!Species_LocalSpeciesSymbol %in% Substrates,
+         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants)) %>% 
+  mutate(length = nchar(Species_CommonNameLocal))
+query <- "Species Local"
+query_message <- paste0("Common Name too long. Character length")
+values_data <- data$length
+values_valid <- 30
+values_check <- values_data <= values_valid
+
+# Identify errors
+errors_SpeciesReport_Local_CommonName_2 <- qaqc(data, query, query_message, values_check)
 ```
 
 -   Check that Species_LifeCycleLocal is not blank
@@ -537,9 +553,9 @@ errors_SpeciesReport_Local_Native <- qaqc(data, query, query_message, values_che
 #### Combine Local Characteristics Errors {.hidden}
 
 ```{r}
-errors_SpeciesReport_Local <- unique(rbind(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Native))
+errors_SpeciesReport_Local <- unique(rbind(errors_SpeciesReport_Local_CommonName_1, errors_SpeciesReport_Local_CommonName_2, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Native))
 
-remove(errors_SpeciesReport_Local_CommonName, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Native)
+remove(errors_SpeciesReport_Local_CommonName_1, errors_SpeciesReport_Local_CommonName_2, errors_SpeciesReport_Local_LifeCycle, errors_SpeciesReport_Local_Native)
 
 if(nrow(errors_SpeciesReport_Local) > 1) {
   errors_SpeciesReport_Local <- errors_SpeciesReport_Local %>%
