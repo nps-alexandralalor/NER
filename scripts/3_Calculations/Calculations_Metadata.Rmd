@@ -49,7 +49,7 @@ library(DT)
 library(fs)
 ```
 
-### Adjust File Paths  {.hidden}
+### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
 path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
@@ -249,7 +249,7 @@ MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %
   arrange(AdminUnit_Name, Macroplot_Name, SampleEvent_Date)
 ```
 
-### Other?  {.hidden}
+### Other? {.hidden}
 
 -   Disturbance_Entry (to match with MonStatus)
 
