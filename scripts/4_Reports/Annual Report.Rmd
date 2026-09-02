@@ -43,7 +43,6 @@ library(fs)
 ```
 
 ```{r file paths, include=FALSE}
-## Adjust File Paths
 path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
 path_data <- paste0(path_main, "Exports_Reporting/FFI/")
 ```
