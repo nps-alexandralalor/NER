@@ -1,15 +1,18 @@
 ---
-title: Annual Park Report
-author: NPS Northeast Region Fire Effects Monitoring Program
+title: "Annual Park Report"
+author: "NPS Northeast Region Fire Effects Monitoring Program"
 output:
   html_document:
     theme: readable
     highlight: null
-    toc: yes
+    toc: true
     toc_depth: 2
     toc_float:
       smooth_scroll: true
     code_download: false
+  pdf_document:
+    toc: true
+    toc_depth: '2'
 link-citations: true
 bibliography: zotero_refs.bib
 csl: "chicago-author-date-17th-edition.csl"
@@ -27,6 +30,7 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 # install.packages("kableExtra")
 # install.packages("ggplot2")
 # install.packages("RefManageR")
+# install.packages("leaflet")
 ```
 
 ```{r load packages, include=FALSE}
@@ -50,6 +54,8 @@ library(vegan)
 library(here)
 # download button
 library(downloadthis)
+# for maps
+library(leaflet)
 ```
 
 ### References {.hidden}
@@ -95,7 +101,7 @@ Cover <- read.csv(paste0(path_data, "cover_points.csv"))
 ### Target Values {.hidden}
 
 ```{r set parameters, include=FALSE}
-target_park <- c("RICH")
+target_park <- c("SHEN")
 target_type <- c("Forest")
 target_purpose <- c("Fire Monitoring Handbook")
 
@@ -110,7 +116,7 @@ target_purpose <- c("Fire Monitoring Handbook")
       unique()
 
 
-target_ProjectUnit <- c("Cold Harbor I")
+target_ProjectUnit <- c("Jarman Gap")
 target_MonitoringType <- c("Pine Oak")
 
 
@@ -370,11 +376,25 @@ if(target_type == "Forest") {
 5.  Overstory trees are classified as \>15cm DBH. These are the mature trees which make up the overall forest structure. "Tree stocking" combines tree density and basal area measurements to reflect canopy openness, where lower percentages have a more open canopy than higher percentages. [@ginrich_measuring_1967; @kabrick_silvicultural_2014; @hanberry_open_2020; @pile_knapp_managing_2024]
 6.  Native forb and grass understory is expected to increase with the removal of litter and opening of canopies.
 
+\newpage
+
 # Background
 
-# Methods
+## Map
 
-# Results
+```{r}
+# leaflet(data = MetadataReport_SampleEvents %>% 
+#           select(c(AdminUnit_Name, Macroplot_Type, Macroplot_Name, Macroplot_Lat_dd, Macroplot_Long_dd)) %>% 
+#           distinct()) %>% 
+#   addTiles() %>% 
+#   addMarkers(
+#     lng = ~Macroplot_Long_dd,
+#     lat = ~Macroplot_Lat_dd,
+#     popup = ~Macroplot_Name
+#   )
+```
+
+\newpage
 
 ## Disturbance History
 
@@ -441,6 +461,10 @@ p_disturbance
 ```
 
 \newpage
+
+# Methods
+
+# Results
 
 ## Fuels
 
@@ -1527,6 +1551,8 @@ download_this(p, icon = NULL,
 }
 ```
 
+\newpage
+
 ### Overstory - Live vs Dead
 
 ```{r, include=FALSE}
@@ -1641,6 +1667,8 @@ download_this(p, icon = NULL,
 }
 ```
 
+\newpage
+
 ### Overstory - Gingrich Stocking Graph
 
 ```{r}
@@ -1717,6 +1745,8 @@ plot.gingrich.imperial(
 dev.off()
 }
 ```
+
+\newpage
 
 ### All Size Classes
 
