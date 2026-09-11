@@ -98,7 +98,6 @@ Cover <- read.csv(paste0(path_data, "cover_points.csv"))
 target_park <- c("RICH")
 target_type <- c("Forest")
 target_purpose <- c("Fire Monitoring Handbook")
-#target_year <- c(2026)
 
     
     MetadataReport %>%
