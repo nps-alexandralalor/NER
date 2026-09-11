@@ -1,0 +1,297 @@
+---
+title: Annual Park Report
+author: NPS Northeast Region Fire Effects Monitoring Program
+output:
+  html_document:
+    theme: readable
+    highlight: null
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      smooth_scroll: true
+    code_download: false
+runtime: shiny
+---
+
+# Before Starting {.hidden .unlisted .unnumbered}
+
+### Setup {.hidden}
+
+```{r setup, include=FALSE}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+
+# install.packages("tidyverse")
+# install.packages("kableExtra")
+# install.packages("ggplot2")
+# install.packages("RefManageR")
+```
+
+```{r load packages, include=FALSE}
+# "tidyverse" has lots of useful functions for data cleaning
+library(tidyverse)
+# "kableExtra" is used to produce formatted tables
+library(kableExtra)
+library(ggplot2)
+library(stringr)
+library(DT)
+library(fs)
+# ggplot2 is used for graphing. gganimate creates graph animations patchwork stitches graphs together
+library(ggplot2)
+#library(gganimate)
+library(patchwork)
+library(RColorBrewer)
+# zotero reference manager
+library(RefManageR)
+# shannon diversity index
+library(vegan)
+library(here)
+# download button
+library(downloadthis)
+```
+
+### References {.hidden}
+
+```{r references, include=FALSE}
+# ZoteroUserID <- "3306456"
+# ZoteroAPIkey <- "F7k8Rp07XhH9rIqiKP1ob0uB"
+# ZoteroFolderKey <- "DGJVBG7G"
+# 
+# bib <- ReadZotero(
+#   user = ZoteroUserID,
+#   .params = list(
+#     collection = ZoteroFolderKey,
+#     key = ZoteroAPIkey,
+#     limit = 100),
+#   temp.file = "zotero_refs.bib",
+#   delete.file = FALSE)
+```
+
+### Adjust File Paths {.hidden}
+
+```{r file paths, include=FALSE}
+path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_data <- paste0(path_main, "Exports_Reporting/FFI/")
+path_save <- paste0(here(), "/output/graphs/")
+## Source Code for Gingrich Stocking Chart
+source(paste0(here(), "/scripts/4_Reports/Gingrich Stocking Chart.R"))
+```
+
+### Load Data {.hidden}
+
+```{r load data, include=FALSE}
+MetadataReport <- read.csv(paste0(path_data, "all_metadata.csv"))
+SpeciesReport <- read.csv(paste0(path_data, "all_species_info.csv"))
+Fuels <- read.csv(paste0(path_data, "fuels.csv"))
+Trees <- read.csv(paste0(path_data, "trees.csv"))
+Cover <- read.csv(paste0(path_data, "cover_points.csv"))
+# Cover_SpComp <- read.csv(paste0(path_data, "cover_comp.csv"))
+# PostBurn <- read.csv(paste0(path_data, "post.csv"))
+# Shrubs <- read.csv(paste0(path_data, "shrubs.csv"))
+```
+
+### Target Values {.hidden}
+
+```{r}
+target_park <- c("SHEN")
+target_type <- c("Forest")
+target_purpose <- c("Fire Monitoring Handbook")
+
+server <- function(input, output, session) {
+  
+  # Project Units available for the selected
+  # Park + Type + Purpose
+  project_units <- reactive({
+    
+    MetadataReport %>%
+      filter(
+        AdminUnit_Name == input$park,
+        Macroplot_Type == input$type,
+        Macroplot_Purpose == input$purpose
+      ) %>%
+      pull(Macroplot_UV1) %>%
+      unique() %>%
+      sort()
+  })
+  
+  
+  # Update Project Unit choices
+  observe({
+    
+    updateSelectizeInput(
+      session,
+      "project_unit",
+      choices = project_units(),
+      selected = project_units()
+    )
+    
+  })
+  
+  
+  # Monitoring Types available for selected
+  # Park + Type + Purpose + Project Unit
+  monitoring_types <- reactive({
+    
+    MetadataReport %>%
+      filter(
+        AdminUnit_Name == input$park,
+        Macroplot_Type == input$type,
+        Macroplot_Purpose == input$purpose,
+        Macroplot_UV1 %in% input$project_unit
+      ) %>%
+      pull(Macroplot_UV2) %>%
+      unique() %>%
+      sort()
+  })
+  
+  
+  # Update Monitoring Type choices
+  observe({
+    
+    updateSelectizeInput(
+      session,
+      "monitoring_type",
+      choices = monitoring_types(),
+      selected = monitoring_types()
+    )
+    
+  })
+  
+  
+  # Sample Events
+  MetadataReport_SampleEvents <- reactive({
+    
+    MetadataReport %>%
+      filter(
+        AdminUnit_Name == input$park,
+        Macroplot_Type == input$type,
+        Macroplot_Purpose == input$purpose,
+        Macroplot_UV1 %in% input$project_unit,
+        Macroplot_UV2 %in% input$monitoring_type,
+        !MonitoringStatus_Name %in%
+          c("Burn", "Herbicide", "Mechanical", "Mow")
+      )
+    
+  })
+  
+  
+  # Disturbances
+  MetadataReport_Disturbances <- reactive({
+    
+    MetadataReport %>%
+      filter(
+        AdminUnit_Name == input$park,
+        Macroplot_Type == input$type,
+        Macroplot_Purpose == input$purpose,
+        Macroplot_UV1 %in% input$project_unit,
+        Macroplot_UV2 %in% input$monitoring_type,
+        MonitoringStatus_Name %in%
+          c("Burn", "Herbicide", "Mechanical", "Mow")
+      )
+    
+  })
+  
+}
+```
+
+
+```{r}
+# library(shiny)
+# 
+# ui <- fluidPage(
+#   selectInput(("target_park", "Select Park:",
+#             choices = sort(unique(MetadataReport$AdminUnit_Name)),
+#             selected = unique(MetadataReport$AdminUnit_Name)[1]))
+# )
+# 
+# server <- function(input, output, session) {
+#   
+# }
+# 
+# shinyApp(ui, server)
+```
+
+```{r input selector, include=TRUE, echo=FALSE}
+# ===================== #
+# ==== User Inputs ==== #
+# ===================== #
+# 
+# # ---- Park selector (derived from MacroPlot naming convention or metadata) ---- #
+# selectInput("target_park", "Select Park:",
+#             choices = sort(unique(MetadataReport$AdminUnit_Name)),
+#             selected = unique(MetadataReport$AdminUnit_Name)[1])
+# 
+# selectInput("target_type", "Select Type:",
+#             choices = sort(unique(MetadataReport$Macroplot_Type)),
+#             selected = unique(MetadataReport$Macroplot_Type)[1]))
+# 
+# # ---- MacroPlot selector (dynamically populated by Site) ---- #
+# uiOutput("macroplot_selector")
+# 
+# # ---- Numeric inputs for litter and duff bulk densities (user-adjustable) ---- #
+#numericInput("litter_bd", "Litter Bulk Density (kg/m³):", value = 2.75 * 1.815, step = 0.1)
+#numericInput("duff_bd", "Duff Bulk Density (kg/m³):", value = 5.5 * 1.815, step = 0.1)
+```
+
+```{r reactive data, include=TRUE, echo=FALSE}
+# ============================= #
+# # ---- Dynamic UI Elements ---- #
+# # ============================= #
+# 
+# # ---- Populate MacroPlot drop-down based on Park selection ---- #
+# output$macroplot_selector <- renderUI({
+#   req(input$target_park)
+#   req(input$target_type)
+#   
+#   # ---- Filter macroplots for selected Park ---- #
+#   # plots <- fuel_data_combined %>%
+#   #   filter(Park == input$park) %>%
+#   #   distinct(`MacroPlot Name`) %>%
+#   #   arrange(`MacroPlot Name`) %>%
+#   #   pull(`MacroPlot Name`)
+#   
+#   ProjectUnit <- MetadataReport %>%
+#     filter(
+#         Macroplot_Purpose == "Fire Monitoring Handbook",
+#         AdminUnit_Name == target_park,
+#         Macroplot_Type == target_type
+#         ) %>% 
+#     distinct(Macroplot_UV1) %>% 
+#     arragne(Macroplot_UV1) %>% 
+#     pull(Macroplot_UV1)
+#   
+#   MonitoringType <- MetadataReport %>%
+#     filter(
+#         Macroplot_Purpose == "Fire Monitoring Handbook",
+#         AdminUnit_Name == target_park,
+#         Macroplot_Type == target_type
+#         ) %>% 
+#     distinct(Macroplot_UV2) %>% 
+#     arragne(Macroplot_UV2) %>% 
+#     pull(Macroplot_UV2)
+#   
+#   # ---- Ensure selected is always the first in the new filtered list ---- #
+#   selectInput(
+#     inputId = "target_ProjectUnit",
+#     label = "Select Project Unit:",
+#     choices = ProjectUnit,
+#     selected = ProjectUnit[1]  # always reset to first macroplot in filtered list
+#   )
+#   
+#     selectInput(
+#     inputId = "target_MonitoringTyep",
+#     label = "Select Monitoring Type:",
+#     choices = MonitoringType,
+#     selected = MonitoringType[1]  # always reset to first macroplot in filtered list
+#   )
+# })
+# 
+# # ---- Reactive Data Filter ---- #
+# 
+# data_filtered <- reactive({
+#   req(input$park, input$macroplot)
+# 
+#   fuel_data_combined %>%
+#     filter(Park == input$park, `MacroPlot Name` == input$macroplot)
+#})
+```
