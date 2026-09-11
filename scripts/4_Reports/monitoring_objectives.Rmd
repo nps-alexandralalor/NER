@@ -1,0 +1,184 @@
+---
+title: Monitoring Objectives
+author: NPS Northeast Region Fire Effects Monitoring Program
+output:
+  html_document:
+    theme: readable
+    highlight: null
+    toc: yes
+    toc_depth: 2
+    toc_float:
+      smooth_scroll: true
+    code_download: false
+---
+
+### Setup
+
+```{r setup, include=FALSE}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+
+# install.packages("tidyverse")
+```
+
+### References
+
+```{r references, include=FALSE}
+ZoteroUserID <- "3306456"
+ZoteroAPIkey <- "F7k8Rp07XhH9rIqiKP1ob0uB"
+ZoteroFolderKey <- "DGJVBG7G"
+
+bib <- ReadZotero(
+  user = ZoteroUserID,
+  .params = list(
+    collection = ZoteroFolderKey,
+    key = ZoteroAPIkey,
+    limit = 100),
+  temp.file = "zotero_refs.bib",
+  delete.file = FALSE)
+```
+
+# Monitoring Objectives
+
+Recommendations will be aimed at maintaining target vegetation associations for each Monitoring Type. We utilize the [International Vegetation Classification](https://www.natureserve.org/projects/international-vegetation-classification) system to determine vegetation Monitoring Types. Vegetation descriptions can be found on [NatureServe](https://explorer.natureserve.org/Search). From coarse to fine scale, vegetation is classified at Group (G###), Alliance (A####), and Association (CEGL00####) levels. We genenally group Monitoring Types in alignment with Alliance level classifications, though may group more broadly based on fire effects.
+
+Pine Oak Monitoring Type Associations
+
+-   Central Appalachian Pine - Oak / Heath Woodland (G905, A0677, [CEGL004996](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.687624/Pinus_(pungens_rigida)_-_Quercus_montana_-_(Quercus_ilicifolia)_-_Gaylussacia_baccata_Woodland))
+
+Xeric Oak Monitoring Type Associations:
+
+-   Central Appalachian / Inner Piedmont Chestnut Oak Forest (G650, A4435, [CEGL006299](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.728821/Quercus_montana_-_(Quercus_coccinea_Quercus_rubra)_-_Kalmia_latifolia_-_Vaccinium_pallidum_Forest))
+
+-   Low-Elevation Mixed Oak / Heath Forest (G650, A4435, [CEGL008521](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.684700/Quercus_alba_-_Quercus_(coccinea_velutina_montana)_-_Gaylussacia_baccata_Forest))
+
+-   Central Appalachian Dry Chestnut Oak – Northern Red Oak / Heath Forest (G650, A4435, [CEGL008523](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.686143/Quercus_montana_-_Quercus_rubra_-_Vaccinium_pallidum_-_(Rhododendron_periclymenoides)_Forest))
+
+-   Central Appalachian Acidic Oak – Hickory Forest (G650, A4436, [CEGL008515](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.688054/Quercus_alba_-_Quercus_montana_-_Carya_glabra_-_Cornus_florida_-_Vaccinium_pallidum_Forest))
+
+Mesic Oak Monitoring Type Associations:
+
+-   Central Appalachian Dry-Mesic Chestnut Oak – Northern Red Oak Forest (G650, A4435, [CEGL006057](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.683617/Quercus_montana_-_Quercus_rubra_-_Hamamelis_virginiana_Forest))
+
+-   Central Appalachian Basic Woodland (G180, A2074, [CEGL003683](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.684450/Fraxinus_americana_-_Carya_glabra_-_Muhlenbergia_sobolifera_-_Helianthus_divaricatus_-_Solidago_ulmifolia_Woodland))
+
+-   Central Appalachian Basic Oak – Hickory Forest (Submontane / Foothills Type) (G650, A4436, [CEGL008514](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.688949/Quercus_rubra_-_Quercus_montana_-_Carya_ovalis_-_(Cercis_canadensis)_-_Solidago_caesia_Forest))
+
+-   Central Appalachian Montane Oak – Hickory Forest (Acidic Type) (G650, A4436, [CEGL008516](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.686973/Quercus_montana_-_Quercus_rubra_-_Carya_ovalis_-_Carex_pensylvanica_-_(Calamagrostis_porteri)_Forest))
+
+-   Central Appalachian Northern Red Oak Forest (G015, A3116, [CEGL008506](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.687229/Quercus_rubra_-_(Quercus_alba)_-_Ilex_montana_-_Dennstaedtia_punctilobula_-_Lysimachia_quadrifolia_Forest))
+
+-   Central Appalachian Montane Oak – Hickory Forest (Basic Type) (G650, A4436, [CEGL008518](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.688757/Quercus_rubra_-_Carya_ovata_-_Fraxinus_americana_-_Actaea_racemosa_-_Hydrophyllum_virginianum_Forest))
+
+Oak Hickory Monitoring Type Associations:
+
+Mixed Oak Monitoring Type Associations:
+
+Gray Birch Monitoring Type Associations:
+
+```{r}
+# Monitoring Types
+#c("Oak Hickory", "Pine Oak", "Mixed Oak", "Gray Birch", "Modified Disturbed", "Xeric Oak", "Mesic Oak")
+
+target_FineFuelLoading <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 2.4,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 2.4,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 2.4,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 2.4,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 2.4,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 2.4,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 2.4, NA)))))))
+
+target_Duff <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 1.5,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 1.5,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 1.5,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 1.5,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 1.5,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 1.5,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 1.5, NA)))))))
+
+target_Sapling <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 1000,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 1000,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 1000,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 1000,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 1000,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 1000,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 1000, NA)))))))
+
+target_OverstoryLow <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 30,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 30,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 30,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 30,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 30,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 30,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 30, NA)))))))
+
+target_OverstoryHigh <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 75,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 75,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 75,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 75,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 75,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 75,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 75, NA)))))))
+
+target_Cover <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 50,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 50,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 50,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 50,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 50,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 50,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 50, NA)))))))
+
+
+### Grasslands 
+
+target_Woody <- 
+  ifelse(target_type %in% "Grassland", 25, NA)
+
+target_Invasive <- 
+  ifelse(target_type %in% "Grassland", 25, NA)
+
+target_Native <- 
+  ifelse(target_type %in% "Grassland", 75, NA)
+```
+
+```{r objectives}
+Objectives_Forest <- data.frame(
+  "Num" = c(1,2,3,4,5,6),
+  "Objective" = c(
+    paste0("1. Maintain fine fuel loading (litter, 1-100hr fuels) at < ", target_FineFuelLoading, " tons/acre"),
+    paste0("2. Maintain duff depth to ≤ ", target_Duff, " inches"),
+    paste0("3. Increase sapling density to ≥ ", target_Sapling, " stems/acre"),
+    "4. Reduce pole-sized tree density of mesic fire-intolerant species relative to xeric fire-adapted species",
+    paste0("5. Maintain a stocking density of overstory trees between ", target_OverstoryLow, "-", target_OverstoryHigh, "%"),
+    paste0("6. Maintain or increase native grass and forb cover to ≥ ", target_Cover, "%")
+    ))
+
+Objectives_Grassland <- data.frame(
+  "Num" = c(1,2,3),
+  "Objective" = c(
+    paste0("1. Reduce woody cover to < ", target_Woody, "%"),
+    paste0("2. Reduce non-native invasive grass and forb cover to <", target_Invasive, "%"),
+    paste0("3. Increase native grass and forb cover to > ", target_Native, "%")
+    ))
+```
+
+#### Justifications
+
+1.  Fire behavior fuel models [@scott_standard_2005] represent fire spread driven by fuel loads of dead and down woody fuel. To moderate fire spread potential, fine fuel loading should be at or below what is expected for each fuel model.
+2.  To promote oak and pine regeneration, duff depth should be maintained at low levels to allow seedlings with shallow root systems to establish in mineral soil [@jenkins_yellow_2011].
+3.  In this report we define "seedlings" as \<1m tall and "saplings" as \>1m tall and \<2.5cm DBH (DBH = diameter at height of 1.3m). Saplings are more competitive and better predictors of advanced regeneration [@harris_increasing_2022], so objectives focus specifically on sapling density.
+4.  Pole-sized trees are classified as between 2.5cm and 15cm DBH. Species composition of pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments. Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021].
+5.  Overstory trees are classified as \>15cm DBH. These are the mature trees which make up the overall forest structure. To promote open canopy woodlands, tree stocking densities should be maintained within 30-70% [@ginrich_measuring_1967; @kabrick_silvicultural_2014; @hanberry_open_2020; @pile_knapp_managing_2024]
+6.  Native forb and grass understory is expected to increase with the removal of litter and opening of canopies.
+
+# Literature Cited
+
+```{r}
+WriteBib(bib, file = "zotero_refs.bib")
+```
