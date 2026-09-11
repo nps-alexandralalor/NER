@@ -95,10 +95,10 @@ Cover <- read.csv(paste0(path_data, "cover_points.csv"))
 ### Target Values {.hidden}
 
 ```{r set parameters, include=FALSE}
-target_park <- c("SHEN")
+target_park <- c("RICH")
 target_type <- c("Forest")
 target_purpose <- c("Fire Monitoring Handbook")
-target_year <- c(2026)
+#target_year <- c(2026)
 
     
     MetadataReport %>%
@@ -111,7 +111,7 @@ target_year <- c(2026)
       unique()
 
 
-target_ProjectUnit <- c("Jarman Gap")
+target_ProjectUnit <- c("Cold Harbor I")
 target_MonitoringType <- c("Pine Oak")
 
 
@@ -251,26 +251,89 @@ species_colors <- setNames(cols_species, colors_species)
 na_color <- "grey70"
 ```
 
-# `r target_park` `r target_year` `r target_type` Plots: `r target_ProjectUnit` (`r target_MonitoringType`)
+# `r target_park` `r target_type` Plots: `r target_ProjectUnit` (`r target_MonitoringType`)
 
 # Monitoring Objectives
 
-Recommendations for forest characteristics will be aimed at maintaining target vegetation associations for each park forest type.
-
 ```{r objectives}
-target_FineFuelLoading <- 2.4
-target_Duff <- 1.5
-target_Sapling <- 1000
-#target_PoleDensity_min <- 
-#target_PoleDensity_max <- 
-target_OverstoryLow <- 30
-target_OverstoryHigh <- 75
-target_Cover <- 50
+#source(paste0(here(), "/scripts/4_Reports/monitoring_objectives.R"))
 
-target_Woody <- 25
-target_Invasive <- 25
-target_Native <- 75
+################################################################################
+# MONITORING TYPES
+################################################################################
 
+### Forests
+
+target_FineFuelLoading <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 2.4,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 2.4,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 2.4,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 2.4,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 2.4,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 2.4,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 2.4, NA)))))))
+
+target_Duff <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 1.5,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 1.5,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 1.5,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 1.5,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 1.5,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 1.5,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 1.5, NA)))))))
+
+target_Sapling <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 1000,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 1000,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 1000,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 1000,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 1000,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 1000,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 1000, NA)))))))
+
+target_OverstoryLow <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 30,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 30,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 30,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 30,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 30,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 30,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 30, NA)))))))
+
+target_OverstoryHigh <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 75,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 70,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 75,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 75,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 75,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 75,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 75, NA)))))))
+
+target_Cover <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 50,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 50,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 50,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 50,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 50,
+                                     ifelse(target_MonitoringType %in% "Gray Birch", 50,
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 50, NA)))))))
+
+
+### Grasslands 
+
+target_Woody <- 
+  ifelse(target_type %in% "Grassland", 25, NA)
+
+target_Invasive <- 
+  ifelse(target_type %in% "Grassland", 25, NA)
+
+target_Native <- 
+  ifelse(target_type %in% "Grassland", 75, NA)
+
+
+################################################################################
+# TABLES
+################################################################################
 
 
 Objectives_Forest <- data.frame(
@@ -279,10 +342,9 @@ Objectives_Forest <- data.frame(
     paste0("1. Maintain fine fuel loading (litter, 1-100hr fuels) at < ", target_FineFuelLoading, " tons/acre"),
     paste0("2. Maintain duff depth to ≤ ", target_Duff, " inches"),
     paste0("3. Increase sapling density to ≥ ", target_Sapling, " stems/acre"),
-    "4. Reduce pole-sized tree density of mesic fire-intolerant species relative to xeric fire-adapted species",
+    paste0("4. Reduce pole-sized tree density of mesic fire-intolerant species relative to xeric fire-adapted species"),
     paste0("5. Maintain a stocking density of overstory trees between ", target_OverstoryLow, "-", target_OverstoryHigh, "%"),
-    paste0("6. Maintain or increase native grass and forb cover to ≥ ", target_Cover, "%")
-    ))
+    paste0("6. Maintain or increase native grass and forb cover to ≥ ", target_Cover, "%")))
 
 Objectives_Grassland <- data.frame(
   "Num" = c(1,2,3),
@@ -290,7 +352,7 @@ Objectives_Grassland <- data.frame(
     paste0("1. Reduce woody cover to < ", target_Woody, "%"),
     paste0("2. Reduce non-native invasive grass and forb cover to <", target_Invasive, "%"),
     paste0("3. Increase native grass and forb cover to > ", target_Native, "%")
-    ))
+  ))
 
 
 if(target_type == "Forest") {
@@ -306,7 +368,7 @@ if(target_type == "Forest") {
 2.  To promote oak and pine regeneration, duff depth should be maintained at low levels to allow seedlings with shallow root systems to establish in mineral soil [@jenkins_yellow_2011].
 3.  In this report we define "seedlings" as \<1m tall and "saplings" as \>1m tall and \<2.5cm DBH (DBH = diameter at height of 1.3m). Saplings are more competitive and better predictors of advanced regeneration [@harris_increasing_2022], so objectives focus specifically on sapling density.
 4.  Pole-sized trees are classified as between 2.5cm and 15cm DBH. Species composition of pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments. Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021].
-5.  Overstory trees are classified as \>15cm DBH. These are the mature trees which make up the overall forest structure. To promote open canopy woodlands, tree stocking densities should be maintained within 30-70% [@ginrich_measuring_1967; @kabrick_silvicultural_2014; @hanberry_open_2020; @pile_knapp_managing_2024]
+5.  Overstory trees are classified as \>15cm DBH. These are the mature trees which make up the overall forest structure. "Tree stocking" combines tree density and basal area measurements to reflect canopy openness, where lower percentages have a more open canopy than higher percentages. [@ginrich_measuring_1967; @kabrick_silvicultural_2014; @hanberry_open_2020; @pile_knapp_managing_2024]
 6.  Native forb and grass understory is expected to increase with the removal of litter and opening of canopies.
 
 # Background
