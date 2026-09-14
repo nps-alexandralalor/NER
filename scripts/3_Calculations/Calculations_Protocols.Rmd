@@ -37,7 +37,6 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 library(tidyverse)
 # "kableExtra" is used to produce formatted tables
 library(kableExtra)
-library(ggplot2)
 library(stringr)
 library(DT)
 library(fs)
@@ -130,17 +129,19 @@ for (name in df_names) {
   
   # add nativity
   filtered_df <- current_df %>% 
-    mutate(Species_Nativity = ifelse(MethodData_LocalSpeciesSymbol %in% Unknowns & Species_NativityLocal == "False" & Species_Invasive == "False", "Unknown",
+    mutate(Species_NativityLocal = toupper(Species_NativityLocal),
+           Species_Invasive = toupper(Species_Invasive)) %>% 
+    mutate(Species_Nativity = ifelse(MethodData_LocalSpeciesSymbol %in% Unknowns & Species_NativityLocal == "FALSE" & Species_Invasive == "FALSE", "Unknown",
                                    ifelse(Species_LifeFormNameLocal == "Undefined", "Substrate",
-                                          ifelse(Species_NativityLocal == "True", "Native",
-                                                 ifelse(Species_Invasive == "True", "Invasive", "Nonnative")))))
+                                          ifelse(Species_NativityLocal == "TRUE", "Native",
+                                                 ifelse(Species_Invasive == "TRUE", "Invasive", "Nonnative")))))
   
     # rename and save
   assign(name, filtered_df)
 }
 ```
 
-# Surface Fuels
+# Fuels
 
 ## Fuels 1000
 
@@ -577,24 +578,43 @@ write.csv(Trees_all_calc, paste0(path_save, "trees.csv"), quote = FALSE, row.nam
 
 # Cover
 
-## Herbs Points
+## Build list of species not in Herbs Points
+
+```{r}
+# isolate unique species in all protocols
+UniqueSpecies_HerbsPoints <- HerbsPoints %>% 
+  group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>%
+  filter(MethodData_Status == "L",
+         !(is.na(Species_ScientificName))) %>% 
+  distinct(Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity)
+
+UniqueSpecies_HerbsSpComp <- HerbsSpComp %>% 
+  group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>%
+  filter(!is.na(Species_ScientificName)) %>% 
+  distinct(Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity)
+
+# identify species found in HerbsSpComp but not in HerbsPoints
+UniqueSpecies_missing <- anti_join(UniqueSpecies_HerbsSpComp, UniqueSpecies_HerbsPoints)
+```
+
+## Cover Points
 
 ```{r}
 # ------------------------------------- #
 # ------           Herbs         ------ #
 # ------------------------------------- #
-#cover_df <- HerbsPoints
+cover_df <- HerbsPoints
 # ---- Function to calculate herbaceous cover for any park dataset ---- #
 calculate_Points_cover <- function(cover_df) {
   
   # ---- Step 1: Plot-level summaries ---- #
   ## ------------- Total Plot ------------ ##
-  plot_level <- cover_df %>%
-    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>% 
-    dplyr::reframe(
-      n_species_plot = n_distinct(Species_ScientificName)
-      ) %>% 
-    unique()
+  # plot_level <- cover_df %>%
+  #   group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>% 
+  #   dplyr::reframe(
+  #     n_species_plot = n_distinct(Species_ScientificName)
+  #     ) %>% 
+  #   unique()
   ## ------------- By Species ------------ ##
   plot_level_species <- cover_df %>% 
     mutate(MethodData_NumPtsTran = ifelse(MethodData_NumPtsTran == 0, 100, MethodData_NumPtsTran)) %>% 
@@ -620,13 +640,13 @@ calculate_Points_cover <- function(cover_df) {
     unique()
   
   plot_level_sum <- plot_level_merge %>% 
-    full_join(plot_level, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name")) %>% 
+    # full_join(plot_level, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name")) %>% 
     full_join(plot_level_species, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_Nativity"))
   
 }
 ```
 
-## Herbs Species Comp
+## Cover Species Comp
 
 ```{r}
 # ------------------------------------- #
@@ -638,33 +658,39 @@ calculate_SpComp_cover <- function(cover_df) {
 
   
   # ---- Step 1: Add useful columns ---- #
-  plot_level <- cover_df %>%
-    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>%
-    dplyr::reframe(
-      n_species_plot = n_distinct(Species_ScientificName)
-    )
+  plot_level_sum <- UniqueSpecies_missing
+
   
-  # plot_level_species <- cover_df %>%
+  # plot_level <- UniqueSpecies_HerbsSpComp %>%
+  #   group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>%
+  #   dplyr::reframe(
+  #     n_species_plot = n_distinct(Species_ScientificName)
+  #   )
+  # 
+  # plot_level_species <- UniqueSpecies_HerbsSpComp %>%
   #   group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>%
   #   dplyr::reframe(
-  #     #Species = paste(na.omit(unique(MethodData_LocalSpeciesSymbol)), collapse = "; "),
-  #     n_species = n_distinct(Species_ScientificName)
+  #     Hits = 0,
+  #     PctCover = 0.1,
+  #     Avg_Ht_m = 0,
+  #     Avg_Ht_ft = round((Avg_Ht_m * 3.28084), 1)
   #   )
-
-  
-    # ---- Step 2: COMBINE ---- #
-  plot_level_merge <- cover_df %>%
-    select(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>%
-    unique()
-  
-  plot_level_sum <- plot_level_merge %>% 
-    full_join(plot_level, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name"))
+  # 
+  # 
+  #   # ---- Step 2: COMBINE ---- #
+  # plot_level_merge <- cover_df %>%
+  #   select(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>%
+  #   unique()
+  # 
+  # 
+  # plot_level_sum <- plot_level_merge %>% 
+  #   full_join(plot_level, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name")) %>% 
+  #   full_join(plot_level_species, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_Nativity"))
   
 }
-
 ```
 
-## Combine Herbs
+## Combine Cover
 
 ```{r}
 HerbsPoints_sum <- calculate_Points_cover(HerbsPoints)
@@ -676,12 +702,10 @@ Cover_Points_meta <- HerbsPoints %>%
   select(1:20, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>%
   unique()
 
-Cover_SpComp_meta <- HerbsSpComp %>% 
+Cover_SpComp_meta <- HerbsSpComp %>%
   select(1:20, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>%
   unique()
-```
 
-```{r}
 Cover_Points_calc <- Cover_Points_meta %>%
   dplyr::full_join(HerbsPoints_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_Nativity"))
 
@@ -690,6 +714,30 @@ Cover_SpComp_calc <- Cover_SpComp_meta %>%
 ```
 
 ```{r}
-write.csv(Cover_Points_calc, paste0(path_save, "cover_points.csv"), quote = FALSE, row.names = FALSE)
-write.csv(Cover_SpComp_calc, paste0(path_save, "cover_comp.csv"), quote = FALSE, row.names = FALSE)
+Cover_all_merge <- Cover_Points_calc %>% 
+  dplyr::full_join(Cover_SpComp_calc, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_UV1", "Macroplot_UV2", "Macroplot_UV3", "Macroplot_UV4", "Macroplot_UV5", "Macroplot_UV6", "Macroplot_UV7", "Macroplot_UV8", "Macroplot_Name", "MonitoringStatus_Name", "MonitoringStatus_Prefix", "MonitoringStatus_Base", "MonitoringStatus_Suffix", "MonitoringStatus_Order", "SampleEvent_TreatmentUnit", "SampleEvent_Date", "SampleEvent_Date_Year", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_Nativity")) %>% 
+  arrange(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, SampleEvent_Date, Species_ScientificName) %>% 
+    mutate(
+      Hits       = replace_na(Hits, 0),
+      PctCover   = replace_na(PctCover, 0.1),
+      Avg_Ht_m   = replace_na(Avg_Ht_m, 0),
+      Avg_Ht_ft  = replace_na(Avg_Ht_ft, 0)
+  )
+
+
+plot_level <- Cover_all_merge %>%
+  group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>%
+  dplyr::reframe(
+    n_species_plot = n_distinct(Species_ScientificName)
+    )
+  
+  
+Cover_all_calc <- Cover_all_merge %>%
+  full_join(plot_level, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name"))
+```
+
+```{r}
+# write.csv(Cover_Points_calc, paste0(path_save, "cover_points.csv"), quote = FALSE, row.names = FALSE)
+# write.csv(Cover_SpComp_calc, paste0(path_save, "cover_comp.csv"), quote = FALSE, row.names = FALSE)
+write.csv(Cover_all_calc, paste0(path_save, "cover.csv"), quote = FALSE, row.names = FALSE)
 ```
