@@ -21,6 +21,11 @@ knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FA
 # install.packages("tidyverse")
 ```
 
+```{r load packages, include=FALSE}
+# "tidyverse" has lots of useful functions for data cleaning
+library(tidyverse)
+```
+
 ### References
 
 ```{r references, include=FALSE}
@@ -54,19 +59,15 @@ Xeric Oak Monitoring Type Associations:
 
 -   Central Appalachian Dry Chestnut Oak – Northern Red Oak / Heath Forest (G650, A4435, [CEGL008523](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.686143/Quercus_montana_-_Quercus_rubra_-_Vaccinium_pallidum_-_(Rhododendron_periclymenoides)_Forest))
 
--   Central Appalachian Acidic Oak – Hickory Forest (G650, A4436, [CEGL008515](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.688054/Quercus_alba_-_Quercus_montana_-_Carya_glabra_-_Cornus_florida_-_Vaccinium_pallidum_Forest))
+-   Central Appalachian Dry-Mesic Chestnut Oak – Northern Red Oak Forest (G650, A4435, [CEGL006057](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.683617/Quercus_montana_-_Quercus_rubra_-_Hamamelis_virginiana_Forest))
 
 Mesic Oak Monitoring Type Associations:
 
--   Central Appalachian Dry-Mesic Chestnut Oak – Northern Red Oak Forest (G650, A4435, [CEGL006057](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.683617/Quercus_montana_-_Quercus_rubra_-_Hamamelis_virginiana_Forest))
-
--   Central Appalachian Basic Woodland (G180, A2074, [CEGL003683](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.684450/Fraxinus_americana_-_Carya_glabra_-_Muhlenbergia_sobolifera_-_Helianthus_divaricatus_-_Solidago_ulmifolia_Woodland))
-
 -   Central Appalachian Basic Oak – Hickory Forest (Submontane / Foothills Type) (G650, A4436, [CEGL008514](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.688949/Quercus_rubra_-_Quercus_montana_-_Carya_ovalis_-_(Cercis_canadensis)_-_Solidago_caesia_Forest))
 
--   Central Appalachian Montane Oak – Hickory Forest (Acidic Type) (G650, A4436, [CEGL008516](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.686973/Quercus_montana_-_Quercus_rubra_-_Carya_ovalis_-_Carex_pensylvanica_-_(Calamagrostis_porteri)_Forest))
+-   Central Appalachian Acidic Oak – Hickory Forest (G650, A4436, [CEGL008515](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.688054/Quercus_alba_-_Quercus_montana_-_Carya_glabra_-_Cornus_florida_-_Vaccinium_pallidum_Forest))
 
--   Central Appalachian Northern Red Oak Forest (G015, A3116, [CEGL008506](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.687229/Quercus_rubra_-_(Quercus_alba)_-_Ilex_montana_-_Dennstaedtia_punctilobula_-_Lysimachia_quadrifolia_Forest))
+-   Central Appalachian Montane Oak – Hickory Forest (Acidic Type) (G650, A4436, [CEGL008516](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.686973/Quercus_montana_-_Quercus_rubra_-_Carya_ovalis_-_Carex_pensylvanica_-_(Calamagrostis_porteri)_Forest))
 
 -   Central Appalachian Montane Oak – Hickory Forest (Basic Type) (G650, A4436, [CEGL008518](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.688757/Quercus_rubra_-_Carya_ovata_-_Fraxinus_americana_-_Actaea_racemosa_-_Hydrophyllum_virginianum_Forest))
 
@@ -75,6 +76,10 @@ Oak Hickory Monitoring Type Associations:
 Mixed Oak Monitoring Type Associations:
 
 Gray Birch Monitoring Type Associations:
+
+Modified Disturbed Monitoring Type Associations:
+
+-   Central Appalachian Northern Red Oak Forest (G015, A3116, [CEGL008506](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.687229/Quercus_rubra_-_(Quercus_alba)_-_Ilex_montana_-_Dennstaedtia_punctilobula_-_Lysimachia_quadrifolia_Forest))
 
 ```{r}
 # Monitoring Types
@@ -100,7 +105,7 @@ target_Duff <-
 
 target_Sapling <- 
   ifelse(target_MonitoringType %in% "Pine Oak", 1000,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 1000,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 400,
                 ifelse(target_MonitoringType %in% "Mesic Oak", 1000,
                        ifelse(target_MonitoringType %in% "Oak Hickory", 1000,
                               ifelse(target_MonitoringType %in% "Mixed Oak", 1000,
@@ -118,7 +123,7 @@ target_OverstoryLow <-
 
 target_OverstoryHigh <- 
   ifelse(target_MonitoringType %in% "Pine Oak", 75,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 75,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 70,
                 ifelse(target_MonitoringType %in% "Mesic Oak", 75,
                        ifelse(target_MonitoringType %in% "Oak Hickory", 75,
                               ifelse(target_MonitoringType %in% "Mixed Oak", 75,
@@ -168,7 +173,7 @@ Objectives_Grassland <- data.frame(
     ))
 ```
 
-#### Justifications
+#### Justifications - Forest
 
 1.  Fire behavior fuel models [@scott_standard_2005] represent fire spread driven by fuel loads of dead and down woody fuel. To moderate fire spread potential, fine fuel loading should be at or below what is expected for each fuel model.
 2.  To promote oak and pine regeneration, duff depth should be maintained at low levels to allow seedlings with shallow root systems to establish in mineral soil [@jenkins_yellow_2011].
@@ -176,6 +181,12 @@ Objectives_Grassland <- data.frame(
 4.  Pole-sized trees are classified as between 2.5cm and 15cm DBH. Species composition of pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments. Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021].
 5.  Overstory trees are classified as \>15cm DBH. These are the mature trees which make up the overall forest structure. To promote open canopy woodlands, tree stocking densities should be maintained within 30-70% [@ginrich_measuring_1967; @kabrick_silvicultural_2014; @hanberry_open_2020; @pile_knapp_managing_2024]
 6.  Native forb and grass understory is expected to increase with the removal of litter and opening of canopies.
+
+#### Justifications - Grassland
+
+1.  
+2.  
+3.  
 
 # Literature Cited
 
