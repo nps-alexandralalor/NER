@@ -10,9 +10,6 @@ output:
     toc_float:
       smooth_scroll: true
     code_download: false
-  pdf_document:
-    toc: true
-    toc_depth: '2'
 link-citations: true
 bibliography: zotero_refs.bib
 csl: "chicago-author-date-17th-edition.csl"
@@ -92,7 +89,8 @@ MetadataReport <- read.csv(paste0(path_data, "all_metadata.csv"))
 SpeciesReport <- read.csv(paste0(path_data, "all_species_info.csv"))
 Fuels <- read.csv(paste0(path_data, "fuels.csv"))
 Trees <- read.csv(paste0(path_data, "trees.csv"))
-Cover <- read.csv(paste0(path_data, "cover_points.csv"))
+Cover <- read.csv(paste0(path_data, "cover.csv"))
+# Cover_Points <- read.csv(paste0(path_data, "cover_points.csv"))
 # Cover_SpComp <- read.csv(paste0(path_data, "cover_comp.csv"))
 # PostBurn <- read.csv(paste0(path_data, "post.csv"))
 # Shrubs <- read.csv(paste0(path_data, "shrubs.csv"))
@@ -100,9 +98,9 @@ Cover <- read.csv(paste0(path_data, "cover_points.csv"))
 
 ### Target Values {.hidden}
 
-```{r set parameters, include=FALSE}
-target_park <- c("SHEN")
-target_type <- c("Forest")
+```{r}
+target_park <- c("RICH")
+target_type <- c("Grassland")
 target_purpose <- c("Fire Monitoring Handbook")
 
     
@@ -112,12 +110,15 @@ target_purpose <- c("Fire Monitoring Handbook")
         AdminUnit_Name == target_park,
         Macroplot_Type == target_type
         ) %>% 
-      select(Macroplot_UV1, Macroplot_UV2) %>% 
+      rename(ProjectUnit = Macroplot_UV1) %>% 
+      rename(MonitoringType = Macroplot_UV2) %>% 
+      select(ProjectUnit, MonitoringType) %>% 
       unique()
+```
 
-
-target_ProjectUnit <- c("Jarman Gap")
-target_MonitoringType <- c("Pine Oak")
+```{r, include=FALSE}
+target_ProjectUnit <- c("Malvern Hill")
+target_MonitoringType <- c("Cool Season")
 
 
     MetadataReport_SampleEvents <- MetadataReport %>%
@@ -314,7 +315,7 @@ target_OverstoryHigh <-
                                      ifelse(target_MonitoringType %in% "Gray Birch", 75,
                                             ifelse(target_MonitoringType %in% "Modified Disturbed", 75, NA)))))))
 
-target_Cover <- 
+target_Native <- 
   ifelse(target_MonitoringType %in% "Pine Oak", 50,
          ifelse(target_MonitoringType %in% "Xeric Oak", 50,
                 ifelse(target_MonitoringType %in% "Mesic Oak", 50,
@@ -346,10 +347,10 @@ Objectives_Forest <- data.frame(
   "Objective" = c(
     paste0("1. Maintain fine fuel loading (litter, 1-100hr fuels) at < ", target_FineFuelLoading, " tons/acre"),
     paste0("2. Maintain duff depth to ≤ ", target_Duff, " inches"),
-    paste0("3. Increase sapling density to ≥ ", target_Sapling, " stems/acre"),
+    paste0("3. Increase sapling tree density to ≥ ", target_Sapling, " stems/acre"),
     paste0("4. Reduce pole-sized tree density of mesic fire-intolerant species relative to xeric fire-adapted species"),
     paste0("5. Maintain a stocking density of overstory trees between ", target_OverstoryLow, "-", target_OverstoryHigh, "%"),
-    paste0("6. Maintain or increase native grass and forb cover to ≥ ", target_Cover, "%")))
+    paste0("6. Maintain or increase native grass and forb cover to ≥ ", target_Native, "%")))
 
 Objectives_Grassland <- data.frame(
   "Num" = c(1,2,3),
@@ -367,15 +368,6 @@ if(target_type == "Forest") {
 }
 ```
 
-#### Justifications
-
-1.  Fire behavior fuel models [@scott_standard_2005] represent fire spread driven by fuel loads of dead and down woody fuel. To moderate fire spread potential, fine fuel loading should be at or below what is expected for each fuel model.
-2.  To promote oak and pine regeneration, duff depth should be maintained at low levels to allow seedlings with shallow root systems to establish in mineral soil [@jenkins_yellow_2011].
-3.  In this report we define "seedlings" as \<1m tall and "saplings" as \>1m tall and \<2.5cm DBH (DBH = diameter at height of 1.3m). Saplings are more competitive and better predictors of advanced regeneration [@harris_increasing_2022], so objectives focus specifically on sapling density.
-4.  Pole-sized trees are classified as between 2.5cm and 15cm DBH. Species composition of pole-sized trees reflect the trajectory of forest change and can be targeted for thinning treatments. Fire-adapted oak-pine ecosystems contain a higher ratio of xeric species, which are drought tolerant and usually fire-adapted, compared to mesic species, which are tolerant of shadier and moister conditions [@alexander_mesophication_2021].
-5.  Overstory trees are classified as \>15cm DBH. These are the mature trees which make up the overall forest structure. "Tree stocking" combines tree density and basal area measurements to reflect canopy openness, where lower percentages have a more open canopy than higher percentages. [@ginrich_measuring_1967; @kabrick_silvicultural_2014; @hanberry_open_2020; @pile_knapp_managing_2024]
-6.  Native forb and grass understory is expected to increase with the removal of litter and opening of canopies.
-
 \newpage
 
 # Background
@@ -383,15 +375,15 @@ if(target_type == "Forest") {
 ## Map
 
 ```{r}
-# leaflet(data = MetadataReport_SampleEvents %>% 
-#           select(c(AdminUnit_Name, Macroplot_Type, Macroplot_Name, Macroplot_Lat_dd, Macroplot_Long_dd)) %>% 
-#           distinct()) %>% 
-#   addTiles() %>% 
-#   addMarkers(
-#     lng = ~Macroplot_Long_dd,
-#     lat = ~Macroplot_Lat_dd,
-#     popup = ~Macroplot_Name
-#   )
+leaflet(data = MetadataReport_SampleEvents %>%
+          select(c(AdminUnit_Name, Macroplot_Type, Macroplot_Name, Macroplot_Lat_dd, Macroplot_Long_dd)) %>%
+          distinct()) %>%
+  addTiles() %>%
+  addMarkers(
+    lng = ~Macroplot_Long_dd,
+    lat = ~Macroplot_Lat_dd,
+    popup = ~Macroplot_Name
+  )
 ```
 
 \newpage
@@ -1998,7 +1990,7 @@ p_data <- Cover_graph %>%
     color = "red"
     ) +
   geom_hline(
-    yintercept = target_Cover, 
+    yintercept = target_Native, 
     linetype = "dashed", 
     color = "forestgreen"
     )
@@ -2054,7 +2046,7 @@ download_this(p, icon = NULL,
 
 ```{r}
 if(target_type == "Forest") {
-  "No objective specified"
+  print("No objective defined")
 } else {
   kable(Objectives_Grassland %>% 
           filter(Num == 1) %>% 
@@ -2069,8 +2061,8 @@ if(nrow(Cover_graph) == 0) {
 p_data <- Cover_graph %>% 
   filter(
     Species_LifeFormNameLocal %in% c(
-      "Nonvascular", "Lichenous"
-      ,"Graminoid", "Grass-like"
+      #"Nonvascular", "Lichenous"
+      "Graminoid", "Grass-like"
       ,"Forb/herb", "Fern", "Vine"
       ,"Shrub" ,"Subshrub"
       ,"Tree"
@@ -2147,7 +2139,7 @@ p_data <- Cover_graph %>%
     )
 }
 
-#p_data
+p_data
 ```
 
 ```{r}
@@ -2188,6 +2180,280 @@ ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", t
   
 download_this(p, icon = NULL,
   output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Lifeform"))
+}
+```
+
+\newpage
+
+### Cover Nonnative Invasive
+
+```{r}
+if(target_type == "Forest") {
+  print("No objective defined")
+} else {
+  kable(Objectives_Grassland %>% 
+          filter(Num == 2) %>% 
+          select(Objective))
+}
+```
+
+```{r}
+Objectives_Grassland <- data.frame(
+  "Num" = c(1,2,3),
+  "Objective" = c(
+    paste0("1. Reduce woody cover to < ", target_Woody, "%"),
+    paste0("2. Reduce non-native invasive grass and forb cover to <", target_Invasive, "%"),
+    paste0("3. Increase native grass and forb cover to > ", target_Native, "%")
+  ))
+```
+
+```{r, include=FALSE}
+if(nrow(Cover_graph) == 0) {
+  p_data <- "No data available for this selection."
+} else {
+p_data <- Cover_graph %>% 
+  filter(
+    Species_LifeFormNameLocal %in% c(
+      #"Nonvascular", "Lichenous", 
+      "Graminoid", "Grass-like",
+      "Forb/herb", "Fern"
+      ,"Vine"
+      #,"Shrub", "Subshrub",
+      #"Tree",
+      #"Substrate"
+      ),
+    Species_Nativity %in% c(
+      #"Native"
+      "Nonnative",
+      "Invasive"
+      #"Unknown"
+      )
+    ) %>% 
+  group_by(
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
+    # ,Species_LifeFormNameLocal
+    # ,Species_Genus
+    # ,Species_ScientificName
+    # ,Species_Nativity
+    ) %>% 
+  mutate(
+    Total_Cover = sum(PctCover)
+    ) %>%  
+
+  
+  ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
+  geom_line() +
+  geom_point() +
+  #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
+  labs(
+    x = "Year",
+    y = "% Cover",
+    title = paste(target_park, target_type, "Non-Native Invasive Grass and Forb Cover")
+    ) +
+  scale_x_continuous(
+    limits = c(year_min, year_max),
+    breaks = seq(year_min, year_max, by = 1),
+    expand = expansion(mult = c(0, 0))
+    ) +
+  ylim(0, NA) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
+    axis.title = element_text(size = 12, face="bold"),
+    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+    axis.text.y = element_text(size = 8),
+    panel.grid.minor = element_blank()
+    )  +
+  geom_vline(
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
+    linetype = "dashed", 
+    color = "red"
+    ) +
+  geom_hline(
+    yintercept = target_Invasive, 
+    linetype = "dashed", 
+    color = "darkorange"
+    )
+}
+
+p_data
+```
+
+```{r}
+p_disturbance_merge <- p_disturbance +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "right",
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
+        )+
+  labs(
+    title = paste(target_park, target_type, "Non-Native Invasive Grass and Forb Cover"),
+    fill = "Disturbance"
+       )
+
+p_data_merge <- p_data +
+  theme(plot.title = element_blank(),
+        strip.text.x = element_blank())
+
+if(is.character(p_data)) {
+  p <- p_data
+} else {
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
+}
+
+
+# save when ready
+if(is.character(p)) {
+  print(p)
+} else {
+  print(p)
+  
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Invasive.jpg"),
+       plot = p, width = 6, height = 4, units = "in", dpi = 300)
+  
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Invasive"))
+}
+```
+
+\newpage
+
+### Cover Woody
+
+```{r}
+if(target_type == "Forest") {
+  print("No objective defined")
+} else {
+  kable(Objectives_Grassland %>% 
+          filter(Num == 1) %>% 
+          select(Objective))
+}
+```
+
+```{r, include=FALSE}
+if(nrow(Cover_graph) == 0) {
+  p_data <- "No data available for this selection."
+} else {
+p_data <- Cover_graph %>% 
+  filter(
+    Species_LifeFormNameLocal %in% c(
+      #"Nonvascular", "Lichenous", 
+      #"Graminoid", "Grass-like",
+      #"Forb/herb", "Fern"
+      #,"Vine"
+      "Shrub", "Subshrub",
+      "Tree"
+      #"Substrate"
+      ),
+    Species_Nativity %in% c(
+      "Native",
+      "Nonnative",
+      "Invasive",
+      "Unknown"
+      )
+    ) %>% 
+  group_by(
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
+    # ,Species_LifeFormNameLocal
+    # ,Species_Genus
+    # ,Species_ScientificName
+    # ,Species_Nativity
+    ) %>% 
+  mutate(
+    Total_Cover = sum(PctCover)
+    ) %>%  
+
+  
+  ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
+  geom_line() +
+  geom_point() +
+  #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
+  facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
+  labs(
+    x = "Year",
+    y = "% Cover",
+    title = paste(target_park, target_type, "Woody Cover")
+    ) +
+  scale_x_continuous(
+    limits = c(year_min, year_max),
+    breaks = seq(year_min, year_max, by = 1),
+    expand = expansion(mult = c(0, 0))
+    ) +
+  ylim(0, NA) +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
+    plot.title = element_text(size = 15, face="bold", hjust = 0.5),
+    plot.subtitle = element_text(size = 10, face="bold", hjust = 0.5),
+    axis.title = element_text(size = 12, face="bold"),
+    axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
+    axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
+    axis.text.y = element_text(size = 8),
+    panel.grid.minor = element_blank()
+    )  +
+  geom_vline(
+    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
+    linetype = "dashed", 
+    color = "red"
+    ) +
+  geom_hline(
+    yintercept = target_Woody, 
+    linetype = "dashed", 
+    color = "darkorange"
+    )
+}
+
+p_data
+```
+
+```{r}
+p_disturbance_merge <- p_disturbance +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "right",
+        plot.margin = margin(t = 5, r = 5, b = 0, l = 5),
+        plot.title = element_text(size = 15, face="bold", hjust = 0.5)
+        )+
+  labs(
+    title = paste(target_park, target_type, "Woody Cover"),
+    fill = "Disturbance"
+       )
+
+p_data_merge <- p_data +
+  theme(plot.title = element_blank(),
+        strip.text.x = element_blank())
+
+if(is.character(p_data)) {
+  p <- p_data
+} else {
+  p <-
+    p_disturbance_merge / p_data_merge +
+    plot_layout(heights = c(0.2, 1.4))
+}
+
+
+# save when ready
+if(is.character(p)) {
+  print(p)
+} else {
+  print(p)
+  
+ggsave(filename = paste0(path_save, target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Woody.jpg"),
+       plot = p, width = 6, height = 4, units = "in", dpi = 300)
+  
+download_this(p, icon = NULL,
+  output_name = paste0(target_park, "_", target_ProjectUnit, "_", target_MonitoringType, "_Cover Woody"))
 }
 ```
 
