@@ -117,8 +117,8 @@ target_purpose <- c("Fire Monitoring Handbook")
 ```
 
 ```{r, include=FALSE}
-target_ProjectUnit <- c("Big Meadows West")
-target_MonitoringType <- c("Modified Disturbed")
+target_ProjectUnit <- c("Jarman Gap", "Blackrock", "Riprap")
+target_MonitoringType <- c("Xeric Oak")
 
 
     MetadataReport_SampleEvents <- MetadataReport %>%
@@ -143,7 +143,7 @@ target_MonitoringType <- c("Modified Disturbed")
 
 year_max <- as.numeric(format(Sys.Date(), "%Y"))
 date_max <- as.Date(paste0(year_max, "-12-31"))
-year_min <- as.numeric((min(MetadataReport_SampleEvents$SampleEvent_Date_Year)) - 1)
+year_min <- as.numeric((min(MetadataReport_SampleEvents$SampleEvent_Date_Year)) - 2)
 date_min <- as.Date(paste0(year_min, "-12-31"))
 ```
 
@@ -163,7 +163,7 @@ Species_trees_protocol <- Trees %>%
   drop_na() %>% 
   unique()
 
-Species_points_protocol <- Cover %>% 
+Species_cover_protocol <- Cover %>% 
   filter(
     AdminUnit_Name == target_park,
     Macroplot_Type == target_type,
@@ -175,27 +175,15 @@ Species_points_protocol <- Cover %>%
   drop_na() %>% 
   unique()
 
-# Species_comp_protocol <- Cover_SpComp %>% 
-#   filter(
-#     AdminUnit_Name == target_park,
-#     Macroplot_Type == target_type,
-#     Macroplot_Purpose == target_purpose,
-#     Macroplot_UV1 %in% target_ProjectUnit,
-#     Macroplot_UV2 %in% target_MonitoringType
-#     ) %>% 
-#   select(Species_ScientificName) %>% 
-#  drop_na() %>% 
-#  unique()
-
 # combine all species
-Species <- rbind(Species_trees_protocol, Species_points_protocol) %>% 
+Species <- rbind(Species_trees_protocol, Species_cover_protocol) %>% 
   unique()
 
 # target species object
 target_Species <- Species$Species_ScientificName
 target_TreeSpecies <- Species_trees_protocol$Species_ScientificName
 
-remove(Species_trees_protocol, Species_points_protocol, Species)
+remove(Species_trees_protocol, Species_cover_protocol, Species)
 
 ###################################################################################
 
@@ -262,99 +250,18 @@ na_color <- "grey70"
 # Monitoring Objectives
 
 ```{r objectives}
-#source(paste0(here(), "/scripts/4_Reports/monitoring_objectives.R"))
+source(paste0(here(), "/scripts/4_Reports/monitoring_objectives.R"))
 
-################################################################################
-# MONITORING TYPES
-################################################################################
-
-### Forests
-
-target_FineFuelLoading <- 
-  ifelse(target_MonitoringType %in% "Pine Oak", 2.4,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 2.4,
-                ifelse(target_MonitoringType %in% "Mesic Oak", 2.4,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 2.4,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 2.4,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 2.4,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 2.4, NA)))))))
-
-target_Duff <- 
-  ifelse(target_MonitoringType %in% "Pine Oak", 1.5,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 1.5,
-                ifelse(target_MonitoringType %in% "Mesic Oak", 1.5,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 1.5,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 1.5,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 1.5,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 1.5, NA)))))))
-
-target_Sapling <- 
-  ifelse(target_MonitoringType %in% "Pine Oak", 1000,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 1000,
-                ifelse(target_MonitoringType %in% "Mesic Oak", 1000,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 1000,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 1000,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 1000,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 1000, NA)))))))
-
-target_OverstoryLow <- 
-  ifelse(target_MonitoringType %in% "Pine Oak", 30,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 30,
-                ifelse(target_MonitoringType %in% "Mesic Oak", 30,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 30,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 30,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 30,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 30, NA)))))))
-
-target_OverstoryHigh <- 
-  ifelse(target_MonitoringType %in% "Pine Oak", 75,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 70,
-                ifelse(target_MonitoringType %in% "Mesic Oak", 75,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 75,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 75,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 75,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 75, NA)))))))
-
-target_Native <- 
-  ifelse(target_MonitoringType %in% "Pine Oak", 50,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 50,
-                ifelse(target_MonitoringType %in% "Mesic Oak", 50,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 50,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 50,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 50,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 50, NA)))))))
-
-
-### Grasslands 
-
-target_Woody <- 
-  ifelse(target_type %in% "Grassland", 25, NA)
-
-target_Invasive <- 
-  ifelse(target_type %in% "Grassland", 25, NA)
-
-target_Native <- 
-  ifelse(target_type %in% "Grassland", 75, NA)
-
-
-
-# target_FineFuelLoading <- 2.4
-# 
-# target_Duff <-  1.5
-# 
-# target_Sapling <- 1000
-# 
-# target_OverstoryLow <- 30
-# 
-# target_OverstoryHigh <- 75
-# 
-# target_Native <- 50
-
-
-
-################################################################################
-# TABLES
-################################################################################
+if(length(target_MonitoringType) > 1) {
+  target_FineFuelLoading <- NA
+  target_Duff <-  NA
+  target_Sapling <- NA
+  target_OverstoryLow <- NA
+  target_OverstoryHigh <- NA
+  target_Native <- NA
+  target_Invasive <- NA
+  target_Woody <- NA
+}
 
 
 Objectives_Forest <- data.frame(
@@ -362,10 +269,11 @@ Objectives_Forest <- data.frame(
   "Objective" = c(
     paste0("1. Maintain fine fuel loading (litter, 1-100hr fuels) at < ", target_FineFuelLoading, " tons/acre"),
     paste0("2. Maintain duff depth to ≤ ", target_Duff, " inches"),
-    paste0("3. Increase sapling tree density to ≥ ", target_Sapling, " stems/acre"),
+    paste0("3. Increase sapling density to ≥ ", target_Sapling, " stems/acre"),
     paste0("4. Reduce pole-sized tree density of mesic fire-intolerant species relative to xeric fire-adapted species"),
     paste0("5. Maintain a stocking density of overstory trees between ", target_OverstoryLow, "-", target_OverstoryHigh, "%"),
-    paste0("6. Maintain or increase native grass and forb cover to ≥ ", target_Native, "%")))
+    paste0("6. Maintain or increase native grass and forb cover to ≥ ", target_Native, "%")
+  ))
 
 Objectives_Grassland <- data.frame(
   "Num" = c(1,2,3),
@@ -376,10 +284,15 @@ Objectives_Grassland <- data.frame(
   ))
 
 
-if(target_type == "Forest") {
-  kable(Objectives_Forest %>% select(Objective))
-} else {
-  kable(Objectives_Grassland %>% select(Objective))
+
+if (!is.na(target_Native)) {
+  
+  if (target_type == "Forest") {
+    kable(Objectives_Forest %>% select(Objective))
+  } else {
+    kable(Objectives_Grassland %>% select(Objective))
+  }
+  
 }
 ```
 
@@ -420,7 +333,7 @@ Disturbances_graph <- MetadataReport_Disturbances %>%
     ) %>%
   mutate(
     Disturbance_Date = as.Date(Disturbance_Date),
-    Macroplot_Num = "All"
+    Macroplot_Num = Macroplot_UV1
     ) %>%
   arrange(desc(MonitoringStatus_Name))
 ```
@@ -435,7 +348,7 @@ if(nrow(MetadataReport_Disturbances) == 0) {
     ggplot(aes(x = Disturbance_Date, y = Macroplot_Num)) +
     geom_line(aes(group = Macroplot_Num),
               data = Disturbances_graph) +
-    geom_point(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
+    geom_point(aes(x = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
                data = Disturbances_graph, shape = 21) +
     geom_line(aes(X = Disturbance_Date, y = Macroplot_Num, fill = MonitoringStatus_Name),
               data = Disturbances_graph) +
@@ -445,7 +358,11 @@ if(nrow(MetadataReport_Disturbances) == 0) {
     labs(title = "Disturbance History",
          y = "",
          x = "Year",
-         fill = "") +
+         fill = ""
+    ) +
+    scale_y_discrete(
+      limits = rev(sort(unique(Disturbances_graph$Macroplot_Num)))
+    ) + 
     scale_x_date(
       limits = c(date_min, date_max),
       date_breaks = "1 year",
@@ -458,7 +375,7 @@ if(nrow(MetadataReport_Disturbances) == 0) {
           axis.title = element_text(size = 12, face="bold"),
           axis.title.y = element_text(margin = unit(c(0,4,0,0), "mm")),
           axis.title.x = element_text(margin = unit(c(4,0,0,0), "mm")),
-          axis.text.y = element_blank(),
+          #axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
           axis.text.x = element_text(size = 8, angle = 90, vjust = 0.5, hjust=1),
           legend.position = "top")
@@ -610,7 +527,7 @@ FuelDepth_graph <- Fuels %>%
 ### Fine Fuels
 
 ```{r}
-if(target_type == "Forest") {
+if(target_type == "Forest" & !(is.na(target_FineFuelLoading))) {
   kable(Objectives_Forest %>% 
           filter(Num == 1) %>% 
           select(Objective)
@@ -654,10 +571,17 @@ if(nrow(FuelLoad_graph) == 0) {
   ggplot(aes(x = SampleEvent_Date_Year, y = FuelLoad, color = FuelClass)) +
   geom_line(position = "stack") +
   geom_point(position = "stack") +
-  # ggplot() +
-  # geom_bar(aes(x = SampleEvent_Date_Year, y = FuelLoad, fill = FuelClass),
-  #          position = "stack", stat = "identity") + 
-  #facet_wrap(~ Macroplot_UV1, ncol = 1) +
+  geom_text(
+    data = FuelLoad_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
     x = "Year",
@@ -684,8 +608,9 @@ if(nrow(FuelLoad_graph) == 0) {
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     ) +
   geom_hline(
@@ -701,6 +626,7 @@ p_data
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -744,7 +670,7 @@ download_this(p, icon = NULL,
 ### Duff Depth
 
 ```{r}
-if(target_type == "Forest") {
+if(target_type == "Forest" & !(is.na(target_Duff))) {
   kable(Objectives_Forest %>% 
           filter(Num == 2) %>% 
           select(Objective)
@@ -773,6 +699,17 @@ p_data <- FuelDepth_graph %>%
   ggplot() +
   geom_bar(aes(x = SampleEvent_Date_Year, y = FuelDepth, fill = FuelClass),
            position = "stack", stat = "identity") + 
+  geom_text(
+    data = FuelDepth_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -799,8 +736,9 @@ p_data <- FuelDepth_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     ) +
   geom_hline(
@@ -817,6 +755,7 @@ p_data <- FuelDepth_graph %>%
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -888,6 +827,17 @@ p_data <- FuelLoad_graph %>%
   ggplot() +
   geom_bar(aes(x = SampleEvent_Date_Year, y = FuelLoad, fill = FuelClass),
            position = "stack", stat = "identity") + 
+  geom_text(
+    data = FuelLoad_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -913,8 +863,9 @@ p_data <- FuelLoad_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     )
 }
@@ -925,6 +876,7 @@ p_data <- FuelLoad_graph %>%
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -1077,6 +1029,17 @@ p_data <- Trees_graph %>%
       fill = Species_Genus
       ),
     position = "stack", stat = "identity") +
+  geom_text(
+    data = Trees_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -1104,8 +1067,9 @@ p_data <- Trees_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     )
 }
@@ -1116,6 +1080,7 @@ p_data
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -1159,7 +1124,7 @@ download_this(p, icon = NULL,
 ### Saplings
 
 ```{r}
-if(target_type == "Forest") {
+if(target_type == "Forest" & !(is.na(target_Sapling))) {
   kable(Objectives_Forest %>% 
           filter(Num == 3) %>% 
           select(Objective)
@@ -1220,6 +1185,17 @@ p_data <- Trees_graph %>%
     position = "stack", stat = "identity"
     #,position = position_dodge2(preserve = "single"), stat = "identity"
     ) +
+  geom_text(
+    data = Trees_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -1247,8 +1223,9 @@ p_data <- Trees_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     ) +
   geom_hline(
@@ -1258,13 +1235,13 @@ p_data <- Trees_graph %>%
     )
 }
 
-
 p_data
 ```
 
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -1361,6 +1338,17 @@ p_data <- Trees_graph %>%
   ) +
   geom_line() +
   geom_point() +
+  geom_text(
+    data = Trees_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -1389,8 +1377,9 @@ p_data <- Trees_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     )
 }
@@ -1401,6 +1390,7 @@ p_data <- Trees_graph %>%
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -1488,6 +1478,17 @@ p_data <- Trees_graph %>%
   ) +
   geom_line() +
   geom_point() +
+  geom_text(
+    data = Trees_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -1516,8 +1517,9 @@ p_data <- Trees_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     )
 }
@@ -1528,6 +1530,7 @@ p_data <- Trees_graph %>%
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -1606,6 +1609,17 @@ p_data <- Trees_graph %>%
       fill = MethodData_Status
       ),
     position = "stack", stat = "identity") +
+  geom_text(
+    data = Trees_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -1632,8 +1646,9 @@ p_data <- Trees_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     )
 }
@@ -1644,6 +1659,7 @@ p_data <- Trees_graph %>%
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -1687,7 +1703,7 @@ download_this(p, icon = NULL,
 ### Overstory - Gingrich Stocking Graph
 
 ```{r}
-if(target_type == "Forest") {
+if(target_type == "Forest" & !(is.na(target_OverstoryLow))) {
   kable(Objectives_Forest %>% 
           filter(Num == 5) %>% 
           select(Objective)
@@ -1723,17 +1739,22 @@ p_data <- Trees_graph %>%
     Total_BA_m2 = sum(BA_m2)
     ) %>% 
   filter(
-    Total_Density_ac != 0,
-    SampleEvent_Date_Year %in% max(Trees_graph$SampleEvent_Date_Year)
-    )
+    Total_Density_ac != 0) %>% 
+  group_by(
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type,
+    Macroplot_UV1, Macroplot_UV2
+  ) %>%
+  filter(
+    SampleEvent_Date_Year == max(SampleEvent_Date_Year)
+  )
 
 plot.gingrich.imperial(
   tpa = p_data$Total_Density_ac,
   ba = p_data$Total_BA_ft2,
-  label = p_data$SampleEvent_Date_Year,
+  label = p_data$Macroplot_UV1,
   color = TRUE,
   type = "p",
-  main = paste(target_park, target_ProjectUnit, "\nOverstory Stand Structure")
+  main = paste(target_park, "\nOverstory Stand Structure")
 )
 }
 ```
@@ -1802,6 +1823,17 @@ p_data <- Trees_graph %>%
       fill = SizeClass
       ),
     position = "stack", stat = "identity") +
+  geom_text(
+    data = Trees_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -1827,8 +1859,9 @@ p_data <- Trees_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     )
 }
@@ -1839,6 +1872,7 @@ p_data <- Trees_graph %>%
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -1933,12 +1967,14 @@ Cover_graph <- Cover %>%
 ### Native Grasses and Forbs
 
 ```{r}
-if(target_type == "Forest") {
+if(target_type == "Forest" & !(is.na(target_Native))) {
   kable(Objectives_Forest %>% 
           filter(Num == 6) %>% 
           select(Objective)
         )
-} else {
+}
+
+if(target_type == "Grassland" & !(is.na(target_Native))) {
   kable(Objectives_Grassland %>% 
           filter(Num == 3) %>% 
           select(Objective))
@@ -1983,6 +2019,17 @@ p_data <- Cover_graph %>%
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
   geom_line() +
   geom_point() +
+  geom_text(
+    data = Cover_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -2008,8 +2055,9 @@ p_data <- Cover_graph %>%
     panel.grid.minor = element_blank()
     )  +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     ) +
   geom_hline(
@@ -2025,6 +2073,7 @@ p_data
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -2066,16 +2115,6 @@ download_this(p, icon = NULL,
 \newpage
 
 ### Cover Lifeform
-
-```{r}
-if(target_type == "Forest") {
-  print("No objective defined")
-} else {
-  kable(Objectives_Grassland %>% 
-          filter(Num == 1) %>% 
-          select(Objective))
-}
-```
 
 ```{r, include=FALSE}
 if(nrow(Cover_graph) == 0) {
@@ -2122,6 +2161,17 @@ p_data <- Cover_graph %>%
     position = "stack", stat = "identity"
     #position = position_dodge2(preserve = "single"), stat = "identity"
   ) +
+  geom_text(
+    data = Cover_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -2156,8 +2206,9 @@ p_data <- Cover_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     )
 }
@@ -2168,6 +2219,7 @@ p_data
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -2211,23 +2263,11 @@ download_this(p, icon = NULL,
 ### Cover Nonnative Invasive
 
 ```{r}
-if(target_type == "Forest") {
-  print("No objective defined")
-} else {
+if(target_type == "Grassland" & !(is.na(target_Invasive))) {
   kable(Objectives_Grassland %>% 
           filter(Num == 2) %>% 
           select(Objective))
 }
-```
-
-```{r}
-Objectives_Grassland <- data.frame(
-  "Num" = c(1,2,3),
-  "Objective" = c(
-    paste0("1. Reduce woody cover to < ", target_Woody, "%"),
-    paste0("2. Reduce non-native invasive grass and forb cover to <", target_Invasive, "%"),
-    paste0("3. Increase native grass and forb cover to > ", target_Native, "%")
-  ))
 ```
 
 ```{r, include=FALSE}
@@ -2268,6 +2308,17 @@ p_data <- Cover_graph %>%
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
   geom_line() +
   geom_point() +
+  geom_text(
+    data = Cover_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -2293,8 +2344,9 @@ p_data <- Cover_graph %>%
     panel.grid.minor = element_blank()
     )  +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     ) +
   geom_hline(
@@ -2310,6 +2362,7 @@ p_data
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -2353,9 +2406,7 @@ download_this(p, icon = NULL,
 ### Cover Woody
 
 ```{r}
-if(target_type == "Forest") {
-  print("No objective defined")
-} else {
+if(target_type == "Grassland" & !(is.na(target_Woody))) {
   kable(Objectives_Grassland %>% 
           filter(Num == 1) %>% 
           select(Objective))
@@ -2400,6 +2451,17 @@ p_data <- Cover_graph %>%
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
   geom_line() +
   geom_point() +
+  geom_text(
+    data = Cover_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -2425,8 +2487,9 @@ p_data <- Cover_graph %>%
     panel.grid.minor = element_blank()
     )  +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     ) +
   geom_hline(
@@ -2442,6 +2505,7 @@ p_data
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -2531,6 +2595,17 @@ p_data <- Cover_graph %>%
     #position = "stack", stat = "identity"
     position = position_dodge2(preserve = "single"), stat = "identity"
   ) +
+  geom_text(
+    data = Cover_graph %>%
+      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
+      summarize(n_plots = max(n_plots), .groups = "drop"),
+    aes(
+      x = SampleEvent_Date_Year,
+      y = 0,
+      label = n_plots
+      ),
+    vjust = 0.3, size = 3, color = "grey40"
+  ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
@@ -2557,8 +2632,9 @@ p_data <- Cover_graph %>%
     panel.grid.minor = element_blank()
     ) +
   geom_vline(
-    xintercept = (MetadataReport_Disturbances$Disturbance_Date_Year) - 0.5, 
-    linetype = "dashed", 
+    data = MetadataReport_Disturbances,
+    aes(xintercept = Disturbance_Date_Year - 0.5),
+    linetype = "dashed",
     color = "red"
     )
 }
@@ -2569,6 +2645,7 @@ p_data <- Cover_graph %>%
 ```{r}
 p_disturbance_merge <- p_disturbance +
   theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
         axis.title.x = element_blank(),
         axis.ticks.x = element_blank(),
         legend.position = "right",
@@ -2619,26 +2696,35 @@ download_this(p, icon = NULL,
 
 ```{r}
 Species_trees_table <- Species_trees %>% 
-  select(!Genus) %>% 
+  select(!c(Genus, Strategy)) %>% 
   kbl() %>% 
   kable_styling("striped", full_width = FALSE)
 
 # Apply colors only where needed
 Species_trees_table %>%
-  row_spec(which(Species_trees$`Fire Adaptedness` == "fire adapted" & Species_trees$`Strategy` == "Pyrophyte"), 
+  row_spec(which(Species_trees$`Fire Adaptedness` == "fire adapted"), 
            background = "coral2") %>% 
-  row_spec(which(Species_trees$`Fire Adaptedness` == "fire adapted" & is.na(Species_trees$`Strategy`)), 
-           background = "lightsalmon1") %>% 
-  row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & Species_trees$`Strategy` == "Pyrophyte"), 
-           background = "lightsalmon1") %>% 
-  row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & Species_trees$`Strategy` == "Intermediate"), 
+  row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant"), 
            background = "bisque") %>% 
-  row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & is.na(Species_trees$`Strategy`)), 
-           background = "bisque") %>% 
-  row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & Species_trees$`Strategy` == "Mesophyte"), 
-           background = "lightskyblue1") %>% 
-  row_spec(which(Species_trees$`Fire Adaptedness` == "fire intolerant" & Species_trees$`Strategy` == "Mesophyte"), 
+  row_spec(which(Species_trees$`Fire Adaptedness` == "fire intolerant"), 
            background = "skyblue3")
+
+# # Apply colors only where needed
+# Species_trees_table %>%
+#   row_spec(which(Species_trees$`Fire Adaptedness` == "fire adapted" & Species_trees$`Strategy` == "Pyrophyte"), 
+#            background = "coral2") %>% 
+#   row_spec(which(Species_trees$`Fire Adaptedness` == "fire adapted" & is.na(Species_trees$`Strategy`)), 
+#            background = "lightsalmon1") %>% 
+#   row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & Species_trees$`Strategy` == "Pyrophyte"), 
+#            background = "lightsalmon1") %>% 
+#   row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & Species_trees$`Strategy` == "Intermediate"), 
+#            background = "bisque") %>% 
+#   row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & is.na(Species_trees$`Strategy`)), 
+#            background = "bisque") %>% 
+#   row_spec(which(Species_trees$`Fire Adaptedness` == "fire tolerant" & Species_trees$`Strategy` == "Mesophyte"), 
+#            background = "lightskyblue1") %>% 
+#   row_spec(which(Species_trees$`Fire Adaptedness` == "fire intolerant" & Species_trees$`Strategy` == "Mesophyte"), 
+#            background = "skyblue3")
 ```
 
 \newpage
