@@ -2223,8 +2223,7 @@ data <- Trees_data %>%
   mutate(Post = ifelse((grepl("Post|Severity", Trees_data$MonitoringStatus_Name) == TRUE), TRUE, FALSE)) %>%
   filter(Post == TRUE,
          !MethodData_CrwnCl %in% c("DD", "BBD", "CUS"),
-         MethodData_Status == "D",
-         MethodData_ScorchHt_m != MethodData_Ht_m)
+         MethodData_Status == "D")
 data$MethodData_ScorchHt_m[is.na(data$MethodData_ScorchHt_m)] <- ""
 query <- "Trees Post Scorch"
 query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status = D. Standing tree. Scorch Height")
