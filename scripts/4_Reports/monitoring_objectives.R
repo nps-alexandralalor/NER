@@ -70,14 +70,15 @@ target_OverstoryHigh <-
                                      ifelse(target_MonitoringType %in% "Gray Birch", 75,
                                             ifelse(target_MonitoringType %in% "Modified Disturbed", 75, NA)))))))
 
-target_Cover <- 
+target_Native <- 
   ifelse(target_MonitoringType %in% "Pine Oak", 50,
          ifelse(target_MonitoringType %in% "Xeric Oak", 50,
                 ifelse(target_MonitoringType %in% "Mesic Oak", 50,
                        ifelse(target_MonitoringType %in% "Oak Hickory", 50,
                               ifelse(target_MonitoringType %in% "Mixed Oak", 50,
                                      ifelse(target_MonitoringType %in% "Gray Birch", 50,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 50, NA)))))))
+                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 50, 
+                                                   ifelse(target_type == "Grassland", 75, NA))))))))
 
 
 ### Grasslands 
@@ -88,8 +89,8 @@ target_Woody <-
 target_Invasive <- 
   ifelse(target_type %in% "Grassland", 25, NA)
 
-target_Native <- 
-  ifelse(target_type %in% "Grassland", 75, NA)
+# target_Native <- 
+#   ifelse(target_type %in% "Grassland", 75, NA)
 
 
 ################################################################################
@@ -97,21 +98,21 @@ target_Native <-
 ################################################################################
 
 
-Objectives_Forest <- data.frame(
-  "Num" = c(1,2,3,4,5,6),
-  "Objective" = c(
-    paste0("1. Maintain fine fuel loading (litter, 1-100hr fuels) at < ", target_FineFuelLoading, " tons/acre"),
-    paste0("2. Maintain duff depth to ≤ ", target_Duff, " inches"),
-    paste0("3. Increase sapling density to ≥ ", target_Sapling, " stems/acre"),
-    "4. Reduce pole-sized tree density of mesic fire-intolerant species relative to xeric fire-adapted species",
-    paste0("5. Maintain a stocking density of overstory trees between ", target_OverstoryLow, "-", target_OverstoryHigh, "%"),
-    paste0("6. Maintain or increase native grass and forb cover to ≥ ", target_Cover, "%")
-  ))
-
-Objectives_Grassland <- data.frame(
-  "Num" = c(1,2,3),
-  "Objective" = c(
-    paste0("1. Reduce woody cover to < ", target_Woody, "%"),
-    paste0("2. Reduce non-native invasive grass and forb cover to <", target_Invasive, "%"),
-    paste0("3. Increase native grass and forb cover to > ", target_Native, "%")
-  ))
+# Objectives_Forest <- data.frame(
+#   "Num" = c(1,2,3,4,5,6),
+#   "Objective" = c(
+#     paste0("1. Maintain fine fuel loading (litter, 1-100hr fuels) at < ", target_FineFuelLoading, " tons/acre"),
+#     paste0("2. Maintain duff depth to ≤ ", target_Duff, " inches"),
+#     paste0("3. Increase sapling density to ≥ ", target_Sapling, " stems/acre"),
+#     paste0("4. Reduce pole-sized tree density of mesic fire-intolerant species relative to xeric fire-adapted species"),
+#     paste0("5. Maintain a stocking density of overstory trees between ", target_OverstoryLow, "-", target_OverstoryHigh, "%"),
+#     paste0("6. Maintain or increase native grass and forb cover to ≥ ", target_Native, "%")
+#   ))
+# 
+# Objectives_Grassland <- data.frame(
+#   "Num" = c(1,2,3),
+#   "Objective" = c(
+#     paste0("1. Reduce woody cover to < ", target_Woody, "%"),
+#     paste0("2. Reduce non-native invasive grass and forb cover to <", target_Invasive, "%"),
+#     paste0("3. Increase native grass and forb cover to > ", target_Native, "%")
+#   ))
