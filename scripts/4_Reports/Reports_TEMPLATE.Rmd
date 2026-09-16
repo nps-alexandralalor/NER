@@ -58,18 +58,18 @@ library(leaflet)
 ### References {.hidden}
 
 ```{r references, include=FALSE}
-ZoteroUserID <- "3306456"
-ZoteroAPIkey <- "F7k8Rp07XhH9rIqiKP1ob0uB"
-ZoteroFolderKey <- "DGJVBG7G"
-
-bib <- ReadZotero(
-  user = ZoteroUserID,
-  .params = list(
-    collection = ZoteroFolderKey,
-    key = ZoteroAPIkey,
-    limit = 100),
-  temp.file = "zotero_refs.bib",
-  delete.file = FALSE)
+# ZoteroUserID <- "3306456"
+# ZoteroAPIkey <- "F7k8Rp07XhH9rIqiKP1ob0uB"
+# ZoteroFolderKey <- "DGJVBG7G"
+# 
+# bib <- ReadZotero(
+#   user = ZoteroUserID,
+#   .params = list(
+#     collection = ZoteroFolderKey,
+#     key = ZoteroAPIkey,
+#     limit = 100),
+#   temp.file = "zotero_refs.bib",
+#   delete.file = FALSE)
 ```
 
 ### Adjust File Paths {.hidden}
@@ -99,8 +99,8 @@ Cover <- read.csv(paste0(path_data, "cover.csv"))
 ### Target Values {.hidden}
 
 ```{r}
-target_park <- c("SHEN")
-target_type <- c("Forest")
+target_park <- c("RICH")
+target_type <- c("Grassland")
 target_purpose <- c("Fire Monitoring Handbook")
 
     
@@ -117,8 +117,8 @@ target_purpose <- c("Fire Monitoring Handbook")
 ```
 
 ```{r, include=FALSE}
-target_ProjectUnit <- c("Jarman Gap", "Blackrock", "Riprap")
-target_MonitoringType <- c("Xeric Oak")
+target_ProjectUnit <- c("Malvern Hill")
+target_MonitoringType <- c("Warm Season")
 
 
     MetadataReport_SampleEvents <- MetadataReport %>%
@@ -1959,7 +1959,8 @@ Cover_graph <- Cover %>%
         "Nonvascular", 
         "Lichenous", 
         "Substrate"
-      )))
+      ))) %>% 
+  filter(Species_Nativity == "Native")
 ```
 
 \newpage
@@ -2005,15 +2006,28 @@ p_data <- Cover_graph %>%
     ) %>% 
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
+    # ,Species_LifeFormNameLocal
+    # ,Species_Genus
+    # ,Species_ScientificName
+    # ,Species_Nativity
+    ) %>% 
+  dplyr::summarise(
+    Status_Cover = sum(PctCover),
+    .groups = "drop"
+    ) %>%
+  group_by(
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     # ,Species_LifeFormNameLocal
     # ,Species_Genus
     # ,Species_ScientificName
     # ,Species_Nativity
     ) %>% 
-  mutate(
-    Total_Cover = sum(PctCover)
-    ) %>%  
+  dplyr::summarise(
+    Total_Cover = round(mean(Status_Cover), 1),
+    .groups = "drop"
+    ) %>% 
 
   
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
@@ -2139,6 +2153,18 @@ p_data <- Cover_graph %>%
     ) %>% 
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
+    ,Species_LifeFormNameLocal
+    # ,Species_Genus
+    # ,Species_ScientificName
+    # ,Species_Nativity
+    ) %>% 
+  dplyr::summarise(
+    Status_Cover = sum(PctCover),
+    .groups = "drop"
+    ) %>%
+  group_by(
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     ,Species_LifeFormNameLocal
     # ,Species_Genus
@@ -2146,9 +2172,9 @@ p_data <- Cover_graph %>%
     # ,Species_Nativity
     ) %>% 
   dplyr::summarise(
-    Total_Cover = sum(PctCover, na.rm = TRUE),
+    Total_Cover = round(mean(Status_Cover), 1),
     .groups = "drop"
-    ) %>%  
+    ) %>% 
 
   ggplot() +
   geom_col(
@@ -2185,15 +2211,6 @@ p_data <- Cover_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
     ) +
-  # scale_fill_manual(values = c("Graminoid" = "green",
-  #                               "Grass-like" = "green",
-  #                               "Forb/herb" = "blue",
-  #                               "Fern" = "blue",
-  #                               "Vine" = "blue",
-  #                               "Shrub" = "orange",
-  #                               "Subshrub" = "orange",
-  #                               "Tree" = "red",
-  #                               "Substrate" = "brown")) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -2294,15 +2311,28 @@ p_data <- Cover_graph %>%
     ) %>% 
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
+    # ,Species_LifeFormNameLocal
+    # ,Species_Genus
+    # ,Species_ScientificName
+    # ,Species_Nativity
+    ) %>% 
+  dplyr::summarise(
+    Status_Cover = sum(PctCover),
+    .groups = "drop"
+    ) %>%
+  group_by(
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     # ,Species_LifeFormNameLocal
     # ,Species_Genus
     # ,Species_ScientificName
     # ,Species_Nativity
     ) %>% 
-  mutate(
-    Total_Cover = sum(PctCover)
-    ) %>%  
+  dplyr::summarise(
+    Total_Cover = round(mean(Status_Cover), 1),
+    .groups = "drop"
+    ) %>% 
 
   
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
@@ -2437,15 +2467,28 @@ p_data <- Cover_graph %>%
     ) %>% 
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
+    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
+    # ,Species_LifeFormNameLocal
+    # ,Species_Genus
+    # ,Species_ScientificName
+    # ,Species_Nativity
+    ) %>% 
+  dplyr::summarise(
+    Status_Cover = sum(PctCover),
+    .groups = "drop"
+    ) %>%
+  group_by(
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     # ,Species_LifeFormNameLocal
     # ,Species_Genus
     # ,Species_ScientificName
     # ,Species_Nativity
     ) %>% 
-  mutate(
-    Total_Cover = sum(PctCover)
-    ) %>%  
+  dplyr::summarise(
+    Total_Cover = round(mean(Status_Cover), 1),
+    .groups = "drop"
+    ) %>% 
 
   
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
