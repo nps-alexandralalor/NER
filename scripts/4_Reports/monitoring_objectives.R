@@ -11,11 +11,9 @@
 
 #install packages
 #install.packages("tidyverse")
-#install.packages("here")
 
 #load packages
 library(tidyverse)
-library(here)
 
 
 ################################################################################
@@ -26,59 +24,83 @@ library(here)
 #c("Oak Hickory", "Pine Oak", "Mixed Oak", "Gray Birch", "Modified Disturbed", "Xeric Oak", "Mesic Oak")
 
 target_FineFuelLoading <- 
-  ifelse(target_MonitoringType %in% "Pine Oak", 2.4,
+  ifelse(target_MonitoringType %in% "Pine Oak", 1.4,
          ifelse(target_MonitoringType %in% "Xeric Oak", 2.4,
                 ifelse(target_MonitoringType %in% "Mesic Oak", 2.4,
                        ifelse(target_MonitoringType %in% "Oak Hickory", 2.4,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 2.4,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 2.4,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 2.4, NA)))))))
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 2.4, NA)))))
 
 target_Duff <- 
-  ifelse(target_MonitoringType %in% "Pine Oak", 1.5,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 1.5,
+  ifelse(target_MonitoringType %in% "Pine Oak", 1.0,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 1.0,
                 ifelse(target_MonitoringType %in% "Mesic Oak", 1.5,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 1.5,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 1.5,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 1.5,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 1.5, NA)))))))
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 1.0,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 1.0, NA)))))
 
 target_Sapling <- 
   ifelse(target_MonitoringType %in% "Pine Oak", 1000,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 1000,
-                ifelse(target_MonitoringType %in% "Mesic Oak", 1000,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 1000,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 1000,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 1000,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 1000, NA)))))))
+         ifelse(target_MonitoringType %in% "Xeric Oak", 1500,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 2000,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 1500,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 1500, NA)))))
 
-target_OverstoryLow <- 
-  ifelse(target_MonitoringType %in% "Pine Oak", 30,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 50,
+target_PoleXericDens <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 100,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 100,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 100,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 100,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 100, NA)))))
+
+target_PoleMesicDens <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 100,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 100,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 200,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 100,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 75, NA)))))
+
+target_OverstoryXericRatio <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 80,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 80,
                 ifelse(target_MonitoringType %in% "Mesic Oak", 30,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 30,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 30,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 30,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 30, NA)))))))
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 80,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 80, NA)))))
 
-target_OverstoryHigh <- 
-  ifelse(target_MonitoringType %in% "Pine Oak", 75,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 60,
-                ifelse(target_MonitoringType %in% "Mesic Oak", 75,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 75,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 75,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 75,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 75, NA)))))))
+target_OverstoryMesicRatio <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 20,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 20,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 70,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 20,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 20, NA)))))
+
+target_StockingLow <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 30,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 40,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 50,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 40,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 40, NA)))))
+
+target_StockingHigh <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 70,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 70,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 80,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 70,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 70, NA)))))
+
+target_Shrub <- 
+  ifelse(target_MonitoringType %in% "Pine Oak", 30,
+         ifelse(target_MonitoringType %in% "Xeric Oak", 20,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 30,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 20,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 10, 
+                                     ifelse(target_type == "Grassland", 75, NA))))))
 
 target_Native <- 
   ifelse(target_MonitoringType %in% "Pine Oak", 50,
-         ifelse(target_MonitoringType %in% "Xeric Oak", 50,
-                ifelse(target_MonitoringType %in% "Mesic Oak", 50,
-                       ifelse(target_MonitoringType %in% "Oak Hickory", 50,
-                              ifelse(target_MonitoringType %in% "Mixed Oak", 50,
-                                     ifelse(target_MonitoringType %in% "Gray Birch", 50,
-                                            ifelse(target_MonitoringType %in% "Modified Disturbed", 50, 
-                                                   ifelse(target_type == "Grassland", 75, NA))))))))
+         ifelse(target_MonitoringType %in% "Xeric Oak", 40,
+                ifelse(target_MonitoringType %in% "Mesic Oak", 25,
+                       ifelse(target_MonitoringType %in% "Oak Hickory", 40,
+                              ifelse(target_MonitoringType %in% "Mixed Oak", 40, 
+                                                   ifelse(target_type == "Grassland", 75, NA))))))
 
 
 ### Grasslands 
