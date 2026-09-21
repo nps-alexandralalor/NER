@@ -1,0 +1,257 @@
+---
+title: Clean and Merge Data Depot Data
+author: NPS Northeast Region Fire Effects Monitoring Program
+output:
+  html_document:
+    theme: readable
+    highlight: null
+    toc: true
+    toc_depth: 2
+    toc_float:
+      smooth_scroll: true
+    code_download: true
+---
+
+# Purpose
+
+This code is intended to combine data depot exports from multiple parks into a single file.
+
+## Before Starting {.hidden}
+
+### Setup {.hidden}
+
+```{r setup, include=FALSE}
+## Markdown Options
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE, message = FALSE)
+
+# install.packages("tidyverse")
+```
+
+```{r load packages, include=FALSE}
+library(tidyverse)
+library(stringr)
+```
+
+### Target Park
+
+```{r target values, include=FALSE}
+parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
+```
+
+### Adjust File Paths {.hidden}
+
+```{r file paths, include=FALSE}
+path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
+#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_main_data <- paste0(path_main, "Exports/DataDepot/")
+path_main_save <- paste0(path_main, "Exports_Clean/DataDepot/")
+```
+
+# Metadata
+
+```{r}
+path_temp <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/Exports_Clean/FFI/"
+#path_temp <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/Exports_Clean/FFI/"
+# load data
+temp_df <- read.csv(paste0(path_temp, "all_metadata.csv"))
+
+# convert data
+final_df <- temp_df
+  
+# save file
+write.csv(final_df, paste0(path_main_save, "all_metadata.csv"))
+```
+
+```{r metadata, warning=FALSE}
+protocols <- c("project_units", "species_info")
+
+for (p in protocols) {
+  
+# reset for each protocol
+final_df <- NULL
+
+  for(i in parks) {
+    # select target park
+    target_park <- i
+    
+    
+    # adjust file paths
+    path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+    path_save <- paste0(path_main_save, "all_")
+    
+    
+    # load data
+    temp_df <- read.csv(paste0(path_data, "ffi_", target_park, "_data_export_", p, ".csv"), na.strings = c("","NA","N/A"))
+    
+    
+    # clean data
+    temp_df <- temp_df %>%
+      # remove trailing/leading whitespace
+      mutate(across(where(is.character), str_trim)) %>% 
+      # remove line breaks
+      mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
+      # add column
+      add_column(AdminUnit_Name = target_park, .before = 1)
+    ## replace commas with semicolons
+    temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+    ## replace double quotes with single quotes
+    temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
+    
+    
+    # add data to master list
+    final_df <- rbind(final_df, temp_df)
+  }
+
+#save file
+write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
+
+}
+```
+
+# Protocols
+
+```{r protocols, warning=FALSE}
+protocols <- c(
+  "cbi_big_trees", "cbi_herbs", "cbi_info", "cbi_intermediate_trees", "cbi_substrates", "cbi_summation", "cbi_tall_shrubs",
+  
+  "cover_frequency", "cover_line_intercept", "cover_points", "cover_points_by_transect", "cover_species_composition", 
+  
+  "density_belts", "density_quadrats",
+  
+  "ars_cover_points", "biomass_fuels", "canopy_densiometer", "disturbance_history", "fire_behavior", "fuel_characteristic_classification_system", "plot_description", "photoload", "photos", 
+  "biomass_plants", "logs_fixed_area", "pilot_sampling", "rare_plants",
+  
+  "post_burn_severity",
+  
+  "surface_fuels_alaska_duff_litter", "surface_fuels_duff_litter", "surface_fuels_fine", "surface_fuels_thousand_hr", "surface_fuels_piles", "surface_fuels_vegetation",
+  
+  "trees_individuals", "trees_saplings", "trees_seedlings", "trees_variable_radius"
+  )
+
+#############
+## METRIC  ##
+#############
+
+for (p in protocols) {
+  
+# reset for each protocol
+final_df <- NULL
+
+  for(i in parks) {
+    # select target park
+    target_park <- i
+    
+    # adjust file paths
+    path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+    path_save <- paste0(path_main_save, "metric_")
+    
+    
+    # load data
+    temp_df <- read.csv(paste0(path_data, "ffi_", target_park, "_data_export_", p, ".csv"), na.strings = c("","NA","N/A"))
+    
+    
+    # clean data
+    temp_df <- temp_df %>%
+      # remove trailing/leading whitespace
+      mutate(across(where(is.character), str_trim)) %>% 
+      # remove line breaks
+      mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
+    ## replace commas with semicolons
+    temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+    ## replace double quotes with single quotes
+    temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
+  
+    
+    # add data to master list
+    final_df <- rbind(final_df, temp_df)
+  }
+
+# final column renaming to match protocol exports
+final_df <- final_df %>%
+  # relocate columns
+    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>%
+    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>%
+    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>%
+  # rename columns
+  dplyr::rename(
+    Macroplot_Lat_dd = Macroplot_DdLat,
+    Macroplot_Long_dd = Macroplot_DdLong,
+    Macroplot_UtmX_m = Macroplot_UtmX..m.,
+    Macroplot_UtmY_m = Macroplot_UtmY..m.,
+    Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+    Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....
+  )
+
+names(final_df) <- sub("\\..*", "", names(final_df))
+
+# save file
+if (nrow(final_df) > 0) {
+  write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
+}
+
+}
+
+##############
+## ENGLISH  ##
+##############
+
+for (p in protocols) {
+  
+# reset for each protocol
+final_df <- NULL
+
+  for(i in parks) {
+    # select target park
+    target_park <- i
+    
+    
+    # adjust file paths
+    path_data <- paste0(path_main_data, target_park, "/English_ffi_", target_park, "_data_export/")
+    path_save <- paste0(path_main_save, "english_")
+    
+    
+    # load data
+    temp_df <- read.csv(paste0(path_data, "ffi_", target_park, "_data_export_", p, ".csv"), na.strings = c("","NA","N/A"))
+    
+    
+    # clean data
+    temp_df <- temp_df %>%
+      # remove trailing/leading whitespace
+      mutate(across(where(is.character), str_trim)) %>% 
+      # remove line breaks
+      mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
+    ## replace commas with semicolons
+    temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+    ## replace double quotes with single quotes
+    temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
+  
+    
+    # add data to master list
+    final_df <- rbind(final_df, temp_df)
+  }
+
+# final column renaming to match protocol exports
+final_df <- final_df %>%
+  # relocate columns
+    relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>%
+    relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>%
+    relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>%
+  # rename columns
+  dplyr::rename(
+    Macroplot_Lat_dd = Macroplot_DdLat,
+    Macroplot_Long_dd = Macroplot_DdLong,
+    Macroplot_UtmX_m = Macroplot_UtmX..m.,
+    Macroplot_UtmY_m = Macroplot_UtmY..m.,
+    Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+    Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....
+  )
+
+names(final_df) <- sub("\\..*", "", names(final_df))
+
+# save file
+if (nrow(final_df) > 0) {
+  write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
+}
+
+}
+```
