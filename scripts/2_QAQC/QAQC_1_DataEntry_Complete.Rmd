@@ -14,46 +14,46 @@ output:
 
 This code is intended to quality check all FFI CSV exports for missing data. Missing data is especially difficult to catch because it relies on information on how much data there is "supposed to be" vs how much data actually was exported. There is added complexity because certain protocols may not contain data for valid reasons (e.g. no trees, no coarse woody debris, no seedlings, no shrubs, etc...). Each error should be carefully checked and considered as a potential major error. Sample events with errors are [entirely absent]{.underline} from FFI CSV exports. Follow the guide below to determine what action is needed.
 
--   [Procedure:]{.underline}
+- [Procedure:]{.underline}
 
-    -   Code will check that data exists for every protocol which was visited/included in the sample event.
-        -   Group by Macroplot_Name and SampleEvent_Date. Calculate number of data points per plot. Check that data_points \> 0
-    -   **No data (valid):**
-        -   Certain protocols may not contain data for valid reasons (e.g. no trees, no coarse woody debris, no seedlings, no shrubs, etc...). [Make sure this is noted in the comment field of the protocol header in FFI]{.underline}.
+  - Code will check that data exists for every protocol which was visited/included in the sample event.
+    - Group by Macroplot_Name and SampleEvent_Date. Calculate number of data points per plot. Check that data_points \> 0
+  - **No data (valid):**
+    - Certain protocols may not contain data for valid reasons (e.g. no trees, no coarse woody debris, no seedlings, no shrubs, etc...). [Make sure this is noted in the comment field of the protocol header in FFI]{.underline}.
 
-        -   Protocols may have been inadvertently added to the sample event with no intention to collect data on that protocol. [Make sure to delete protocol from the sample event in FFI.]{.underline}
-    -   **No data (invalid):**
-        -   If data should exist but doesn't, data may not have been entered into FFI yet. [Make sure to enter missing data into FFI.]{.underline}
+    - Protocols may have been inadvertently added to the sample event with no intention to collect data on that protocol. [Make sure to delete protocol from the sample event in FFI.]{.underline}
+  - **No data (invalid):**
+    - If data should exist but doesn't, data may not have been entered into FFI yet. [Make sure to enter missing data into FFI.]{.underline}
 
-        -   Data may have been added into a non-standard protocol (e.g. "Density - Quadrats" instead of "Density - Quadrats (metric)". [Make sure to transfer data into the correct protocol.]{.underline}
+    - Data may have been added into a non-standard protocol (e.g. "Density - Quadrats" instead of "Density - Quadrats (metric)". [Make sure to transfer data into the correct protocol.]{.underline}
 
-        -   There may be an issue exporting the data out of FFI. [Make sure to troubleshoot data exports, and contact FFI developers if the issue cannot be resolved.]{.underline}
+    - There may be an issue exporting the data out of FFI. [Make sure to troubleshoot data exports, and contact FFI developers if the issue cannot be resolved.]{.underline}
 
-            -   Possible reason: Seems like plots with no monitoring status will not be exported
+      - Possible reason: Seems like plots with no monitoring status will not be exported
 
 This code uses the Macroplot Report and Sample Event Report from FFI as the reference file for how much data there is "supposed to be". These reports have been combined into a clean "Metadata Report", using the Clean+Merge.Rmd script.
 
--   MetadataReport.csv
+- MetadataReport.csv
 
 These protocols are included in the code and have been cleaned using the Clean+Merge.Rmd script.
 
--   Cover - Points (metric)
+- Cover - Points (metric)
 
--   Cover - Species Composition (metric)
+- Cover - Species Composition (metric)
 
--   Density - Belts (metric)
+- Density - Belts (metric)
 
--   Density - Quadrats (metric)
+- Density - Quadrats (metric)
 
--   Post Burn Severity (metric)
+- Post Burn Severity (metric)
 
--   Surface Fuels - 1000Hr
+- Surface Fuels - 1000Hr
 
--   Surface Fuels - Duff_Litter
+- Surface Fuels - Duff_Litter
 
--   Surface Fuels - Fine
+- Surface Fuels - Fine
 
--   Trees - Individuals (metric)
+- Trees - Individuals (metric)
 
 **If you are using a protocol that is not listed above, you will need to add code to check this data. See the below table for protocols used by your program.**
 
@@ -120,7 +120,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Type", "Macroplot_N
 # designate target park(s)
 # write 4-letter code of your park (e.g. "SHEN")
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-target_park <- "SARA"
+target_park <- "SHEN"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -148,13 +148,14 @@ Seedlings_all <- read.csv(paste0(path_data, "metric_density_quadrats.csv"))
 Shrubs_all <- read.csv(paste0(path_data, "metric_density_belts.csv"))
 HerbsSpComp_all <- read.csv(paste0(path_data, "metric_cover_species_composition.csv"))
 HerbsPoints_all <- read.csv(paste0(path_data, "metric_cover_points.csv"))
+HerbsFreq_all <- read.csv(paste0(path_data, "metric_cover_frequency.csv"))
 ```
 
 ### Filter Data
 
 ```{r filter data, include=FALSE}
 # Clean up data frame
-df_names <- c("MetadataReport_all", "Fuels1000_all", "FuelsDuffLitt_all", "FuelsFine_all",  "PostBurn_all", "Trees_all", "Seedlings_all", "Shrubs_all", "HerbsSpComp_all", "HerbsPoints_all")
+df_names <- c("MetadataReport_all", "Fuels1000_all", "FuelsDuffLitt_all", "FuelsFine_all",  "PostBurn_all", "Trees_all", "Seedlings_all", "Shrubs_all", "HerbsSpComp_all", "HerbsPoints_all", "HerbsFreq_all")
 
 for (name in df_names) {
   # load data
@@ -162,6 +163,7 @@ for (name in df_names) {
   
   # filter data for target park
   filtered_df <- current_df %>% 
+    mutate(SampleEvent_Date = as.Date(SampleEvent_Date)) %>%
     filter(
       AdminUnit_Name == target_park
       )
@@ -190,13 +192,31 @@ kable(
 ### cover_frequency
 
 ```{r}
+# Filter NA values. Add number of data points and store in new column
+data_temp1 <- MetadataReport_data %>%
+  filter(grepl("Cover/Frequency", SampleEvent_Protocols)) %>% 
+  group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
+  dplyr::summarize()
 
-```
+data_temp2 <- HerbsFreq_data %>% 
+  group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
+  dplyr::summarise("data_points" = n())
 
-### cover_line_intercept
+data_temp <- merge(data_temp1, data_temp2, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = TRUE)
+data_temp$data_points[is.na(data_temp$data_points)] <- 0
+remove(data_temp1, data_temp2)
 
-```{r}
 
+# Set parameters 
+data <- merge(HerbsFreq_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
+query <- "Cvr Freq" 
+query_message <- paste0("If applicable, write 'no species found' in comments field in FFI. Species")
+values_data <- data$data_points
+values_valid <- 0
+values_check <- values_data > values_valid
+
+# Identify errors
+errors_HerbsFreq <- qaqc(data, query, query_message, values_check)
 ```
 
 ### cover_points
@@ -381,13 +401,40 @@ values_check <- values_data > values_valid
 errors_Seedlings <- qaqc(data, query, query_message, values_check)
 ```
 
-## Surface Fuels
+## Post Burn
 
-### surface_fuels_alaska_duff_litter
+### post_burn_severity
 
 ```{r}
+# Filter NA values. Add number of data points and store in new column
+data_temp1 <- MetadataReport_data %>%
+  filter(grepl("Post Burn Severity", SampleEvent_Protocols)) %>%
+  group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
+  dplyr::summarize()
 
+data_temp2 <- PostBurn_data %>% 
+  filter(!is.na(MethodData_Veg)) %>%
+  filter(!is.na(MethodData_Sub)) %>%
+  group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
+  dplyr::summarise("data_points" = n())
+
+data_temp <- merge(data_temp1, data_temp2, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = TRUE)
+data_temp$data_points[is.na(data_temp$data_points)] <- 0
+remove(data_temp1, data_temp2)
+
+# Set parameters 
+data <- merge(PostBurn_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
+query <- "PBSev" 
+query_message <- paste0("Complete Sample Locations")
+values_data <- data$data_points
+values_valid <- 0
+values_check <- values_data > values_valid
+
+# Identify errors
+errors_PostBurn <- qaqc(data, query, query_message, values_check)
 ```
+
+## Surface Fuels
 
 ### surface_fuels_duff_litter
 
@@ -399,8 +446,8 @@ data_temp1 <- MetadataReport_data %>%
   dplyr::summarize()
 
 data_temp2 <- FuelsDuffLitt_data %>%
-  filter(!is.na(MethodData_LittDep_in)) %>%
-  filter(!is.na(MethodData_DuffDep_in)) %>% 
+  filter(!is.na(MethodData_LittDep)) %>%
+  filter(!is.na(MethodData_DuffDep)) %>% 
   group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
   dplyr::summarise("data_points" = n())
 
@@ -447,12 +494,6 @@ values_check <- values_data > values_valid
 
 # Identify errors
 errors_FuelsFine <- qaqc(data, query, query_message, values_check)
-```
-
-### surface_fuels_piles
-
-```{r}
-
 ```
 
 ### surface_fuels_thousand_hr
@@ -515,51 +556,6 @@ values_check <- values_data > values_valid
 errors_Trees <- qaqc(data, query, query_message, values_check)
 ```
 
-### trees_saplings
-
-```{r}
-
-```
-
-### trees_seedlings
-
-```{r}
-
-```
-
-## Post Burn
-
-### post_burn_severity
-
-```{r}
-# Filter NA values. Add number of data points and store in new column
-data_temp1 <- MetadataReport_data %>%
-  filter(grepl("Post Burn Severity", SampleEvent_Protocols)) %>%
-  group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
-  dplyr::summarize()
-
-data_temp2 <- PostBurn_data %>% 
-  filter(!is.na(MethodData_Veg)) %>%
-  filter(!is.na(MethodData_Sub)) %>%
-  group_by(AdminUnit_Name, Macroplot_Type, Macroplot_Name, SampleEvent_Date) %>% 
-  dplyr::summarise("data_points" = n())
-
-data_temp <- merge(data_temp1, data_temp2, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = TRUE)
-data_temp$data_points[is.na(data_temp$data_points)] <- 0
-remove(data_temp1, data_temp2)
-
-# Set parameters 
-data <- merge(PostBurn_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Type", "Macroplot_Name","SampleEvent_Date"), all = T)
-query <- "PBSev" 
-query_message <- paste0("Complete Sample Locations")
-values_data <- data$data_points
-values_valid <- 0
-values_check <- values_data > values_valid
-
-# Identify errors
-errors_PostBurn <- qaqc(data, query, query_message, values_check)
-```
-
 # ALL ERRORS
 
 ```{r}
@@ -590,11 +586,14 @@ errors_blank_HerbsSpComp <- errors_blank %>%
 
 errors_blank_HerbsPoints <- errors_blank %>%
   mutate(SavedQuery = "PROTOCOL - HERBS POINTS")
+
+errors_blank_HerbsFreq <- errors_blank %>%
+  mutate(SavedQuery = "PROTOCOL - HERBS FREQUENCY")
 ```
 
 ```{r}
 # Save to master error list 
-errors_all <- rbind(errors_blank_Fuels1000, errors_blank, errors_Fuels1000, errors_blank, errors_blank_FuelsDuffLitt, errors_blank, errors_FuelsDuffLitt, errors_blank, errors_blank_FuelsFine, errors_blank, errors_FuelsFine, errors_blank, errors_blank_PostBurn, errors_blank, errors_PostBurn, errors_blank, errors_blank_Trees, errors_blank, errors_Trees, errors_blank, errors_blank_Seedlings, errors_blank, errors_Seedlings, errors_blank, errors_blank_Shrubs, errors_blank, errors_Shrubs, errors_blank, errors_blank_HerbsSpComp, errors_blank, errors_HerbsSpComp, errors_blank, errors_blank_HerbsPoints, errors_blank, errors_HerbsPoints)
+errors_all <- rbind(errors_blank_Fuels1000, errors_blank, errors_Fuels1000, errors_blank, errors_blank_FuelsDuffLitt, errors_blank, errors_FuelsDuffLitt, errors_blank, errors_blank_FuelsFine, errors_blank, errors_FuelsFine, errors_blank, errors_blank_PostBurn, errors_blank, errors_PostBurn, errors_blank, errors_blank_Trees, errors_blank, errors_Trees, errors_blank, errors_blank_Seedlings, errors_blank, errors_Seedlings, errors_blank, errors_blank_Shrubs, errors_blank, errors_Shrubs, errors_blank, errors_blank_HerbsSpComp, errors_blank, errors_HerbsSpComp, errors_blank, errors_blank_HerbsPoints, errors_blank, errors_HerbsPoints, errors_blank, errors_blank_HerbsFreq, errors_blank, errors_HerbsFreq)
 ```
 
 ```{r}
