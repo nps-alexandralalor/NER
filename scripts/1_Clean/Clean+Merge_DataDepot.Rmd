@@ -211,7 +211,8 @@ for (p in protocols) {
       mutate(
         Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
         Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-        Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y")
+        Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
+        SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
       ) %>%
       # remove trailing/leading whitespace
       mutate(across(where(is.character), str_trim)) %>% 
@@ -281,7 +282,8 @@ for (p in protocols) {
       mutate(
         Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
         Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
-        Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y")
+        Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y"),
+        SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")
       ) %>%
       # remove trailing/leading whitespace
       mutate(across(where(is.character), str_trim)) %>% 
