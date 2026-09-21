@@ -48,7 +48,9 @@ path_main_save <- paste0(path_main, "Exports_Clean/DataDepot/")
 
 # Metadata
 
-```{r}
+## Macroplots
+
+```{r metadata, warning=FALSE}
 path_temp <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/Exports_Clean/FFI/"
 # load data
 temp_df <- read.csv(paste0(path_temp, "all_metadata.csv"))
@@ -57,17 +59,72 @@ temp_df <- read.csv(paste0(path_temp, "all_metadata.csv"))
 final_df <- temp_df
   
 # save file
-write.csv(final_df, paste0(path_main_save, "all_metadata.csv"))
+write.csv(final_df, paste0(path_main_save, "all_metadata.csv"), row.names = FALSE)
 ```
 
-```{r metadata, warning=FALSE}
-protocols <- c("project_units", "species_info")
+## Project Units
+
+```{r project units, warning=FALSE}
+protocols <- c("project_units")
 
 for (p in protocols) {
   
 # reset for each protocol
 final_df <- NULL
 
+  for(i in parks) {
+    # select target park
+    target_park <- i
+    
+    
+    # adjust file paths
+    path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
+    path_save <- paste0(path_main_save, "all_")
+    
+    
+    # load data
+    temp_df <- read.csv(paste0(path_data, "ffi_", target_park, "_data_export_", p, ".csv"), na.strings = c("","NA","N/A"))
+    
+    
+    # clean data
+    temp_df <- temp_df %>%
+      # reformate Date columns
+      mutate(
+        ProjectUnit_DateIn = as.Date(ProjectUnit_DateIn, "%m/%d/%Y"),
+        ProjectUnit_DateOut = as.Date(ProjectUnit_DateOut, "%m/%d/%Y")
+      ) %>%
+      # remove trailing/leading whitespace
+      mutate(across(where(is.character), str_trim)) %>% 
+      # remove line breaks
+      mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
+      # add column
+      add_column(AdminUnit_Name = target_park, .before = 1)
+    ## replace commas with semicolons
+    temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
+    ## replace double quotes with single quotes
+    temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
+    
+    
+    # add data to master list
+    final_df <- rbind(final_df, temp_df)
+  }
+
+#save file
+write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
+
+}
+```
+
+## Species
+
+```{r species, warning=FALSE}
+protocols <- c("species_info")
+
+for (p in protocols) {
+  
+  # reset for each protocol
+  final_df <- NULL
+  
   for(i in parks) {
     # select target park
     target_park <- i
@@ -99,10 +156,10 @@ final_df <- NULL
     # add data to master list
     final_df <- rbind(final_df, temp_df)
   }
-
-#save file
-write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
-
+  
+  #save file
+  write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
+  
 }
 ```
 
@@ -125,16 +182,16 @@ protocols <- c(
   
   "trees_individuals", "trees_saplings", "trees_seedlings", "trees_variable_radius"
   )
+```
 
-#############
-## METRIC  ##
-#############
+## Metric
 
+```{r metric, warning=FALSE}
 for (p in protocols) {
   
-# reset for each protocol
-final_df <- NULL
-
+  # reset for each protocol
+  final_df <- NULL
+  
   for(i in parks) {
     # select target park
     target_park <- i
@@ -150,6 +207,12 @@ final_df <- NULL
     
     # clean data
     temp_df <- temp_df %>%
+      # reformate Date columns
+      mutate(
+        Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
+        Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
+        Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y")
+      ) %>%
       # remove trailing/leading whitespace
       mutate(across(where(is.character), str_trim)) %>% 
       # remove line breaks
@@ -158,46 +221,46 @@ final_df <- NULL
     temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
     ## replace double quotes with single quotes
     temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
-  
+    
     
     # add data to master list
     final_df <- rbind(final_df, temp_df)
   }
-
-# final column renaming to match protocol exports
-final_df <- final_df %>%
-  # relocate columns
+  
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
     relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>%
     relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>%
     relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>%
-  # rename columns
-  dplyr::rename(
-    Macroplot_Lat_dd = Macroplot_DdLat,
-    Macroplot_Long_dd = Macroplot_DdLong,
-    Macroplot_UtmX_m = Macroplot_UtmX..m.,
-    Macroplot_UtmY_m = Macroplot_UtmY..m.,
-    Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
-    Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....
-  )
-
-names(final_df) <- sub("\\..*", "", names(final_df))
-
-# save file
-if (nrow(final_df) > 0) {
-  write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....
+    )
+  
+  names(final_df) <- sub("\\..*", "", names(final_df))
+  
+  # save file
+  if (nrow(final_df) > 0) {
+    write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
+  }
+  
 }
+```
 
-}
+## English
 
-##############
-## ENGLISH  ##
-##############
-
+```{r english, warning=FALSE}
 for (p in protocols) {
   
-# reset for each protocol
-final_df <- NULL
-
+  # reset for each protocol
+  final_df <- NULL
+  
   for(i in parks) {
     # select target park
     target_park <- i
@@ -214,6 +277,12 @@ final_df <- NULL
     
     # clean data
     temp_df <- temp_df %>%
+      # reformate Date columns
+      mutate(
+        Macroplot_DateIn = as.Date(Macroplot_DateIn, "%m/%d/%Y"),
+        Macroplot_FutureVisit = as.Date(Macroplot_FutureVisit, "%m/%d/%Y"),
+        Macroplot_DateOut = as.Date(Macroplot_DateOut, "%m/%d/%Y")
+      ) %>%
       # remove trailing/leading whitespace
       mutate(across(where(is.character), str_trim)) %>% 
       # remove line breaks
@@ -222,34 +291,34 @@ final_df <- NULL
     temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
     ## replace double quotes with single quotes
     temp_df[] <- lapply(temp_df, function(x) gsub('"', "'", x))
-  
+    
     
     # add data to master list
     final_df <- rbind(final_df, temp_df)
   }
-
-# final column renaming to match protocol exports
-final_df <- final_df %>%
-  # relocate columns
+  
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # relocate columns
     relocate(Macroplot_Datum, .after = Macroplot_UtmZone) %>%
     relocate(Macroplot_FutureVisit, .after = Macroplot_DateOut) %>%
     relocate(Macroplot_LocatedBy, .before = Macroplot_StartPoint) %>%
-  # rename columns
-  dplyr::rename(
-    Macroplot_Lat_dd = Macroplot_DdLat,
-    Macroplot_Long_dd = Macroplot_DdLong,
-    Macroplot_UtmX_m = Macroplot_UtmX..m.,
-    Macroplot_UtmY_m = Macroplot_UtmY..m.,
-    Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
-    Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....
-  )
-
-names(final_df) <- sub("\\..*", "", names(final_df))
-
-# save file
-if (nrow(final_df) > 0) {
-  write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
-}
-
+    # rename columns
+    dplyr::rename(
+      Macroplot_Lat_dd = Macroplot_DdLat,
+      Macroplot_Long_dd = Macroplot_DdLong,
+      Macroplot_UtmX_m = Macroplot_UtmX..m.,
+      Macroplot_UtmY_m = Macroplot_UtmY..m.,
+      Macroplot_SlopeHill_pct = Macroplot_SlopeHill....,
+      Macroplot_SlopeTransect_pct = Macroplot_SlopeTransect....
+    )
+  
+  names(final_df) <- sub("\\..*", "", names(final_df))
+  
+  # save file
+  if (nrow(final_df) > 0) {
+    write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
+  }
+  
 }
 ```
