@@ -358,7 +358,9 @@ for(i in parks) {
   # load data
   HerbsPoints_all <- read.csv(paste0(path_data, "Cover - Points (metric)_XPT.csv"), na.strings = c("","NA","N/A"))
   ## Drop last column if it's an empty placeholder (common in Excel exports)
-  HerbsPoints_all <- HerbsPoints_all[, -ncol(HerbsPoints_all)]
+  if (all(is.na(HerbsPoints_all[[ncol(HerbsPoints_all)]]))) {
+    HerbsPoints_all <- HerbsPoints_all[, -ncol(HerbsPoints_all), drop = FALSE]
+  }
   ## replace commas with semicolons
   HerbsPoints_all[] <- lapply(HerbsPoints_all, function(x) gsub(",", ";", x))
   ## replace double quotes with single quotes
