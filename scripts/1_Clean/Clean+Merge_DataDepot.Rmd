@@ -41,8 +41,7 @@ parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO
 ### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
-path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
-#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
 path_main_data <- paste0(path_main, "Exports/DataDepot/")
 path_main_save <- paste0(path_main, "Exports_Clean/DataDepot/")
 ```
@@ -50,8 +49,7 @@ path_main_save <- paste0(path_main, "Exports_Clean/DataDepot/")
 # Metadata
 
 ```{r}
-path_temp <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/Exports_Clean/FFI/"
-#path_temp <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/Exports_Clean/FFI/"
+path_temp <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/Exports_Clean/FFI/"
 # load data
 temp_df <- read.csv(paste0(path_temp, "all_metadata.csv"))
 
