@@ -144,9 +144,7 @@ for (p in protocols) {
       # remove trailing/leading whitespace
       mutate(across(where(is.character), str_trim)) %>% 
       # remove line breaks
-      mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
-      # add column
-      add_column(AdminUnit_Name = target_park, .before = 1)
+      mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .)))
     ## replace commas with semicolons
     temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
     ## replace double quotes with single quotes
