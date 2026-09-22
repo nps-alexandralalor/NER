@@ -157,6 +157,16 @@ for (p in protocols) {
     final_df <- rbind(final_df, temp_df)
   }
   
+  # final column renaming to match protocol exports
+  final_df <- final_df %>%
+    # rename columns
+    dplyr::rename(
+      AdminUnit_Name = Species_AdminUnitName,
+      Organization_Name = Species_OrganizationName,
+      Species_SymbolLocal = Species_LocalSpeciesSymbol,
+      Species_SymbolMaster = Species_Symbol
+    )
+                                  
   #save file
   write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
   
