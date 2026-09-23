@@ -24,55 +24,55 @@ This code is intended to quality check [all FFI CSV exports]{.underline} for fun
 
 ### Export all CSVs from Data Depot
 
--   English_ffi_PARK_data_export\_#############.zip
+- English_ffi_PARK_data_export\_#############.zip
 
--   Metric_ffi_PARK_data_export\_#############.zip
+- Metric_ffi_PARK_data_export\_#############.zip
 
 Populated Data includes:
 
--   ffi_PARK_data_export_project_units.csv
+- ffi_PARK_data_export_project_units.csv
 
--   ffi_PARK_data_export_cover_points.csv
+- ffi_PARK_data_export_cover_points.csv
 
--   ffi_PARK_data_export_cover_species_composition.csv
+- ffi_PARK_data_export_cover_species_composition.csv
 
--   ffi_PARK_data_export_surface_fuels_duff_litter.csv
+- ffi_PARK_data_export_surface_fuels_duff_litter.csv
 
--   ffi_PARK_data_export_surface_fuels_fine.csv
+- ffi_PARK_data_export_surface_fuels_fine.csv
 
--   ffi_PARK_data_export_surface_fuels_thousand_hr.csv
+- ffi_PARK_data_export_surface_fuels_thousand_hr.csv
 
--   ffi_PARK_data_export_trees_individuals.csv
+- ffi_PARK_data_export_trees_individuals.csv
 
 Excess Data includes:
 
--   ffi_PARK_data_export_cover_frequency.csv
+- ffi_PARK_data_export_cover_frequency.csv
 
--   ffi_PARK_data_export_surface_fuels_alaska_duff_litter.csv
+- ffi_PARK_data_export_surface_fuels_alaska_duff_litter.csv
 
--   ffi_PARK_data_export_surface_fuels_piles.csv
+- ffi_PARK_data_export_surface_fuels_piles.csv
 
--   ffi_PARK_data_export_surface_fuels_vegetation.csv
+- ffi_PARK_data_export_surface_fuels_vegetation.csv
 
--   ffi_PARK_data_export_trees_saplings.csv
+- ffi_PARK_data_export_trees_saplings.csv
 
--   ffi_PARK_data_export_trees_seedlings.csv
+- ffi_PARK_data_export_trees_seedlings.csv
 
 Missing Protocols
 
--   Post Burn Severity (metric)\_XPT.csv
+- Post Burn Severity (metric)\_XPT.csv
 
--   Density - Quadrats (metric)\_XPT.csv
+- Density - Quadrats (metric)\_XPT.csv
 
--   Density - Belts (metric)\_XPT.csv
+- Density - Belts (metric)\_XPT.csv
 
 ### Major issues to check across all CSVs
 
--   Check that column names match expected
+- Check that column names match expected
 
--   Check that number of rows match expected
+- Check that number of rows match expected
 
--   Check that data matches expected (especially conversions between metric and english
+- Check that data matches expected (especially conversions between metric and english
 
 ## Before Starting {.hidden}
 
@@ -115,8 +115,8 @@ target_park <- "CATO"
 
 ```{r import data, include=FALSE}
 # adjust file paths
-#path_main <- "E:/Allie/FireFX_NER/FFI Data Management/"
-path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports_Clean/"
+path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/Exports_Clean/"
+#path_main <- "C:/Users/alalor/OneDrive - DOI/NER/FireFX/FFI Data Management/Exports_Clean/"
 path_data_DD <- paste0(path_main, "DataDepot/")
 path_data_FFI <- paste0(path_main, "FFI/")
 ```
@@ -220,16 +220,22 @@ for (name in df_names) {
 
 ```{r}
 Fuels1000_DataDepot <- Fuels1000_E %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  select(!c(Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate)) %>% 
+  mutate(
+    SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"),
+    Macroplot_UV3 = as.character(Macroplot_UV3)
+    ) %>% 
+  select(!c(OrganizationId, AdminUnitId, MacroplotId, SampleEventId, MethodId, MethodData_Id, MethodDataId, Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate)) %>% 
   relocate(Macroplot_Name, .after = Macroplot_UV8) %>%
   relocate(SampleEvent_TreatmentUnit, .before = SampleEvent_Date) %>% 
   relocate(MethodData_Visited, .after = MethodData_SAComment) %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index)
 
 Fuels1000_DataFFI <- Fuels1000_O %>% 
-  mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,SampleEvent_Date_Year)) %>% 
+  mutate(
+    SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y"),
+    Macroplot_UV3 = as.character(Macroplot_UV3)
+    ) %>% 
+  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order)) %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index)
 ```
 
@@ -270,7 +276,7 @@ diffdf(Fuels1000_DataDepot_NERI, Fuels1000_DataFFI)
 ```{r}
 FuelsDuffLitt_DataDepot <- FuelsDuffLitt_E %>% 
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  select(!c(Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate)) %>% 
+  select(!c(OrganizationId, AdminUnitId, MacroplotId, SampleEventId, MethodId, MethodData_Id, MethodDataId, Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate)) %>% 
   relocate(Macroplot_Name, .after = Macroplot_UV8) %>%
   relocate(SampleEvent_TreatmentUnit, .before = SampleEvent_Date) %>% 
   relocate(MethodData_Visited, .after = MethodData_SAComment) %>% 
@@ -278,7 +284,7 @@ FuelsDuffLitt_DataDepot <- FuelsDuffLitt_E %>%
 
 FuelsDuffLitt_DataFFI <- FuelsDuffLitt_O %>% 
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,SampleEvent_Date_Year)) %>% 
+  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order)) %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index)
 ```
 
@@ -311,7 +317,7 @@ diffdf(FuelsDuffLitt_DataDepot_SHEN, FuelsDuffLitt_DataFFI)
 ```{r}
 FuelsFine_DataDepot <- FuelsFine_E %>% 
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  select(!c(Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate)) %>% 
+  select(!c(OrganizationId, AdminUnitId, MacroplotId, SampleEventId, MethodId, MethodData_Id, MethodDataId, Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate)) %>% 
   relocate(Macroplot_Name, .after = Macroplot_UV8) %>%
   relocate(SampleEvent_TreatmentUnit, .before = SampleEvent_Date) %>% 
   relocate(MethodData_Visited, .after = MethodData_SAComment) %>% 
@@ -319,7 +325,7 @@ FuelsFine_DataDepot <- FuelsFine_E %>%
 
 FuelsFine_DataFFI <- FuelsFine_O %>% 
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,SampleEvent_Date_Year)) %>% 
+  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order)) %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index)
 ```
 
@@ -355,8 +361,9 @@ diffdf(FuelsFine_DataDepot_SHEN, FuelsFine_DataFFI)
 Trees_DataDepot <- Trees_M %>% 
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
   select(!c(
-    Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate, MethodData_SppGuid, MethodData_Density, MethodData_BasalArea,
-    Species_SourceEntityId, Species_LocalSpeciesId, Species_MasterSpeciesId, Species_AuxSpeciesId, Species_ITISTaxonomicSerialNumber, Species_SymbolLocal, Species_SymbolMaster, Species_CommonNameLocal, Species_CommonName, Species_Nativity, Species_LifeFormName, Species_Description, Species_LifeCycle, Species_Cultural, Species_Concern, Species_Retired, Species_Comment, Species_UV1, Species_UV2, Species_UV3
+    OrganizationId, AdminUnitId, MacroplotId, SampleEventId, MethodId, MethodData_Id, MethodDataId, Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate, MethodData_SppGuid, MethodData_Density, MethodData_BasalArea,
+    Species_SourceEntityId, Species_LocalSpeciesId, Species_MasterSpeciesId, Species_AuxSpeciesId, Species_ITISTaxonomicSerialNumber, Species_SymbolLocal, Species_SymbolMaster, Species_CommonNameLocal, Species_CommonName, Species_Nativity, Species_LifeFormName, Species_Description, Species_LifeCycle, Species_Cultural, Species_Concern, Species_Retired, Species_Comment, Species_UV1, Species_UV2, Species_UV3,
+    Species_Family, Species_Genus, Species_ScientificName, Species_LifeCycleLocal, Species_LifeFormNameLocal, Species_NativityLocal, Species_Invasive, Species_NotBiological
     )) %>% 
   relocate(Macroplot_Name, .after = Macroplot_UV8) %>%
   relocate(SampleEvent_TreatmentUnit, .before = SampleEvent_Date) %>% 
@@ -365,7 +372,9 @@ Trees_DataDepot <- Trees_M %>%
 
 Trees_DataFFI <- Trees_O %>% 
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,SampleEvent_Date_Year)) %>% 
+  select(!c(
+    MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,
+    Species_Family, Species_Genus, Species_ScientificName, Species_LifeCycleLocal, Species_LifeFormNameLocal, Species_NativityLocal, Species_Invasive, Species_NotBiological)) %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index, MethodData_SubFrac, MethodData_QTR, MethodData_TagNo)
 ```
 
@@ -400,7 +409,7 @@ diffdf(Trees_DataDepot_SHEN, Trees_DataFFI)
 HerbsSpComp_DataDepot <- HerbsSpComp_M %>% 
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
   select(!c(
-    Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate, MethodData_SppGuid, MethodData_SpeciesId, MethodData_LocalSpeciesId,
+    OrganizationId, AdminUnitId, MacroplotId, SampleEventId, MethodId, MethodData_Id, MethodDataId, Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate, MethodData_SppGuid, MethodData_SpeciesId,
     Species_SourceEntityId, Species_LocalSpeciesId, Species_MasterSpeciesId, Species_AuxSpeciesId, Species_ITISTaxonomicSerialNumber, Species_SymbolLocal, Species_SymbolMaster, Species_CommonNameLocal, Species_CommonName, Species_Nativity, Species_LifeFormName, Species_Description, Species_LifeCycle, Species_Cultural, Species_Concern, Species_Retired, Species_Comment, Species_UV1, Species_UV2, Species_UV3
     )) %>% 
   relocate(Macroplot_Name, .after = Macroplot_UV8) %>%
@@ -410,7 +419,7 @@ HerbsSpComp_DataDepot <- HerbsSpComp_M %>%
 
 HerbsSpComp_DataFFI <- HerbsSpComp_O %>% 
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,SampleEvent_Date_Year)) %>% 
+  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order)) %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index)
 ```
 
@@ -499,7 +508,7 @@ diffdf(HerbsSpComp_DataDepot_MONO, HerbsSpComp_DataFFI)
 HerbsPoints_DataDepot <- HerbsPoints_M %>% 
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
   select(!c(
-    Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate, MethodData_SppGuid, MethodData_RemoteApp_LocalSpeciesSymbol, MethodData_SpeciesId, MethodData_LocalSpeciesId,
+    OrganizationId, AdminUnitId, MacroplotId, SampleEventId, MethodId, MethodData_Id, MethodDataId, Organization_Name, AdminUnit_Comment, Macroplot_Lat_dd, Macroplot_Long_dd, Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum, Macroplot_Pdop, Macroplot_Precision, Macroplot_DateIn, Macroplot_DateOut, Macroplot_FutureVisit, Macroplot_Elevation, Macroplot_ElevationUnits, Macroplot_Azimuth, Macroplot_Aspect, Macroplot_SlopeHill_pct, Macroplot_SlopeTransect_pct, Macroplot_LocatedBy, Macroplot_StartPoint, Macroplot_Directions, Macroplot_Comment, Macroplot_Metadata, SampleEvent_Who, SampleEvent_Comment, SampleEvent_UserVariables, SampleEvent_LegacyMonitoringStatus, SampleData_Executed, MethodData_CreatedDate, MethodData_UpdatedDate, MethodData_DeletedDate, MethodData_SppGuid, MethodData_RemoteApp_LocalSpeciesSymbol, MethodData_SpeciesId,
     Species_SourceEntityId, Species_LocalSpeciesId, Species_MasterSpeciesId, Species_AuxSpeciesId, Species_ITISTaxonomicSerialNumber, Species_SymbolLocal, Species_SymbolMaster, Species_CommonNameLocal, Species_CommonName, Species_Nativity, Species_LifeFormName, Species_Description, Species_LifeCycle, Species_Cultural, Species_Concern, Species_Retired, Species_Comment, Species_UV1, Species_UV2, Species_UV3
     )) %>% 
   relocate(Macroplot_Name, .after = Macroplot_UV8) %>%
@@ -509,7 +518,7 @@ HerbsPoints_DataDepot <- HerbsPoints_M %>%
 
 HerbsPoints_DataFFI <- HerbsPoints_O %>% 
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date, "%m/%d/%Y")) %>% 
-  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order,SampleEvent_Date_Year)) %>% 
+  select(!c(MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order)) %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Index)
 ```
 
@@ -589,7 +598,7 @@ diffdf(HerbsPoints_DataDepot_MONO, HerbsPoints_DataFFI)
 
 # COLUMNS
 
--   If all successfully load, this means that column names match across all units and protocols
+- If all successfully load, this means that column names match across all units and protocols
 
 ## All Protocols
 
@@ -916,7 +925,7 @@ Data
 
 [Procedure:]{.underline}
 
--   Check that columns match expected
+- Check that columns match expected
 
 ```{r}
 # Set parameters 
@@ -942,7 +951,7 @@ errors_ProjectUnitReport_Columns <- qaqc(data, query, query_message, values_chec
 errors_ProjectUnitReport_Columns <- unique(errors_ProjectUnitReport_Columns)
 ```
 
--   Check that Macroplot is not blank
+- Check that Macroplot is not blank
 
 ```{r}
 # Set parameters 
@@ -957,7 +966,7 @@ values_check <- values_data != values_valid
 errors_ProjectUnitReport_Macroplot <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that ProjectUnit is not blank
+- Check that ProjectUnit is not blank
 
 ```{r}
 # Set parameters 
@@ -972,7 +981,7 @@ values_check <- values_data != values_valid
 errors_ProjectUnitReport_ProjectUnit <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Multi_PU = N or Y. If Multi_PU = Y, you will need to isolate which Project Unit contains the primary data for the analysis of interest.
+- Check that Multi_PU = N or Y. If Multi_PU = Y, you will need to isolate which Project Unit contains the primary data for the analysis of interest.
 
 ```{r}
 # Set parameters 
