@@ -19,7 +19,7 @@ output:
 
 This code is intended to quality check species metadata, including the Local Species Report. This report has been cleaned using the Clean+Merge.Rmd script.
 
--   SpeciesReport.csv
+- SpeciesReport.csv
 
 ## Before Starting
 
@@ -66,14 +66,14 @@ source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
 # Edit blank data frame for preferred error log template.
 errors_blank <- data.frame("SavedQuery" = "", 
                            "AdminUnit_Name" = "", 
-                           "Species_LocalSpeciesSymbol" = "", 
+                           "Species_SymbolLocal" = "", 
                            "Error" = "", 
                            "Fixed" = "", 
                            "Explanation" = "", 
                            "Queryers" = "")
 
 # Edit error group. Duplicate errors will be grouped by these columns.
-errors_group <- c("SavedQuery", "AdminUnit_Name", "Species_LocalSpeciesSymbol", "Error")
+errors_group <- c("SavedQuery", "AdminUnit_Name", "Species_SymbolLocal", "Error")
 ```
 
 ### Adjust File Paths {.hidden}
@@ -81,7 +81,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Species_LocalSpeciesSymbol", 
 ```{r file paths, include=FALSE}
 # adjust file paths
 path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_Clean/FFI/")
+path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
 path_errors <- paste0(here(), "/output/errors/")
 path_errors_name <- paste0("Cross Park Species QAQC Errors")
 ```
@@ -105,25 +105,25 @@ SpeciesReport <- SpeciesReport_all
 #Now that we fixed unknowns, we can use these codes
 Substrates <- SpeciesReport %>%
   filter(Species_LifeFormNameLocal == "Undefined")
-Substrates <- unique(Substrates$Species_LocalSpeciesSymbol)
+Substrates <- unique(Substrates$Species_SymbolLocal)
   
 Unknowns_MysteryPlants <- SpeciesReport %>%
   filter(Species_LifeFormNameLocal == "Unknown")
-Unknowns_MysteryPlants <- unique(Unknowns_MysteryPlants$Species_LocalSpeciesSymbol)
+Unknowns_MysteryPlants <- unique(Unknowns_MysteryPlants$Species_SymbolLocal)
 
 Unknowns_LifeFormOnly <- SpeciesReport %>%
   filter(!Species_LifeFormNameLocal %in% c("Undefined", "Unknown"),
          is.na(Species_Family) & is.na(Species_Genus))
-Unknowns_LifeFormOnly <- unique(Unknowns_LifeFormOnly$Species_LocalSpeciesSymbol)
+Unknowns_LifeFormOnly <- unique(Unknowns_LifeFormOnly$Species_SymbolLocal)
 
 Unknowns_FamilyOnly <- SpeciesReport %>%
   filter(!Species_LifeFormNameLocal %in% c("Undefined", "Unknown"),
          !is.na(Species_Family) & is.na(Species_Genus) & is.na(Species_ScientificName))
-Unknowns_FamilyOnly <- unique(Unknowns_FamilyOnly$Species_LocalSpeciesSymbol)
+Unknowns_FamilyOnly <- unique(Unknowns_FamilyOnly$Species_SymbolLocal)
 
 Unknowns_GenusOnly <- SpeciesReport %>%
   filter(Species_ScientificName == Species_Genus)
-Unknowns_GenusOnly <- unique(Unknowns_GenusOnly$Species_LocalSpeciesSymbol)
+Unknowns_GenusOnly <- unique(Unknowns_GenusOnly$Species_SymbolLocal)
 
 
 
@@ -137,8 +137,8 @@ Unknowns <- c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>%
-  filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly)) %>% 
+  filter(!Species_SymbolLocal %in% Substrates,
+         !Species_SymbolLocal %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly)) %>% 
   dplyr::group_by(Species_ScientificName) %>%
   dplyr::mutate(n_families = dplyr::n_distinct(Species_Family)) %>%
   dplyr::mutate(family_change = ifelse(n_families > 1, "Y", "N")) %>% 
@@ -158,15 +158,15 @@ errors_SpeciesReport_CrossPark_Family_1 <- errors_SpeciesReport_CrossPark_Family
 # Consolidate species errors into one row
 errors_SpeciesReport_CrossPark_Family <- errors_SpeciesReport_CrossPark_Family_1 %>% 
   separate(Error, sep = ". Family change = Y", into = c("Error")) %>% 
-  separate(Error, sep = "- ", into = c("Species_LocalSpeciesSymbol", "Error"), remove = F) %>% 
-  dplyr::group_by(SavedQuery, Species_LocalSpeciesSymbol) %>% 
+  separate(Error, sep = "- ", into = c("Species_SymbolLocal", "Error"), remove = F) %>% 
+  dplyr::group_by(SavedQuery, Species_SymbolLocal) %>% 
   dplyr::summarize(
     AdminUnit_Name = paste(AdminUnit_Name, collapse = "; "),
     Error = paste(Error, collapse = "; "),
     Fixed = "",
     Explanation = "",
     Queryers = "") %>% 
-  relocate(AdminUnit_Name, .before = Species_LocalSpeciesSymbol)
+  relocate(AdminUnit_Name, .before = Species_SymbolLocal)
 
 remove(errors_SpeciesReport_CrossPark_Family_1)
 ```
@@ -174,8 +174,8 @@ remove(errors_SpeciesReport_CrossPark_Family_1)
 ```{r}
 # Set parameters 
 data <- SpeciesReport %>%
-  filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly)) %>% 
+  filter(!Species_SymbolLocal %in% Substrates,
+         !Species_SymbolLocal %in% c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly)) %>% 
   dplyr::group_by(Species_ScientificName) %>%
   dplyr::mutate(n_lifeform = dplyr::n_distinct(Species_LifeFormNameLocal)) %>%
   dplyr::mutate(lifeform_change = ifelse(n_lifeform > 1, "Y", "N")) %>% 
@@ -194,15 +194,15 @@ errors_SpeciesReport_CrossPark_Lifeform_1 <- errors_SpeciesReport_CrossPark_Life
 # Consolidate species errors into one row
 errors_SpeciesReport_CrossPark_Lifeform <- errors_SpeciesReport_CrossPark_Lifeform_1 %>% 
   separate(Error, sep = ". Lifeform change = Y", into = c("Error")) %>% 
-  separate(Error, sep = "- ", into = c("Species_LocalSpeciesSymbol", "Error"), remove = F) %>% 
-  dplyr::group_by(SavedQuery, Species_LocalSpeciesSymbol) %>% 
+  separate(Error, sep = "- ", into = c("Species_SymbolLocal", "Error"), remove = F) %>% 
+  dplyr::group_by(SavedQuery, Species_SymbolLocal) %>% 
   dplyr::summarize(
     AdminUnit_Name = paste(AdminUnit_Name, collapse = "; "),
     Error = paste(Error, collapse = "; "),
     Fixed = "",
     Explanation = "",
     Queryers = "") %>% 
-  relocate(AdminUnit_Name, .before = Species_LocalSpeciesSymbol)
+  relocate(AdminUnit_Name, .before = Species_SymbolLocal)
 
 remove(errors_SpeciesReport_CrossPark_Lifeform_1)
 ```
@@ -210,8 +210,8 @@ remove(errors_SpeciesReport_CrossPark_Lifeform_1)
 ```{r}
 # Set parameters
 data <- SpeciesReport %>%
-  filter(!Species_LocalSpeciesSymbol %in% Substrates,
-         !Species_LocalSpeciesSymbol %in% Unknowns) %>%
+  filter(!Species_SymbolLocal %in% Substrates,
+         !Species_SymbolLocal %in% Unknowns) %>%
   mutate(Nativity = ifelse(Species_NativityLocal == "True", "Native",
                            ifelse(Species_Invasive == "True", "Invasive", 
                                   "Non-Native"))) %>% 
@@ -233,15 +233,15 @@ errors_SpeciesReport_CrossPark_Nativity_1 <- errors_SpeciesReport_CrossPark_Nati
 # Consolidate species errors into one row
 errors_SpeciesReport_CrossPark_Nativity <- errors_SpeciesReport_CrossPark_Nativity_1 %>% 
   separate(Error, sep = ". Nativity change = Y", into = c("Error")) %>% 
-  separate(Error, sep = "- ", into = c("Species_LocalSpeciesSymbol", "Error"), remove = F) %>% 
-  dplyr::group_by(SavedQuery, Species_LocalSpeciesSymbol) %>% 
+  separate(Error, sep = "- ", into = c("Species_SymbolLocal", "Error"), remove = F) %>% 
+  dplyr::group_by(SavedQuery, Species_SymbolLocal) %>% 
   dplyr::summarize(
     AdminUnit_Name = paste(AdminUnit_Name, collapse = "; "),
     Error = paste(Error, collapse = "; "),
     Fixed = "",
     Explanation = "",
     Queryers = "") %>% 
-  relocate(AdminUnit_Name, .before = Species_LocalSpeciesSymbol)
+  relocate(AdminUnit_Name, .before = Species_SymbolLocal)
 
 remove(errors_SpeciesReport_CrossPark_Nativity_1)
 ```

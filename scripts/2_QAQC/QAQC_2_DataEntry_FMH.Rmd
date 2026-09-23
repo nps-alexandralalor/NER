@@ -160,36 +160,31 @@ for (name in df_names) {
 }
 ```
 
-```{r}
-# Trees_data <- Trees_data %>%
-#   mutate(MonitoringStatus_Name = SampleEvent_LegacyMonitoringStatus)
-```
-
 ### Define Codes {.hidden}
 
 ```{r define codes, include=FALSE}
 # Must fix up species report before using. Otherwise, must make a custom list.
 substrates <- SpeciesReport_data %>%
   filter(Species_LifeFormNameLocal == "Undefined")
-substrates <- unique(substrates$Species_LocalSpeciesSymbol)
+substrates <- unique(substrates$Species_SymbolLocal)
   
 Unknowns_MysteryPlants <- SpeciesReport_data %>%
   filter(Species_LifeFormNameLocal == "Unknown")
-Unknowns_MysteryPlants <- unique(Unknowns_MysteryPlants$Species_LocalSpeciesSymbol)
+Unknowns_MysteryPlants <- unique(Unknowns_MysteryPlants$Species_SymbolLocal)
 
 Unknowns_LifeFormOnly <- SpeciesReport_data %>%
   filter(!Species_LifeFormNameLocal %in% c("Undefined", "Unknown"),
          is.na(Species_Family) & is.na(Species_Genus))
-Unknowns_LifeFormOnly <- unique(Unknowns_LifeFormOnly$Species_LocalSpeciesSymbol)
+Unknowns_LifeFormOnly <- unique(Unknowns_LifeFormOnly$Species_SymbolLocal)
 
 Unknowns_FamilyOnly <- SpeciesReport_data %>%
   filter(!Species_LifeFormNameLocal %in% c("Undefined", "Unknown"),
          !is.na(Species_Family) & is.na(Species_Genus) & is.na(Species_ScientificName))
-Unknowns_FamilyOnly <- unique(Unknowns_FamilyOnly$Species_LocalSpeciesSymbol)
+Unknowns_FamilyOnly <- unique(Unknowns_FamilyOnly$Species_SymbolLocal)
 
 Unknowns_GenusOnly <- SpeciesReport_data %>%
   filter(Species_ScientificName == Species_Genus)
-Unknowns_GenusOnly <- unique(Unknowns_GenusOnly$Species_LocalSpeciesSymbol)
+Unknowns_GenusOnly <- unique(Unknowns_GenusOnly$Species_SymbolLocal)
 
 
 unknowns_generic <- c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly)
@@ -2030,7 +2025,7 @@ if(nrow(errors_Trees_Height) > 1) {
 # Set parameters 
 data <- Trees_data
 query <- "Trees LifeForm" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Life Form")
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". Species = ", data$Species_SymbolLocal, ". ", "Life Form")
 values_data <- data$Species_LifeFormNameLocal
 values_valid <- "Tree"
 values_check <- values_data == values_valid
@@ -3129,7 +3124,7 @@ if(nrow(errors_Seedlings_Count) > 1) {
 # Set parameters 
 data <- Seedlings_data
 query <- "Dens Quad Height" 
-query_message <- paste0("SubFrac = ", data$MethodData_SubFrac, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Height")
+query_message <- paste0("SubFrac = ", data$MethodData_SubFrac, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Height")
 values_data <- data$MethodData_Height
 values_valid <- c(1, 2, 3, 4, 5)
 values_check <- values_data %in% values_valid
@@ -3150,7 +3145,7 @@ errors_Seedlings_Height <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Seedlings_data
 query <- "Dens Quad LifeForm" 
-query_message <- paste0("Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Life Form")
+query_message <- paste0("Species = ", data$Species_SymbolLocal, ". ", "Life Form")
 values_data <- data$Species_LifeFormNameLocal
 values_valid <- "Tree"
 values_check <- values_data == values_valid
@@ -3192,7 +3187,7 @@ errors_Seedlings_Quadrat <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Seedlings_data
 query <- "Dens Quad Status" 
-query_message <- paste0("Species ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Status")
+query_message <- paste0("Species ", data$Species_SymbolLocal, ". ", "Status")
 values_data <- data$MethodData_Status
 values_valid <- c("L")
 values_check <- values_data %in% values_valid
@@ -3537,7 +3532,7 @@ if(nrow(errors_Shrubs_Count) > 1) {
 # Set parameters 
 data <- Shrubs_data
 query <- "Dens Belts LifeForm" 
-query_message <- paste0("Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Life Form")
+query_message <- paste0("Species = ", data$Species_SymbolLocal, ". ", "Life Form")
 values_data <- data$Species_LifeFormNameLocal
 values_valid <- c("Shrub", "Subshrub")
 values_check <- values_data %in% values_valid
@@ -3824,7 +3819,7 @@ errors_HerbsSpComp_Cover <- qaqc(data, query, query_message, values_check)
 data <- HerbsSpComp_data
 query <- "Cvr SpComp Species"
 query_message <- paste0("Species")
-values_data <- data$MethodData_RemoteApp_LocalSpeciesSymbol
+values_data <- data$Species_SymbolLocal
 values_valid <- unknowns_generic
 values_check <- !(values_data %in% values_valid)
 
@@ -3839,7 +3834,7 @@ errors_HerbsSpComp_Unknown <- qaqc(data, query, query_message, values_check)
 data <- HerbsSpComp_data
 data$MethodData_Comment[is.na(data$MethodData_Comment)] <- ""
 query <- "Cvr SpComp Species"
-query_message <- paste0("Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". Comment")
+query_message <- paste0("Species = ", data$Species_SymbolLocal, ". Comment")
 values_data <- data$MethodData_Comment
 values_valid <- ""
 values_check <- values_data == values_valid
@@ -4170,7 +4165,7 @@ if(nrow(errors_HerbsPoints_Header) > 1) {
 data <- HerbsPoints_data %>% 
    filter(!is.na(MethodData_Height))
 query <- "Cvr Pts Height" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Height")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Height")
 values_data <- data$MethodData_Height
 values_valid <- 2
 values_check <- values_data <= values_valid
@@ -4186,7 +4181,7 @@ errors_HerbsPoints_Height_Max <- qaqc(data, query, query_message, values_check)
 data <- HerbsPoints_data %>% 
   filter(!is.na(MethodData_Height))
 query <- "Cvr Pts Height" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Precision error. Height")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Precision error. Height")
 values_data <- data$MethodData_Height
 values_valid <- c(0, 0.01, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95, 1.00, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30, 1.35, 1.40, 1.45, 1.50, 1.55, 1.60, 1.65, 1.70, 1.75, 1.80, 1.85, 1.90, 1.95, 2.00)
 values_check <- values_data %in% values_valid
@@ -4201,10 +4196,10 @@ errors_HerbsPoints_Height_Precision <- qaqc(data, query, query_message, values_c
 # Set parameters 
 data <- HerbsPoints_data %>% 
   filter(MethodData_Order == 1,
-         !MethodData_RemoteApp_LocalSpeciesSymbol %in% substrates)
+         !Species_SymbolLocal %in% substrates)
 data$MethodData_Height[is.na(data$MethodData_Height)] <- ""
 query <- "Cvr Pts Height" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Height")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Height")
 values_data <- data$MethodData_Height
 values_valid <- ""
 values_check <- values_data != values_valid
@@ -4221,7 +4216,7 @@ data <- HerbsPoints_data %>%
    filter(MethodData_Order != 1)
 data$MethodData_Height[is.na(data$MethodData_Height)] <- ""
 query <- "Cvr Pts Height" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_MethodData_MethodData_MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Height")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_MethodData_MethodData_MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Height")
 values_data <- data$MethodData_Height
 values_valid <- ""
 values_check <- values_data == values_valid
@@ -4235,10 +4230,10 @@ errors_HerbsPoints_Height_Order <- qaqc(data, query, query_message, values_check
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-  filter(MethodData_RemoteApp_LocalSpeciesSymbol %in% substrates)
+  filter(Species_SymbolLocal %in% substrates)
 data$MethodData_Height[is.na(data$MethodData_Height)] <- ""
 query <- "Cvr Pts Height" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Height")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Height")
 values_data <- data$MethodData_Height
 values_valid <- ""
 values_check <- values_data == values_valid
@@ -4307,9 +4302,9 @@ errors_HerbsPoints_Order_Duplicate <- qaqc(data, query, query_message, values_ch
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-  filter(MethodData_RemoteApp_LocalSpeciesSymbol %in% substrates)
+  filter(Species_SymbolLocal %in% substrates)
 query <- "Cvr Pts Order" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Order")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Order")
 values_data <- data$MethodData_Order
 values_valid <- 1
 values_check <- values_data == values_valid
@@ -4436,7 +4431,7 @@ if(nrow(errors_HerbsPoints_Point) > 1) {
 data <- HerbsPoints_data
 query <- "Cvr Pts Species"
 query_message <- paste0("Species")
-values_data <- data$MethodData_RemoteApp_LocalSpeciesSymbol
+values_data <- data$Species_SymbolLocal
 values_valid <- unknowns_generic
 values_check <- !(values_data %in% values_valid)
 
@@ -4451,7 +4446,7 @@ errors_HerbsPoints_Unknown <- qaqc(data, query, query_message, values_check)
 data <- HerbsPoints_data
 data$MethodData_Comment[is.na(data$MethodData_Comment)] <- ""
 query <- "Cvr Pts Species"
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". Comment")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Species = ", data$Species_SymbolLocal, ". Comment")
 values_data <- data$MethodData_Comment
 values_valid <- ""
 values_check <- values_data == values_valid
@@ -4487,7 +4482,7 @@ if(nrow(errors_HerbsPoints_Species) > 1) {
 data <- HerbsPoints_data %>% 
   filter(Species_LifeFormNameLocal %in% c("Graminoid", "Grass-like", "Forb/herb", "Nonvascular", "Fern", "Vine"))
 query <- "Cvr Pts Status" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Status")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Status")
 values_data <- data$MethodData_Status
 values_valid <- c("L")
 values_check <- values_data %in% values_valid
@@ -4503,7 +4498,7 @@ errors_HerbsPoints_Status_Annual <- qaqc(data, query, query_message, values_chec
 data <- HerbsPoints_data %>% 
   filter(Species_LifeFormNameLocal %in% c("Shrub", "Subshrub", "Tree"))
 query <- "Cvr Pts Status" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Status")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Status")
 values_data <- data$MethodData_Status
 values_valid <- c("L", "D")
 values_check <- values_data %in% values_valid
@@ -4517,10 +4512,10 @@ errors_HerbsPoints_Status_Perennial <- qaqc(data, query, query_message, values_c
 ```{r}
 # Set parameters 
 data <- HerbsPoints_data %>% 
-  filter(MethodData_RemoteApp_LocalSpeciesSymbol %in% substrates,
-         !MethodData_RemoteApp_LocalSpeciesSymbol %in% c("MOSS", "BOLE"))
+  filter(Species_SymbolLocal %in% substrates,
+         !Species_SymbolLocal %in% c("MOSS", "BOLE"))
 query <- "Cvr Pts Status" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$MethodData_RemoteApp_LocalSpeciesSymbol, ". ", "Status")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Point = ", data$MethodData_Point, ". ", "Order = ", data$MethodData_Order, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Status")
 values_data <- data$MethodData_Status
 values_valid <- c("D", "X")
 values_check <- values_data %in% values_valid

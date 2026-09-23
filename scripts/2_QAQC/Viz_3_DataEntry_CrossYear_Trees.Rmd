@@ -44,7 +44,7 @@ library(readxl)
 ```{r}
 # designate target values
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "FRSP", "NERI", "RICH", "SHEN")
-target_park <- "NERI"
+target_park <- "SHEN"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -52,7 +52,7 @@ target_park <- "NERI"
 ```{r}
 # Adjust File Paths
 path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_Clean/FFI/")
+path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
 path_errors <- paste0(path_main, "/QAQC/")
 ```
 
@@ -173,7 +173,7 @@ graph_Trees_data %>%
          MethodData_TagNo %in% c(badtags_Species)) %>% 
   arrange(SampleEvent_Date) %>% 
   ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_TagNo)) +
-  geom_line(aes(group = MethodData_TagNo, color = MethodData_LocalSpeciesSymbol), size = 2) +
+  geom_line(aes(group = MethodData_TagNo, color = Species_SymbolLocal), size = 2) +
   geom_point(aes(fill = MethodData_Status), shape = 21, size = 4) +
   scale_fill_manual(values = c("L" = "forestgreen", "D" = "darkorange", "DD" = "red")) +
   scale_x_continuous(
@@ -201,11 +201,11 @@ Live trees should only increase DBH. Dead trees should only decrease DBH.
 graph_Trees_data %>% 
   filter(Macroplot_Name == target_plot,
          MethodData_TagNo %in% c(badtags_DBH)
-         # !is.na(MethodData_DBH_cm),
+         # !is.na(MethodData_DBH),
          # MethodData_Status != "DD") 
          ) %>% 
   arrange(SampleEvent_Date) %>% 
-  ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_DBH_cm)) +
+  ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_DBH)) +
   geom_line(aes(group = MethodData_TagNo, color = MethodData_TagNo), size = 1) +
   geom_point(aes(fill = MethodData_Status), shape = 21, size = 4) +
   scale_fill_manual(values=c("L" = "forestgreen", "D" = "darkorange")) +
@@ -235,10 +235,10 @@ Live trees should only increase in height. Dead trees should only decrease in he
 graph_Trees_data %>% 
   filter(Macroplot_Name == target_plot,
          MethodData_TagNo %in% c(badtags_Height),
-         !is.na(MethodData_Ht_m),
+         !is.na(MethodData_Ht),
          MethodData_Status != "DD") %>% 
   arrange(SampleEvent_Date) %>% 
-  ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_Ht_m)) +
+  ggplot(aes(x = SampleEvent_Date_Year, y = MethodData_Ht)) +
   geom_line(aes(group = MethodData_TagNo, color = MethodData_TagNo), size = 1) +
   geom_point(aes(fill = MethodData_Status), shape = 21, size = 4) +
   scale_fill_manual(values=c("L" = "forestgreen", "D" = "darkorange")) +

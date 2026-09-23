@@ -19,7 +19,7 @@ output:
 
 This code is intended to quality check plot metadata, including the Macroplot Report and Sample Event Report, which have been cleaned using the Clean+Merge.Rmd script.
 
--   MetadataReport.csv
+- MetadataReport.csv
 
 ## Before Starting {.hidden}
 
@@ -83,7 +83,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "Error")
 ```{r target values, include=FALSE}
 # designate target park(s)
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO", "NERI", "PRWI", "RICH", "SARA", "SHEN", "VAFO")
-target_park <- "NERI"
+target_park <- "SHEN"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -91,7 +91,7 @@ target_park <- "NERI"
 ```{r file paths, include=FALSE}
 # adjust file paths
 path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_Clean/FFI/")
+path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
 path_errors <- paste0(here(), "/output/errors/")
 path_errors_name <- paste0(target_park, " Metadata QAQC Errors")
 ```
@@ -117,7 +117,7 @@ MetadataReport <- MetadataReport_all %>%
 
 [Procedure:]{.underline}
 
--   Check that Macroplot is not blank and has correct naming convention. Plots should have a 2-digit number associated with it (e.g. Plot 01, Plot 02, Plot 03, etc.)
+- Check that Macroplot is not blank and has correct naming convention. Plots should have a 2-digit number associated with it (e.g. Plot 01, Plot 02, Plot 03, etc.)
 
 ```{r}
 # Set parameters 
@@ -133,7 +133,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_MacroplotNum <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Purpose is not blank and is written correctly ("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Inventory & Monitoring").
+- Check that Purpose is not blank and is written correctly ("Fire Monitoring Handbook", "Composite Burn Index", "Rapid Assessment", "Inventory & Monitoring").
 
 ```{r}
 # Set parameters 
@@ -148,7 +148,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_Purpose <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Type is one of the available options ("Forest", "Grassland", "Shrubland", "CBI", "Control", "Inventory", "Measured", "Other", "RA")
+- Check that Type is one of the available options ("Forest", "Grassland", "Shrubland", "CBI", "Control", "Inventory", "Measured", "Other", "RA")
 
 ```{r}
 # Set parameters 
@@ -156,14 +156,14 @@ data <- MetadataReport
 query <- "Macroplot Report - Installation"
 query_message <- "Type" 
 values_data <- data$Macroplot_Type
-values_valid <- c("Forest", "Grassland", "Shrubland", "CBI", "Control", "Inventory", "Measured", "Other", "RA")
+values_valid <- c("Forest", "Grassland", "Shrubland", "CBI", "Control", "Inventory", "Measured", "Other", "RA", "Fuels")
 values_check <- values_data %in% values_valid
 
 # Identify errors
 errors_MacroplotReport_Type <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that DateIn is not blank
+- Check that DateIn is not blank
 
 ```{r}
 # Set parameters 
@@ -199,7 +199,7 @@ if(nrow(errors_MacroplotReport_Installation) > 1) {
 
 [Procedure:]{.underline}
 
--   Check that Latitude is not blank
+- Check that Latitude is not blank
 
 ```{r}
 # Set parameters 
@@ -214,7 +214,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_Latitude <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Longitude is not blank
+- Check that Longitude is not blank
 
 ```{r}
 # Set parameters 
@@ -229,7 +229,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_Longitude <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that UTM_X (easting) has 6 digits
+- Check that UTM_X (easting) has 6 digits
 
 ```{r}
 # Set parameters 
@@ -245,7 +245,7 @@ values_check <- values_data == values_valid
 errors_MacroplotReport_UTM_X <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that UTM_Y (northing) has 7 digits
+- Check that UTM_Y (northing) has 7 digits
 
 ```{r}
 # Set parameters 
@@ -261,7 +261,7 @@ values_check <- values_data == values_valid
 errors_MacroplotReport_UTM_Y <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that UTM_Zone = 17, 18, or 19
+- Check that UTM_Zone = 17, 18, or 19
 
 ```{r}
 # Set parameters 
@@ -276,7 +276,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_UTM_Zone <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Datum = NAD83 or NAD27
+- Check that Datum = NAD83 or NAD27
 
 ```{r}
 # Set parameters 
@@ -312,7 +312,7 @@ if(nrow(errors_MacroplotReport_Location) > 1) {
 
 [Procedure:]{.underline}
 
--   Check that Elevation is not blank
+- Check that Elevation is not blank
 
 ```{r}
 # Set parameters
@@ -327,7 +327,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_Elevation <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that ElevationUnits = feet
+- Check that ElevationUnits = feet
 
 ```{r}
 # Set parameters
@@ -342,7 +342,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_ElevationUnits <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Azimuth values are reasonable
+- Check that Azimuth values are reasonable
 
 ```{r}
 # Set parameters
@@ -357,7 +357,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_Azimuth <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Aspect values are reasonable
+- Check that Aspect values are reasonable
 
 ```{r}
 # Set parameters
@@ -372,7 +372,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_Aspect <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that SlopeHill values are reasonable. Slope is measured in percent, where a 45 degree angle is 100% slope. Slope should generally not exceed 50%.
+- Check that SlopeHill values are reasonable. Slope is measured in percent, where a 45 degree angle is 100% slope. Slope should generally not exceed 50%.
 
 ```{r}
 # Set parameters
@@ -387,7 +387,7 @@ values_check <- values_data %in% values_valid
 errors_MacroplotReport_SlopeHill <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that SlopeTransect values are reasonable. Slope is measured in percent, where a 45 degree angle is 100% slope. Slope should generally not exceed 50%.
+- Check that SlopeTransect values are reasonable. Slope is measured in percent, where a 45 degree angle is 100% slope. Slope should generally not exceed 50%.
 
 ```{r}
 # Set parameters
@@ -423,7 +423,7 @@ if(nrow(errors_MacroplotReport_SiteCharacteristics) > 1) {
 
 [Procedure:]{.underline}
 
--   Check that Macroplot is not blank
+- Check that Macroplot is not blank
 
 ```{r}
 # Set parameters 
@@ -438,7 +438,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_Macroplot <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that SampleEventDate is not blank
+- Check that SampleEventDate is not blank
 
 ```{r}
 # Set parameters 
@@ -453,7 +453,7 @@ values_check <- values_data != values_valid
 errors_MacroplotReport_SampleEventDate <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that MonitoringStatus is not blank
+- Check that MonitoringStatus is not blank
 
 ```{r}
 # Set parameters 
@@ -495,7 +495,7 @@ errors_MacroplotReport <- rbind(errors_MacroplotReport_Installation, errors_Macr
 
 [Procedure:]{.underline}
 
--   Check that AdminUnit_Name is correct
+- Check that AdminUnit_Name is correct
 
 ```{r}
 # Set parameters 
@@ -510,7 +510,7 @@ values_check <- values_data == values_valid
 errors_SampleEventReport_AdminUnit <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Protocols contains the correct information
+- Check that Protocols contains the correct information
 
 ```{r}
 # Set parameters 
@@ -539,7 +539,7 @@ values_check <- values_data %in% values_valid
 errors_SampleEventReport_ProtocolsPost <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that Visited = Y for each relevant monitoring status (excluding disturbance events: Burn, Herbicide, Mow, Mechanical)
+- Check that Visited = Y for each relevant monitoring status (excluding disturbance events: Burn, Herbicide, Mow, Mechanical)
 
 ```{r}
 # Set parameters 

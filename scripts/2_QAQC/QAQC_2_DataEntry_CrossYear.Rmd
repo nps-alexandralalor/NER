@@ -19,10 +19,10 @@ output:
 
 This code is intended to quality check plot data across all years for protocols listed below. These protocols have been cleaned using the Clean+Merge.Rmd script.
 
--   Surface Fuels - 1000Hr
--   Surface Fuels - Duff_Litter
--   Surface Fuels - Fine
--   Trees - Individuals (metric)
+- Surface Fuels - 1000Hr
+- Surface Fuels - Duff_Litter
+- Surface Fuels - Fine
+- Trees - Individuals (metric)
 
 ## Before Starting {.hidden}
 
@@ -70,7 +70,7 @@ source(paste0(here(), "/scripts/2_QAQC/qaqc_function.R"))
 # designate target values
 # parks with fuels or trees data
 # parks <- c("ANTI", "APCO", "CATO", "CUVA", "FRSP", "NERI", "PRWI", "RICH", "SHEN")
-target_park <- "NERI"
+target_park <- "SHEN"
 ```
 
 ### Adjust File Paths {.hidden}
@@ -78,7 +78,7 @@ target_park <- "NERI"
 ```{r file paths, include=FALSE}
 # adjust file paths
 path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_Clean/FFI/")
+path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
 path_errors <- paste0(here(), "/output/errors/")
 path_errors_name <- paste0(target_park, " Cross Year Errors")
 ```
@@ -138,25 +138,25 @@ max_Ht <- 2
 
 ### Fuel Azimuth Columns
 
--   Azimuth_Count = How many unique azimuths have been recorded for each transect?
+- Azimuth_Count = How many unique azimuths have been recorded for each transect?
 
--   Azimuth_Change = Has azimuth changed over time? if Azimuth_Count \> 1, Azimuth_Change = Y.
+- Azimuth_Change = Has azimuth changed over time? if Azimuth_Count \> 1, Azimuth_Change = Y.
 
--   AzimuthDiff = What is the difference between azimuth values?
+- AzimuthDiff = What is the difference between azimuth values?
 
 ```{r}
 # Find data with multiple azimuths
 FuelsFine_data_CrossYear_Azimuth <- FuelsFine_data_CrossYear %>% 
   group_by(Macroplot_Name, MethodData_Transect) %>% 
-  mutate(Azimuth_Count = n_distinct(unique(MethodData_Azimuth_deg))) %>% 
+  mutate(Azimuth_Count = n_distinct(unique(MethodData_Azimuth))) %>% 
   ungroup() %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Transect)
 
 data_temp_merge_Azimuth <- FuelsFine_data_CrossYear_Azimuth %>% 
   filter(Azimuth_Count > 1) %>%
   group_by(Macroplot_Name, MethodData_Transect) %>% 
-  mutate(AzimuthDiff = max(MethodData_Azimuth_deg - min(MethodData_Azimuth_deg)),
-         Azimuth_Change = ifelse(duplicated(MethodData_Azimuth_deg), "N", "Y")) %>%
+  mutate(AzimuthDiff = max(MethodData_Azimuth - min(MethodData_Azimuth)),
+         Azimuth_Change = ifelse(duplicated(MethodData_Azimuth), "N", "Y")) %>%
   filter(Azimuth_Change == "Y") %>%
   unique()
 
@@ -165,9 +165,9 @@ remove(FuelsFine_data_CrossYear_Azimuth)
 
 ### Fuel Constant Columns
 
--   FuConSt_Count = How many unique fuel constants have been recorded for each plot?
+- FuConSt_Count = How many unique fuel constants have been recorded for each plot?
 
--   FuConSt_Change = Has the fuel constant changed over time? if FuConSt_Count \> 1, FuConSt_Change = Y.
+- FuConSt_Change = Has the fuel constant changed over time? if FuConSt_Count \> 1, FuConSt_Change = Y.
 
 ```{r}
 # Find data with multiple fuel constants
@@ -227,9 +227,9 @@ remove(FuelsDuffLitt_data_CrossYear_FuConSt)
 
 ### Fuel Slope Columns
 
--   Slope_Count = How many unique slopes have been recorded for each transect?
+- Slope_Count = How many unique slopes have been recorded for each transect?
 
--   Slope_Change = Has slope changed over time? if Slope_Count \> 1, Slope_Change = Y.
+- Slope_Change = Has slope changed over time? if Slope_Count \> 1, Slope_Change = Y.
 
 ```{r}
 # Find data with multiple slopes
@@ -237,14 +237,14 @@ remove(FuelsDuffLitt_data_CrossYear_FuConSt)
 # Fuel 1000
 Fuels1000_data_CrossYear_Slope <- Fuels1000_data_CrossYear %>% 
   group_by(Macroplot_Name, MethodData_Transect) %>% 
-  mutate(Slope_Count = n_distinct(unique(abs(MethodData_Slope_pct)))) %>% 
+  mutate(Slope_Count = n_distinct(unique(abs(MethodData_Slope)))) %>% 
   ungroup() %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Transect)
 
 data_temp_merge_Slope_Fuels1000 <- Fuels1000_data_CrossYear_Slope %>% 
   filter(Slope_Count > 1) %>%
   group_by(Macroplot_Name, MethodData_Transect) %>% 
-  mutate(Slope_Change = ifelse(duplicated(MethodData_Slope_pct), "N", "Y")) %>%
+  mutate(Slope_Change = ifelse(duplicated(MethodData_Slope), "N", "Y")) %>%
   filter(Slope_Change == "Y") %>%
   unique()
 
@@ -255,14 +255,14 @@ remove(Fuels1000_data_CrossYear_Slope)
 # Fuel Fine
 FuelsFine_data_CrossYear_Slope <- FuelsFine_data_CrossYear %>% 
   group_by(Macroplot_Name, MethodData_Transect) %>% 
-  mutate(Slope_Count = n_distinct(unique(abs(MethodData_Slope_pct)))) %>% 
+  mutate(Slope_Count = n_distinct(unique(abs(MethodData_Slope)))) %>% 
   ungroup() %>% 
   arrange(Macroplot_Name, SampleEvent_Date, MethodData_Transect)
 
 data_temp_merge_Slope_FuelsFine <- FuelsFine_data_CrossYear_Slope %>% 
   filter(Slope_Count > 1) %>%
   group_by(Macroplot_Name, MethodData_Transect) %>% 
-  mutate(Slope_Change = ifelse(duplicated(MethodData_Slope_pct), "N", "Y")) %>%
+  mutate(Slope_Change = ifelse(duplicated(MethodData_Slope), "N", "Y")) %>%
   filter(Slope_Change == "Y") %>%
   unique()
 
@@ -271,30 +271,30 @@ remove(FuelsFine_data_CrossYear_Slope)
 
 ### Tree DBH Columns
 
--   MinDBH = What is the smallest recorded DBH of each individual **dead** tree?
+- MinDBH = What is the smallest recorded DBH of each individual **dead** tree?
 
--   MinDBHDate = What date was the smallest DBH recorded?
+- MinDBHDate = What date was the smallest DBH recorded?
 
--   MinDBHDiff = What is the size difference between the smallest recorded DBH, and the sample event DBH?
+- MinDBHDiff = What is the size difference between the smallest recorded DBH, and the sample event DBH?
 
--   MaxDBH = What is the largest recorded DBH of each individual **live** tree?
+- MaxDBH = What is the largest recorded DBH of each individual **live** tree?
 
--   MaxDBHDate = What date was the largest DBH recorded?
+- MaxDBHDate = What date was the largest DBH recorded?
 
--   MaxDBHDiff = What is the size difference between the largest recorded DBH, and the sample event DBH?
+- MaxDBHDiff = What is the size difference between the largest recorded DBH, and the sample event DBH?
 
 ```{r}
 data_temp_DBH <- Trees_data_CrossYear %>% 
   filter(MethodData_Status == "D",
-         !is.na(MethodData_DBH_cm)) %>% 
+         !is.na(MethodData_DBH)) %>% 
   group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
-  mutate(MinDBH = min(MethodData_DBH_cm),
-         MinDBHDiff = MethodData_DBH_cm - MinDBH) %>% 
+  mutate(MinDBH = min(MethodData_DBH),
+         MinDBHDiff = MethodData_DBH - MinDBH) %>% 
   ungroup() %>% 
   arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 data_temp_MinDBHDate <- data_temp_DBH %>% 
-  filter(MethodData_DBH_cm == MinDBH) %>% 
+  filter(MethodData_DBH == MinDBH) %>% 
   group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
   mutate(MinDBHDate = min(SampleEvent_Date)) %>% 
   select(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac, MinDBHDate) %>% 
@@ -306,15 +306,15 @@ data_temp_merge_DeadDBH <- merge(data_temp_DBH, data_temp_MinDBHDate, all = T)
 
 data_temp_DBH <- Trees_data_CrossYear %>% 
   filter(MethodData_Status == "L",
-         !is.na(MethodData_DBH_cm)) %>% 
+         !is.na(MethodData_DBH)) %>% 
   group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
-  mutate(MaxDBH = max(MethodData_DBH_cm),
-         MaxDBHDiff = MaxDBH - MethodData_DBH_cm) %>% 
+  mutate(MaxDBH = max(MethodData_DBH),
+         MaxDBHDiff = MaxDBH - MethodData_DBH) %>% 
   ungroup() %>% 
   arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 data_temp_MaxDBHDate <- data_temp_DBH %>% 
-  filter(MethodData_DBH_cm == MaxDBH) %>% 
+  filter(MethodData_DBH == MaxDBH) %>% 
   group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
   mutate(MaxDBHDate = max(SampleEvent_Date)) %>% 
   select(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac, MaxDBHDate) %>% 
@@ -330,30 +330,30 @@ remove(data_temp_merge_DeadDBH, data_temp_merge_LiveDBH, data_temp_DBH, data_tem
 
 ### Tree Height Columns
 
--   MinHeight= What is the shortest recorded Height of each individual **dead** tree?
+- MinHeight= What is the shortest recorded Height of each individual **dead** tree?
 
--   MinHeightDate = What date was the shortest Height recorded?
+- MinHeightDate = What date was the shortest Height recorded?
 
--   MinHeightDiff = What is the size difference between the shortest recorded Height, and the sample event Height?
+- MinHeightDiff = What is the size difference between the shortest recorded Height, and the sample event Height?
 
--   MaxHeight = What is the tallest recorded Height of each individual **live** tree?
+- MaxHeight = What is the tallest recorded Height of each individual **live** tree?
 
--   MaxHeightDate = What date was the tallest Height recorded?
+- MaxHeightDate = What date was the tallest Height recorded?
 
--   MaxHeightDiff = What is the size difference between the tallest recorded Height, and the sample event Height?
+- MaxHeightDiff = What is the size difference between the tallest recorded Height, and the sample event Height?
 
 ```{r}
 data_temp_Height <- Trees_data_CrossYear %>% 
   filter(MethodData_Status == "D",
-         !is.na(MethodData_Ht_m)) %>% 
+         !is.na(MethodData_Ht)) %>% 
   group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
-  mutate(MinHeight = min(MethodData_Ht_m),
-         MinHeightDiff = MethodData_Ht_m - MinHeight) %>% 
+  mutate(MinHeight = min(MethodData_Ht),
+         MinHeightDiff = MethodData_Ht - MinHeight) %>% 
   ungroup() %>% 
   arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 data_temp_MinHeightDate <- data_temp_Height %>% 
-  filter(MethodData_Ht_m == MinHeight) %>% 
+  filter(MethodData_Ht == MinHeight) %>% 
   group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
   mutate(MinHeightDate = min(SampleEvent_Date)) %>% 
   select(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac, MinHeightDate) %>% 
@@ -365,15 +365,15 @@ data_temp_merge_DeadHeight <- merge(data_temp_Height, data_temp_MinHeightDate, a
 
 data_temp_Height <- Trees_data_CrossYear %>% 
   filter(MethodData_Status == "L",
-         !is.na(MethodData_Ht_m)) %>% 
+         !is.na(MethodData_Ht)) %>% 
   group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
-  mutate(MaxHeight = max(MethodData_Ht_m),
-         MaxHeightDiff = MaxHeight - MethodData_Ht_m) %>% 
+  mutate(MaxHeight = max(MethodData_Ht),
+         MaxHeightDiff = MaxHeight - MethodData_Ht) %>% 
   ungroup() %>% 
   arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 data_temp_MaxHeightDate <- data_temp_Height %>% 
-  filter(MethodData_Ht_m == MaxHeight) %>% 
+  filter(MethodData_Ht == MaxHeight) %>% 
   group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
   mutate(MaxHeightDate = max(SampleEvent_Date)) %>% 
   select(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac, MaxHeightDate) %>% 
@@ -389,19 +389,19 @@ remove(data_temp_merge_DeadHeight, data_temp_merge_LiveHeight, data_temp_Height,
 
 ### Tree Species Columns
 
--   Species_Count = How many unique species have been recorded for each individual tree? Count \> 1 means that the tree has changed species.
+- Species_Count = How many unique species have been recorded for each individual tree? Count \> 1 means that the tree has changed species.
 
 ```{r}
 Trees_data_CrossYear_Species <- Trees_data_CrossYear %>% 
   group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
-  mutate(Species_Count = n_distinct(unique(MethodData_LocalSpeciesSymbol))) %>% 
+  mutate(Species_Count = n_distinct(unique(Species_SymbolLocal))) %>% 
   ungroup() %>% 
   arrange(MethodData_TagNo, Macroplot_Name, SampleEvent_Date, MethodData_SubFrac)
 
 data_temp_Species <- Trees_data_CrossYear_Species %>% 
   filter(Species_Count > 1) %>% 
   group_by(MethodData_TagNo, Macroplot_Name, MethodData_SubFrac) %>% 
-  mutate(Species_Change = ifelse(duplicated(MethodData_LocalSpeciesSymbol), "N", "Y")) %>% 
+  mutate(Species_Change = ifelse(duplicated(Species_SymbolLocal), "N", "Y")) %>% 
   filter(Species_Change == "Y") %>% 
   unique()
 
@@ -411,13 +411,13 @@ remove(Trees_data_CrossYear_Species, data_temp_Species)
 
 ### Tree Status Columns
 
--   Status_Count = How many unique statuses have been recorded for each individual tree? Count of 1 means that the tree has been alive or dead for the entirety of data collection. Count of 2 means that the tree has been both alive and dead.
+- Status_Count = How many unique statuses have been recorded for each individual tree? Count of 1 means that the tree has been alive or dead for the entirety of data collection. Count of 2 means that the tree has been both alive and dead.
 
--   MinDeadDate = What date was the tree first recorded as Dead?
+- MinDeadDate = What date was the tree first recorded as Dead?
 
--   MinLiveDate = What date was the tree first recorded as Live?
+- MinLiveDate = What date was the tree first recorded as Live?
 
--   MaxLiveDate = What date was the tree last recorded as Live?
+- MaxLiveDate = What date was the tree last recorded as Live?
 
 ```{r}
 Trees_data_CrossYear_Status <- Trees_data_CrossYear %>% 
@@ -469,9 +469,9 @@ remove(Trees_data_CrossYear_Status, data_temp_Status_AllDead, data_temp_Status_S
 
 This code conducts cross-year quality control checks on 2 surface fuels datasets:
 
--   coarse woody debris (CWD) surface fuels data within the "Surface Fuels - 1000Hr" data set
+- coarse woody debris (CWD) surface fuels data within the "Surface Fuels - 1000Hr" data set
 
--   fine woody debris (FWD) surface fuels data within the "Surface Fuels - Fine" data set.
+- fine woody debris (FWD) surface fuels data within the "Surface Fuels - Fine" data set.
 
 It checks for errors in: Azimuth, Fuel Constant, and Slope consistency across years.
 
@@ -499,14 +499,14 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "MethodData_
 
 [Procedure:]{.underline}
 
--   Filter to exclude a certain threshold where the difference in azimuth is not a concern. Verify azimuths which differ over time.
+- Filter to exclude a certain threshold where the difference in azimuth is not a concern. Verify azimuths which differ over time.
 
 ```{r}
 # Set parameters 
 data <- merge(FuelsFine_data_CrossYear, data_temp_merge_Azimuth, all = T) %>% 
   filter(AzimuthDiff >= max_Azimuth)
 query <- "Fuel Fine Azimuth" 
-query_message <- paste0("Azimuth = ", data$MethodData_Azimuth_deg, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Conflicting azimuths")
+query_message <- paste0("Azimuth = ", data$MethodData_Azimuth, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Conflicting azimuths")
 values_data <- data$Azimuth_Change
 values_valid <- "Y"
 values_check <- (values_data != values_valid) %>% replace_na(TRUE)
@@ -533,7 +533,7 @@ errors_FuelsFine_CrossYear_Azimuth <- errors_FuelsFine_CrossYear_Azimuth %>%
 
 [Procedure:]{.underline}
 
--   Fuel constants factor into fuel loading calculations. Verify fuel constants which differ over time.
+- Fuel constants factor into fuel loading calculations. Verify fuel constants which differ over time.
 
 #### Fuel 1000 {.hidden}
 
@@ -622,7 +622,7 @@ errors_FuelsDuffLitt_CrossYear_FuConSt <- errors_FuelsDuffLitt_CrossYear_FuConSt
 
 [Procedure:]{.underline}
 
--   Slopes factor into fuel loading calculations. Verify slopes which change over time.
+- Slopes factor into fuel loading calculations. Verify slopes which change over time.
 
 #### Fuel 1000 {.hidden}
 
@@ -630,7 +630,7 @@ errors_FuelsDuffLitt_CrossYear_FuConSt <- errors_FuelsDuffLitt_CrossYear_FuConSt
 # Set parameters 
 data <- merge(Fuels1000_data_CrossYear, data_temp_merge_Slope_Fuels1000, all = T)
 query <- "Fuel 1000 Slope" 
-query_message <- paste0("Slope = ", data$MethodData_Slope_pct, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Conflicting slopes")
+query_message <- paste0("Slope = ", data$MethodData_Slope, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Conflicting slopes")
 values_data <- data$Slope_Change
 values_valid <- "Y"
 values_check <- (values_data != values_valid) %>% replace_na(TRUE)
@@ -657,7 +657,7 @@ errors_Fuels1000_CrossYear_Slope <- errors_Fuels1000_CrossYear_Slope %>%
 # Set parameters 
 data <- merge(FuelsFine_data_CrossYear, data_temp_merge_Slope_FuelsFine, all = T)
 query <- "Fuel Fine Slope" 
-query_message <- paste0("Slope = ", data$MethodData_Slope_pct, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Conflicting slopes")
+query_message <- paste0("Slope = ", data$MethodData_Slope, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Conflicting slopes")
 values_data <- data$Slope_Change
 values_valid <- "Y"
 values_check <- (values_data != values_valid) %>% replace_na(TRUE)
@@ -725,14 +725,14 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Macroplot_Name", "MethodData_
 
 [Procedure:]{.underline}
 
--   Filter for Status = L. Filter to exclude a certain threshold where the difference in DBH is not a concern. Remaining entries should include all DBHs that are smaller than the maximum DBH.
+- Filter for Status = L. Filter to exclude a certain threshold where the difference in DBH is not a concern. Remaining entries should include all DBHs that are smaller than the maximum DBH.
 
--   We are concerned with live trees which decrease in DBH while they are still alive. Ensure that each sample event date is *earlier* than the date with the largest recorded DBH (**MaxDBHDate**).
+- We are concerned with live trees which decrease in DBH while they are still alive. Ensure that each sample event date is *earlier* than the date with the largest recorded DBH (**MaxDBHDate**).
 
 ```{r}
 # Set parameters 
 data <- merge(Trees_data_CrossYear, data_temp_merge_DBH, all = T) %>% 
-  filter(MethodData_Status == "L", !is.na(MethodData_DBH_cm),
+  filter(MethodData_Status == "L", !is.na(MethodData_DBH),
          # set threshold of concern
          MaxDBHDiff >= max_DBH)
 query <- "Trees DBH" 
@@ -751,14 +751,14 @@ errors_Trees_CrossYear_DBH_Live <- qaqc(data, query, query_message, values_check
 
 [Procedure:]{.underline}
 
--   Filter for Status = D. Filter to exclude a certain threshold where the difference in DBH is not a concern. Remaining entries should include all DBHs that are larger than the minimum DBH.
+- Filter for Status = D. Filter to exclude a certain threshold where the difference in DBH is not a concern. Remaining entries should include all DBHs that are larger than the minimum DBH.
 
--   We are concerned with dead trees which increase DBH post-death. Ensure that each sample event date is *earlier* than the date with the smallest recorded DBH (**MinDBHDate**).
+- We are concerned with dead trees which increase DBH post-death. Ensure that each sample event date is *earlier* than the date with the smallest recorded DBH (**MinDBHDate**).
 
 ```{r}
 # Set parameters 
 data <- merge(Trees_data_CrossYear, data_temp_merge_DBH, all = T) %>% 
-  filter(MethodData_Status == "D", !is.na(MethodData_DBH_cm),
+  filter(MethodData_Status == "D", !is.na(MethodData_DBH),
          # set threshold of concern
          MinDBHDiff >= max_DBH)
 query <- "Trees DBH" 
@@ -779,14 +779,14 @@ errors_Trees_CrossYear_DBH_Dead <- qaqc(data, query, query_message, values_check
 
 [Procedure:]{.underline}
 
--   Filter for Status = L. Filter to exclude a certain threshold where the difference in Height is not a concern. Remaining entries should include all Heights that are shorter than the maximum Height.
+- Filter for Status = L. Filter to exclude a certain threshold where the difference in Height is not a concern. Remaining entries should include all Heights that are shorter than the maximum Height.
 
--   We are concerned with live trees which decrease in Height over time. Ensure that each sample event date is *earlier* than the date with the tallest recorded Height (**MaxHeightDate**).
+- We are concerned with live trees which decrease in Height over time. Ensure that each sample event date is *earlier* than the date with the tallest recorded Height (**MaxHeightDate**).
 
 ```{r}
 # Set parameters 
 data <- merge(Trees_data_CrossYear, data_temp_merge_Height, all = T) %>% 
-  filter(MethodData_Status == "L", !is.na(MethodData_Ht_m),
+  filter(MethodData_Status == "L", !is.na(MethodData_Ht),
          # set threshold of concern
          MaxHeightDiff >= max_Ht)
 query <- "Trees Height" 
@@ -805,14 +805,14 @@ errors_Trees_CrossYear_Height_Live <- qaqc(data, query, query_message, values_ch
 
 [Procedure:]{.underline}
 
--   Filter for Status = D. Filter to exclude a certain threshold where the difference in Height is not a concern. Remaining entries should include all Heights that are taller than the minimum Height.
+- Filter for Status = D. Filter to exclude a certain threshold where the difference in Height is not a concern. Remaining entries should include all Heights that are taller than the minimum Height.
 
--   We are concerned with dead trees which increase in Height over time. Ensure that each sample event date is *earlier* than the date with the shortest recorded Height (**MinHeightDate**).
+- We are concerned with dead trees which increase in Height over time. Ensure that each sample event date is *earlier* than the date with the shortest recorded Height (**MinHeightDate**).
 
 ```{r}
 # Set parameters 
 data <- merge(Trees_data_CrossYear, data_temp_merge_Height, all = T) %>% 
-  filter(MethodData_Status == "D", !is.na(MethodData_Ht_m),
+  filter(MethodData_Status == "D", !is.na(MethodData_Ht),
          # set threshold of concern
          MinHeightDiff >= max_Ht)
 query <- "Trees Height" 
@@ -833,13 +833,13 @@ errors_Trees_CrossYear_Height_Dead <- qaqc(data, query, query_message, values_ch
 
 [Procedure:]{.underline}
 
--   Isolate rows which have more than 1 entry for Species.Symbol for each individual tree, and the earliest date when each species was recorded.
+- Isolate rows which have more than 1 entry for Species.Symbol for each individual tree, and the earliest date when each species was recorded.
 
 ```{r}
 # Set parameters 
 data <- merge(Trees_data_CrossYear, data_temp_merge_Species, all = T)
 query <- "Trees Species" 
-query_message <- paste0("Species = ", data$MethodData_LocalSpeciesSymbol, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Species change")
+query_message <- paste0("Species = ", data$Species_SymbolLocal, ". ", "Earliest date = ", data$SampleEvent_Date, ". ", "Species change")
 values_data <- data$Species_Change
 values_valid <- "Y"
 values_check <- (values_data != values_valid) %>%  replace_na(TRUE)
@@ -868,7 +868,7 @@ errors_Trees_CrossYear_Species <- errors_Trees_CrossYear_Species_1 %>%
 
 [Procedure:]{.underline}
 
--   Filter for Status = L. Check that the sample event date is not later than the death date.
+- Filter for Status = L. Check that the sample event date is not later than the death date.
 
 ```{r}
 # Set parameters 
