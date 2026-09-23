@@ -12,7 +12,7 @@ output:
     code_download: true
 ---
 
-# Purpose
+# PURPOSE
 
 This code is intended to combine data depot exports from multiple parks into a single file.
 
@@ -41,25 +41,26 @@ parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO
 ### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
-path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
+#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
 path_main_data <- paste0(path_main, "Exports/DataDepot/")
 path_main_save <- paste0(path_main, "Exports_Clean/DataDepot/")
 ```
 
-# Metadata
+# METADATA
 
 ## Macroplots
 
 ```{r metadata, warning=FALSE}
-path_temp <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/Exports_Clean/FFI/"
-# load data
-temp_df <- read.csv(paste0(path_temp, "all_metadata.csv"))
-
-# convert data
-final_df <- temp_df
-  
-# save file
-write.csv(final_df, paste0(path_main_save, "all_metadata.csv"), row.names = FALSE)
+# path_temp <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/Exports_Clean/FFI/"
+# # load data
+# temp_df <- read.csv(paste0(path_temp, "all_metadata.csv"))
+# 
+# # convert data
+# final_df <- temp_df
+# 
+# # save file
+# write.csv(final_df, paste0(path_main_save, "all_metadata.csv"), row.names = FALSE)
 ```
 
 ## Project Units
@@ -75,7 +76,6 @@ final_df <- NULL
   for(i in parks) {
     # select target park
     target_park <- i
-    
     
     # adjust file paths
     path_data <- paste0(path_main_data, target_park, "/Metric_ffi_", target_park, "_data_export/")
@@ -98,7 +98,7 @@ final_df <- NULL
       # remove line breaks
       mutate(across(where(is.character), ~ gsub("[\r\n]+", " ", .))) %>% 
       # add column
-      add_column(AdminUnit_Name = target_park, .before = 1)
+      add_column(AdminUnit_Name = target_park, .before = 5)
     ## replace commas with semicolons
     temp_df[] <- lapply(temp_df, function(x) gsub(",", ";", x))
     ## replace double quotes with single quotes
@@ -113,6 +113,14 @@ final_df <- NULL
 write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
 
 }
+
+ProjectUnits_merge <- final_df %>%
+  filter(
+    ProjectUnit_Name != "ALL",
+    AdminUnit_Name != "ANTI"
+  ) %>%
+  select(AdminUnitId, SampleEventId, ProjectUnit_Name, MonitoringStatus_Name, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order) %>%
+  distinct()
 ```
 
 ## Species
@@ -171,7 +179,7 @@ for (p in protocols) {
 }
 ```
 
-# Protocols
+# PROTOCOLS
 
 ```{r protocols, warning=FALSE}
 protocols <- c(
@@ -254,6 +262,15 @@ for (p in protocols) {
   
   names(final_df) <- sub("\\..*", "", names(final_df))
   
+  final_df <- merge(ProjectUnits_merge, final_df, by = c("AdminUnitId","SampleEventId"), all.y = TRUE) %>%
+    relocate(ProjectUnit_Name, .after = AdminUnit_Comment) %>%
+    relocate(MonitoringStatus_Name, .after = SampleEvent_LegacyMonitoringStatus) %>%
+    relocate(MonitoringStatus_Prefix, .after = MonitoringStatus_Name) %>%
+    relocate(MonitoringStatus_Base, .after = MonitoringStatus_Prefix) %>%
+    relocate(MonitoringStatus_Suffix, .after = MonitoringStatus_Base) %>%
+    relocate(MonitoringStatus_Order, .after = MonitoringStatus_Suffix) %>%
+    arrange(AdminUnit_Name, ProjectUnit_Name, Macroplot_Name, SampleEvent_Date)
+  
   # save file
   if (nrow(final_df) > 0) {
     write.csv(final_df, paste0(path_save, p, ".csv"), quote = FALSE, row.names = FALSE)
@@ -324,6 +341,15 @@ for (p in protocols) {
     )
   
   names(final_df) <- sub("\\..*", "", names(final_df))
+  
+  final_df <- merge(ProjectUnits_merge, final_df, by = c("AdminUnitId","SampleEventId"), all.y = TRUE) %>%
+    relocate(ProjectUnit_Name, .after = AdminUnit_Comment) %>%
+    relocate(MonitoringStatus_Name, .after = SampleEvent_LegacyMonitoringStatus) %>%
+    relocate(MonitoringStatus_Prefix, .after = MonitoringStatus_Name) %>%
+    relocate(MonitoringStatus_Base, .after = MonitoringStatus_Prefix) %>%
+    relocate(MonitoringStatus_Suffix, .after = MonitoringStatus_Base) %>%
+    relocate(MonitoringStatus_Order, .after = MonitoringStatus_Suffix) %>%
+    arrange(AdminUnit_Name, ProjectUnit_Name, Macroplot_Name, SampleEvent_Date)
   
   # save file
   if (nrow(final_df) > 0) {
