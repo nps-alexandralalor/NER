@@ -79,7 +79,8 @@ parks <- c("ANTI", "APCO", "CATO", "CUVA", "DEWA", "FRSP", "GATE", "GETT", "MONO
 ### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
-path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
+#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
 path_main_data <- paste0(path_main, "Exports/FFI/")
 path_save <- paste0(path_main, "Exports_Clean/FFI/")
 ```
@@ -290,12 +291,12 @@ for(i in parks) {
         #Species_MasterSpeciesId = # not on species report
         #Species_AuxSpeciesId = # not on species report
         #Species_LocalSpeciesId = # not on species report
-        Species_AdminUnitName = ReportType,
+        #Species_AdminUnitName = ReportType,
         #Species_OrganizationName = # not on species report
         #Species_MasterOrUserLocal = # not on species report
         Species_ITISTaxonomicSerialNumber = MasterSpecies_ITIS_TSN,
-        Species_LocalSpeciesSymbol = LocalSpecies_Symbol,
-        #Species_Symbol = # not on species report
+        Species_SymbolLocal = LocalSpecies_Symbol,
+        #Species_SymbolMaster = # not on species report
         Species_ScientificName = MasterSpecies_ScientificName,
         #Species_CommonName = # not on species report
         Species_CommonNameLocal = LocalSpecies_CommonName,
@@ -431,7 +432,7 @@ for(i in parks) {
       Species_ScientificName = ScientificName,
       Species_NativityLocal = Native.Species,
       Species_Invasive = Invasive.Species,
-      MethodData_RemoteApp_LocalSpeciesSymbol = Species.Symbol,
+      Species_SymbolLocal = Species.Symbol,
       MethodData_NumTran = NumTran,
       MethodData_TranLen = TranLen,
       MethodData_NumPtsTran = NumPtsTran,
@@ -548,7 +549,7 @@ for(i in parks) {
       Species_ScientificName = ScientificName,
       Species_NativityLocal = Native.Species,
       Species_Invasive = Invasive.Species,
-      MethodData_RemoteApp_LocalSpeciesSymbol = Species.Symbol,
+      Species_SymbolLocal = Species.Symbol,
       MethodData_MinCovLevel = MinCovLevel,
       MethodData_Area = Area,
       MethodData_FieldTeam = FieldTeam,
@@ -663,7 +664,7 @@ for(i in parks) {
       Species_ScientificName = ScientificName,
       Species_NativityLocal = Native.Species,
       Species_Invasive = Invasive.Species,
-      MethodData_RemoteApp_LocalSpeciesSymbol = Species.Symbol,
+      Species_SymbolLocal = Species.Symbol,
       MethodData_NumTran = NumTran,
       MethodData_NumSubbelt = NumSubbelt,
       MethodData_TranLen = TranLen,
@@ -782,7 +783,7 @@ for(i in parks) {
       Species_ScientificName = ScientificName,
       Species_NativityLocal = Native.Species,
       Species_Invasive = Invasive.Species,
-      MethodData_RemoteApp_LocalSpeciesSymbol = Species.Symbol,
+      Species_SymbolLocal = Species.Symbol,
       MethodData_NumTran = NumTran,
       MethodData_NumQuadTran = NumQuadTran,
       MethodData_QuadLen = QuadLen,
@@ -1240,7 +1241,7 @@ for(i in parks) {
       Species_ScientificName = ScientificName,
       Species_NativityLocal = Native.Species,
       Species_Invasive = Invasive.Species,
-      MethodData_RemoteApp_LocalSpeciesSymbol = Species.Symbol,
+      Species_SymbolLocal = Species.Symbol,
       MethodData_MacroPlotSize = MacroPlotSize,
       MethodData_SnagPlotSize = SnagPlotSize,
       MethodData_BrkPntDia = BrkPntDia,
