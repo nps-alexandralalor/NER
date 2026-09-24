@@ -191,10 +191,10 @@ for(i in parks) {
   
   #### Merge Macroplot Report and Sample Event Report
   MetadataReport <- merge(MacroplotReport_merge, SampleEventReport_merge, by = c("Macroplot_Name", "SampleEvent_Date")) %>%
-    relocate(AdminUnit_Name, .before = Macroplot_Name) %>%
-    relocate(ProjectUnit_Name, .after = Purpose) %>%
+    relocate(AdminUnit_Name, .before = Purpose) %>%
     relocate(Type, .after = Purpose) %>% 
-    relocate(Macroplot_Name, .after = Type) %>%
+    relocate(ProjectUnit_Name, .after = Type) %>%
+    relocate(Macroplot_Name, .after = ProjectUnit_Name) %>%
     relocate(SampleEvent_Date, .after = SampleEvent_Visited) %>%
     relocate(MonitoringStatus_Name, .after = SampleEvent_LegacyMonitoringStatus) %>%
     relocate(LocatedBy, .before = StartPoint)
