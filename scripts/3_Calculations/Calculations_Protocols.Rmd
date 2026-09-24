@@ -3,12 +3,6 @@ title: FFI Database Calculations
 subtitle: Northeast Region
 author: Alexandra Lalor
 output:
-  word_document:
-    toc: true
-    toc_depth: 2
-  pdf_document:
-    toc: true
-    toc_depth: 2
   html_document:
     theme: readable
     highlight: null
@@ -19,7 +13,11 @@ output:
     code_download: true
 ---
 
-# BEFORE STARTING
+# PURPOSE
+
+This code is for adding columns for graphing and reporting.
+
+## Before Starting
 
 ### Setup {.hidden}
 
@@ -45,9 +43,10 @@ library(fs)
 ### Adjust File Paths
 
 ```{r file paths, include=FALSE}
-path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_Clean/FFI/")
-path_save <- paste0(path_main, "Exports_Reporting/FFI/")
+path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
+#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
+path_save <- paste0(path_main, "Exports_Reporting/DataDepot/")
 ```
 
 ### Load Data {.hidden}
@@ -64,7 +63,6 @@ HerbsPoints <- read.csv(paste0(path_data, "metric_cover_points.csv"))
 HerbsSpComp <- read.csv(paste0(path_data, "metric_cover_species_composition.csv"))
 
 # PostBurn <- read.csv(paste0(path_data, "metric_post_burn_severity.csv"))
-# Shrubs <- read.csv(paste0(path_data, "metric_density_belts.csv"))
 
 SpeciesReport <- read.csv(paste0(path_data, "all_species_info.csv"))
 ```
@@ -74,25 +72,25 @@ SpeciesReport <- read.csv(paste0(path_data, "all_species_info.csv"))
 ```{r}
 Substrates <- SpeciesReport %>%
   filter(Species_LifeFormNameLocal == "Undefined")
-Substrates <- unique(Substrates$Species_LocalSpeciesSymbol)
+Substrates <- unique(Substrates$Species_SymbolLocal)
   
 Unknowns_MysteryPlants <- SpeciesReport %>%
   filter(Species_LifeFormNameLocal == "Unknown")
-Unknowns_MysteryPlants <- unique(Unknowns_MysteryPlants$Species_LocalSpeciesSymbol)
+Unknowns_MysteryPlants <- unique(Unknowns_MysteryPlants$Species_SymbolLocal)
 
 Unknowns_LifeFormOnly <- SpeciesReport %>%
   filter(!Species_LifeFormNameLocal %in% c("Undefined", "Unknown"),
          is.na(Species_Family) & is.na(Species_Genus))
-Unknowns_LifeFormOnly <- unique(Unknowns_LifeFormOnly$Species_LocalSpeciesSymbol)
+Unknowns_LifeFormOnly <- unique(Unknowns_LifeFormOnly$Species_SymbolLocal)
 
 Unknowns_FamilyOnly <- SpeciesReport %>%
   filter(!Species_LifeFormNameLocal %in% c("Undefined", "Unknown"),
          !is.na(Species_Family) & is.na(Species_Genus) & is.na(Species_ScientificName))
-Unknowns_FamilyOnly <- unique(Unknowns_FamilyOnly$Species_LocalSpeciesSymbol)
+Unknowns_FamilyOnly <- unique(Unknowns_FamilyOnly$Species_SymbolLocal)
 
 Unknowns_GenusOnly <- SpeciesReport %>%
   filter(Species_ScientificName == Species_Genus)
-Unknowns_GenusOnly <- unique(Unknowns_GenusOnly$Species_LocalSpeciesSymbol)
+Unknowns_GenusOnly <- unique(Unknowns_GenusOnly$Species_SymbolLocal)
 
 
 Unknowns <- c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly, Unknowns_GenusOnly)
@@ -131,21 +129,27 @@ for (name in df_names) {
   filtered_df <- current_df %>% 
     mutate(Species_NativityLocal = toupper(Species_NativityLocal),
            Species_Invasive = toupper(Species_Invasive)) %>% 
-    mutate(Species_Nativity = ifelse(MethodData_LocalSpeciesSymbol %in% Unknowns & Species_NativityLocal == "FALSE" & Species_Invasive == "FALSE", "Unknown",
+    mutate(Species_NativityStatus = ifelse(Species_SymbolLocal %in% Unknowns & Species_NativityLocal %in% c("FALSE","F") & Species_Invasive %in% c("FALSE","F"), "Unknown",
                                    ifelse(Species_LifeFormNameLocal == "Undefined", "Substrate",
-                                          ifelse(Species_NativityLocal == "TRUE", "Native",
-                                                 ifelse(Species_Invasive == "TRUE", "Invasive", "Nonnative")))))
+                                          ifelse(Species_NativityLocal %in% c("TRUE","T"), "Native",
+                                                 ifelse(Species_Invasive %in% c("TRUE","T"), "Invasive", "Nonnative")))))
   
     # rename and save
   assign(name, filtered_df)
 }
 ```
 
+### Columns Keep
+
+```{r}
+columns_keep <- c("AdminUnit_Name","Macroplot_Purpose","Macroplot_Type","Macroplot_UV1","Macroplot_UV2","Macroplot_UV3","Macroplot_UV4","Macroplot_UV5","Macroplot_UV6","Macroplot_UV7","Macroplot_UV8","Macroplot_Name","MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order","SampleEvent_TreatmentUnit","SampleEvent_Date","SampleEvent_Date_Year")
+```
+
 # Fuels
 
 ## Fuels 1000
 
-```{r calculate fuel loads, include=FALSE}
+```{r calculate fuel loads thousand hour, include=FALSE}
 # -------------------------- #
 # ---- 1,000-Hour Fuels ---- #
 # -------------------------- #
@@ -159,7 +163,7 @@ calculate_coarse_fuels <- function(fuels_df) {
     mutate(
       MethodData_Transect = suppressWarnings(as.numeric(MethodData_Transect)),
       MethodData_DecayCl = suppressWarnings(as.numeric(MethodData_DecayCl)),
-      MethodData_Dia_in = suppressWarnings(as.numeric(MethodData_Dia_in))
+      MethodData_Dia = suppressWarnings(as.numeric(MethodData_Dia))
       )
   
   # ---- Step 2: Compute per-log contributions ---- #
@@ -175,10 +179,10 @@ calculate_coarse_fuels <- function(fuels_df) {
       # s_sound = 0.4,
       # s_rotten = 0.3,
       # conversion_factor = 11.64,
-      D2 = MethodData_Dia_in^2,
+      D2 = MethodData_Dia^2,
       s = if_else(MethodData_DecayCl == 3, s_sound, s_rotten),
-      slope_correction = sqrt(1 + (MethodData_Slope_pct / 100)^2),
-      Load = (conversion_factor * D2 * s * a * slope_correction) / MethodData_TranLen_ft,
+      slope_correction = sqrt(1 + (MethodData_Slope / 100)^2),
+      Load = (conversion_factor * D2 * s * a * slope_correction) / MethodData_TranLen,
       Load_Adjusted = Load / MethodData_NumTran
     )
 
@@ -186,7 +190,7 @@ calculate_coarse_fuels <- function(fuels_df) {
   loads_per_transect <- fuels_processed %>% 
    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, MethodData_Transect) %>% 
     dplyr::reframe(
-      MethodData_ThousHrTranLen_ft  = MethodData_TranLen_ft,
+      MethodData_ThousHrTranLen     = MethodData_TranLen,
       MethodData_ThousHrSound       = sum((MethodData_DecayCl == 3), na.rm = TRUE),
       MethodData_ThousHrRott        = sum((MethodData_DecayCl == 4), na.rm = TRUE),
       MethodData_ThousHr            = sum((MethodData_DecayCl %in% c(3,4)), na.rm = TRUE),
@@ -199,18 +203,18 @@ calculate_coarse_fuels <- function(fuels_df) {
   
   # ---- Step 3B: Create full grid of expected transects per plot/year ---- #
   all_transects <- fuels_df %>%
-    select(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, MethodData_NumTran, MethodData_Transect, MethodData_TranLen_ft) %>% 
+    select(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, MethodData_NumTran, MethodData_Transect, MethodData_TranLen) %>% 
     group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>%
     tidyr::uncount(weights = MethodData_NumTran, .id = "MethodData_Transect") %>%
     mutate(MethodData_Transect = suppressWarnings(as.numeric(MethodData_Transect))) %>% 
-    dplyr::rename(MethodData_ThousHrTranLen_ft = MethodData_TranLen_ft) %>% 
+    dplyr::rename(MethodData_ThousHrTranLen = MethodData_TranLen) %>% 
     unique()
   
   
   # ---- Step 5C: Bring zeros back in for missing decay classes ---- #
   fuel_by_transect <- all_transects %>%
     left_join(loads_per_transect,
-              by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "MethodData_Transect", "MethodData_ThousHrTranLen_ft")) %>%
+              by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "MethodData_Transect", "MethodData_ThousHrTranLen")) %>%
     mutate(
       MethodData_ThousHrSound  = replace_na(MethodData_ThousHrSound, 0),
       MethodData_ThousHrRott   = replace_na(MethodData_ThousHrRott, 0),
@@ -228,7 +232,7 @@ calculate_coarse_fuels <- function(fuels_df) {
 
 ## Fuels Duff Litter
 
-```{r calculate fuel loads, include=FALSE}
+```{r calculate fuel loads duff litt, include=FALSE}
 # -------------------------------------- #  
 # ---- Litter and Duff Measurements ---- #
 # -------------------------------------- #
@@ -255,8 +259,8 @@ calculate_litterduff <- function(fuels_df) {
   transect_means <- fuels_df %>%
     group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, MethodData_Transect, MethodData_NumTran) %>% 
     dplyr::reframe(
-      Tran_LittDep = mean(MethodData_LittDep_in, na.rm = TRUE),
-      Tran_DuffDep = mean(MethodData_DuffDep_in, na.rm = TRUE)
+      Tran_LittDep = mean(MethodData_LittDep, na.rm = TRUE),
+      Tran_DuffDep = mean(MethodData_DuffDep, na.rm = TRUE)
     ) %>%
     mutate(
       Tran_LittDep = ifelse(is.nan(Tran_LittDep), 0, Tran_LittDep),
@@ -306,7 +310,7 @@ calculate_litterduff <- function(fuels_df) {
 
 ## Fuels Fine
 
-```{r calculate fuel loads, include=FALSE}
+```{r calculate fuel loads fine, include=FALSE}
 # ------------------------------------- #
 # ---- Fine Fuels (1,10,100-Hours) ---- #
 # ------------------------------------- #
@@ -324,10 +328,10 @@ calculate_fine_fuels <- function(fuels_df) {
       s_1hr_10hr = 0.48,
       s_100hr = 0.40,
       a = 1.13,
-      c = sqrt(1 + (MethodData_Slope_pct / 100)^2),
-      OneHr_FuelLoad = (11.64 * MethodData_OneHr * d2_1hr   * s_1hr_10hr * a * c) / MethodData_OneHrTranLen_ft,
-      TenHr_FuelLoad = (11.64 * MethodData_TenHr * d2_10hr  * s_1hr_10hr * a * c) / MethodData_TenHrTranLen_ft,
-      HunHr_FuelLoad = (11.64 * MethodData_HunHr * d2_100hr * s_100hr    * a * c) / MethodData_HunHrTranLen_ft,
+      c = sqrt(1 + (MethodData_Slope / 100)^2),
+      OneHr_FuelLoad = (11.64 * MethodData_OneHr * d2_1hr   * s_1hr_10hr * a * c) / MethodData_OneHrTranLen,
+      TenHr_FuelLoad = (11.64 * MethodData_TenHr * d2_10hr  * s_1hr_10hr * a * c) / MethodData_TenHrTranLen,
+      HunHr_FuelLoad = (11.64 * MethodData_HunHr * d2_100hr * s_100hr    * a * c) / MethodData_HunHrTranLen,
       Fine_FuelLoad = OneHr_FuelLoad + TenHr_FuelLoad + HunHr_FuelLoad
     )
 
@@ -350,7 +354,7 @@ FuelsDuffLitt_sum <- calculate_litterduff(FuelsDuffLitt)
 FuelsFine_sum <- calculate_fine_fuels(FuelsFine)
 ```
 
-```{r combine dataframes, include=FALSE}
+```{r combine dataframes fuels, include=FALSE}
 # ============================================================= #
 # ==== Join 1-100-hr, litter-duff, and 1,000-hr dataframes ==== #
 # ============================================================= #
@@ -358,7 +362,7 @@ FuelsFine_sum <- calculate_fine_fuels(FuelsFine)
 Fuels_calc <- FuelsFine_sum %>%
   dplyr::full_join(FuelsDuffLitt_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "MethodData_Transect")) %>% 
   dplyr::full_join(Fuels1000_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "MethodData_Transect")) %>% 
-  relocate(MethodData_ThousHrTranLen_ft, .after = MethodData_HunHrTranLen_ft) %>% 
+  relocate(MethodData_ThousHrTranLen, .after = MethodData_HunHrTranLen) %>% 
   relocate(MethodData_ThousHrSound, .after = MethodData_HunHr) %>% 
   relocate(MethodData_ThousHrRott, .after = MethodData_ThousHrSound) %>% 
   relocate(MethodData_ThousHr, .after = MethodData_ThousHrRott)
@@ -386,11 +390,11 @@ calculate_trees_dens <- function(trees_df) {
     mutate(
       Hectar = (MethodData_SubFrac * 1000) / 10000,
       Acre = Hectar * 2.47105,
-      SizeCl = if_else(MethodData_DBH_cm < 15.0, "Pole", "Overstory"),
-      Ht_m = MethodData_Ht_m,
-      Ht_ft = round((MethodData_Ht_m * 3.28084), 2),
-      DBH_cm = MethodData_DBH_cm,
-      DBH_in = round((MethodData_DBH_cm * 0.39370079), 2),
+      SizeCl = if_else(MethodData_DBH < 15.0, "Pole", "Overstory"),
+      Ht_m = MethodData_Ht,
+      Ht_ft = round((MethodData_Ht * 3.28084), 2),
+      DBH_cm = MethodData_DBH,
+      DBH_in = round((MethodData_DBH * 0.39370079), 2),
       BA_m2 = pi * (DBH_cm / 200)^2,
       BA_ft2 = pi *((DBH_in / 12)/2)^2
     )
@@ -407,7 +411,7 @@ calculate_trees_dens <- function(trees_df) {
       Avg_Pole_Dia_cm = round(mean(DBH_cm), 1),
       Avg_Pole_Dia_in = round(mean(DBH_in), 1),
       Pole_Count = n_distinct(MethodData_TagNo),
-      #Pole_Species = paste(na.omit(unique(MethodData_LocalSpeciesSymbol)), collapse = "; "),
+      #Pole_Species = paste(na.omit(unique(Species_SymbolLocal)), collapse = "; "),
       Pole_Dens_ha = round(Pole_Count / Hectar),
       Pole_Dens_ac = round(Pole_Count / Acre),
       Pole_BA_m2 = round((sum(BA_m2)/Hectar), 2),
@@ -423,7 +427,7 @@ calculate_trees_dens <- function(trees_df) {
       Avg_Overstory_Dia_cm = round(mean(DBH_cm), 1),
       Avg_Overstory_Dia_in = round(mean(DBH_in), 1),
       Overstory_Count = n_distinct(MethodData_TagNo),
-      #Overstory_Species = paste(na.omit(unique(MethodData_LocalSpeciesSymbol)), collapse = "; "),
+      #Overstory_Species = paste(na.omit(unique(Species_SymbolLocal)), collapse = "; "),
       Overstory_Dens_ha = round(Overstory_Count / Hectar),
       Overstory_Dens_ac = round(Overstory_Count / Acre),
       Overstory_BA_m2 = round((sum(BA_m2)/Hectar), 2),
@@ -469,8 +473,8 @@ calculate_seedlings_dens <- function(seedlings_df) {
   # ---- Step 1: Compute per-transect fuel load ---- #
   plot_level <- seedlings_df %>%
     mutate(
-      SizeCl = if_else(MethodData_Height_m <= 4, "Seedling (< 1m ht)", "Sapling (> 1m ht)"),
-      Area = MethodData_QuadLen_m * MethodData_QuadWid_m,
+      SizeCl = if_else(MethodData_Height <= 4, "Seedling (< 1m ht)", "Sapling (> 1m ht)"),
+      Area = MethodData_QuadLen * MethodData_QuadWid,
       Hectar = Area / 10000,
       Acre = Hectar * 2.47105
     ) %>% 
@@ -486,7 +490,7 @@ calculate_seedlings_dens <- function(seedlings_df) {
     group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_Genus, Species_ScientificName, MethodData_Status) %>% 
     dplyr::reframe(
       Seedling_Count = sum(MethodData_Count),
-      #Seedling_Species = paste(na.omit(unique(MethodData_LocalSpeciesSymbol)), collapse = "; "),
+      #Seedling_Species = paste(na.omit(unique(Species_SymbolLocal)), collapse = "; "),
       Seedling_Dens_ha = round(Seedling_Count / Hectar),
       Seedling_Dens_ac = round(Seedling_Count / Acre)
     ) %>% 
@@ -497,7 +501,7 @@ calculate_seedlings_dens <- function(seedlings_df) {
     group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_Genus, Species_ScientificName, MethodData_Status) %>% 
     dplyr::reframe(
       Sapling_Count = sum(MethodData_Count),
-      #Sapling_Species = paste(na.omit(unique(MethodData_LocalSpeciesSymbol)), collapse = "; "),
+      #Sapling_Species = paste(na.omit(unique(Species_SymbolLocal)), collapse = "; "),
       Sapling_Dens_ha = round(Sapling_Count / Hectar),
       Sapling_Dens_ac = round(Sapling_Count / Acre)
     ) %>% 
@@ -527,46 +531,44 @@ calculate_seedlings_dens <- function(seedlings_df) {
 
 ```{r}
 Trees_meta <- Trees %>% 
-  select(1:20, Species_Genus, Species_ScientificName, MethodData_Status) %>% 
+  select(all_of(columns_keep), Species_Genus, Species_ScientificName, MethodData_Status) %>% 
   unique()
 Seedlings_meta <- Seedlings %>%
-  select(1:20, Species_Genus, Species_ScientificName, MethodData_Status) %>%
+  select(all_of(columns_keep), Species_Genus, Species_ScientificName, MethodData_Status) %>%
   unique()
 
 Trees_sum <- calculate_trees_dens(Trees)
 Seedlings_sum <- calculate_seedlings_dens(Seedlings)
 ```
 
-```{r combine dataframes, include=FALSE}
+```{r combine dataframes trees, include=FALSE}
 Trees_calc <- Trees_meta %>% 
   dplyr::full_join(Trees_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_Genus", "Species_ScientificName", "MethodData_Status")) %>% 
   unique()
-
 
 Seedlings_calc <- Seedlings_meta %>% 
   dplyr::full_join(Seedlings_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_Genus", "Species_ScientificName", "MethodData_Status")) %>% 
   unique()
 
-
 Trees_all_calc <-  Trees_calc %>% 
-  dplyr::full_join(Seedlings_calc, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_UV1", "Macroplot_UV2", "Macroplot_UV3", "Macroplot_UV4", "Macroplot_UV5", "Macroplot_UV6", "Macroplot_UV7", "Macroplot_UV8", "Macroplot_Name", "MonitoringStatus_Name", "MonitoringStatus_Prefix", "MonitoringStatus_Base", "MonitoringStatus_Suffix", "MonitoringStatus_Order", "SampleEvent_TreatmentUnit", "SampleEvent_Date", "SampleEvent_Date_Year", "Species_Genus", "Species_ScientificName", "MethodData_Status")) %>% 
+  dplyr::full_join(Seedlings_calc, by = c(columns_keep, "Species_Genus", "Species_ScientificName", "MethodData_Status")) %>% 
   mutate(
-      Seedling_Count     = replace_na(Seedling_Count, 0),
-      Seedling_Dens_ha   = replace_na(Seedling_Dens_ha, 0),
-      Seedling_Dens_ac   = replace_na(Seedling_Dens_ac, 0),
-      Sapling_Count      = replace_na(Sapling_Count, 0),
-      Sapling_Dens_ha    = replace_na(Sapling_Dens_ha, 0),
-      Sapling_Dens_ac    = replace_na(Sapling_Dens_ac, 0),
-      Pole_Count         = replace_na(Pole_Count, 0),
-      Pole_Dens_ha       = replace_na(Pole_Dens_ha, 0),
-      Pole_Dens_ac       = replace_na(Pole_Dens_ac, 0),
-      Pole_BA_m2         = replace_na(Pole_BA_m2, 0),
-      Pole_BA_ft2        = replace_na(Pole_BA_ft2, 0),
-      Overstory_Count    = replace_na(Overstory_Count, 0),
-      Overstory_Dens_ha  = replace_na(Overstory_Dens_ha, 0),
-      Overstory_Dens_ac  = replace_na(Overstory_Dens_ac, 0),
-      Overstory_BA_m2    = replace_na(Overstory_BA_m2, 0),
-      Overstory_BA_ft2   = replace_na(Overstory_BA_ft2, 0)
+    Seedling_Count     = replace_na(Seedling_Count, 0),
+    Seedling_Dens_ha   = replace_na(Seedling_Dens_ha, 0),
+    Seedling_Dens_ac   = replace_na(Seedling_Dens_ac, 0),
+    Sapling_Count      = replace_na(Sapling_Count, 0),
+    Sapling_Dens_ha    = replace_na(Sapling_Dens_ha, 0),
+    Sapling_Dens_ac    = replace_na(Sapling_Dens_ac, 0),
+    Pole_Count         = replace_na(Pole_Count, 0),
+    Pole_Dens_ha       = replace_na(Pole_Dens_ha, 0),
+    Pole_Dens_ac       = replace_na(Pole_Dens_ac, 0),
+    Pole_BA_m2         = replace_na(Pole_BA_m2, 0),
+    Pole_BA_ft2        = replace_na(Pole_BA_ft2, 0),
+    Overstory_Count    = replace_na(Overstory_Count, 0),
+    Overstory_Dens_ha  = replace_na(Overstory_Dens_ha, 0),
+    Overstory_Dens_ac  = replace_na(Overstory_Dens_ac, 0),
+    Overstory_BA_m2    = replace_na(Overstory_BA_m2, 0),
+    Overstory_BA_ft2   = replace_na(Overstory_BA_ft2, 0)
   )
 ```
 
@@ -586,12 +588,12 @@ UniqueSpecies_HerbsPoints <- HerbsPoints %>%
   group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>%
   filter(MethodData_Status == "L",
          !(is.na(Species_ScientificName))) %>% 
-  distinct(Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity)
+  distinct(Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_NativityStatus)
 
 UniqueSpecies_HerbsSpComp <- HerbsSpComp %>% 
   group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>%
   filter(!is.na(Species_ScientificName)) %>% 
-  distinct(Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity)
+  distinct(Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_NativityStatus)
 
 # identify species found in HerbsSpComp but not in HerbsPoints
 UniqueSpecies_missing <- anti_join(UniqueSpecies_HerbsSpComp, UniqueSpecies_HerbsPoints)
@@ -618,12 +620,12 @@ calculate_Points_cover <- function(cover_df) {
   ## ------------- By Species ------------ ##
   plot_level_species <- cover_df %>% 
     mutate(MethodData_NumPtsTran = ifelse(MethodData_NumPtsTran == 0, 100, MethodData_NumPtsTran)) %>% 
-    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>% 
+    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_NativityStatus) %>% 
     dplyr::reframe(
-      #Species = paste(na.omit(unique(MethodData_LocalSpeciesSymbol)), collapse = "; "),
+      #Species = paste(na.omit(unique(Species_SymbolLocal)), collapse = "; "),
       Hits = n(),
       PctCover = round(((Hits / (MethodData_NumPtsTran * MethodData_NumTran)) * 100), 1),
-      Avg_Ht_m = round(mean(MethodData_Height_m, na.rm = TRUE), 2),
+      Avg_Ht_m = round(mean(MethodData_Height, na.rm = TRUE), 2),
       Avg_Ht_ft = round((Avg_Ht_m * 3.28084), 1)
       ) %>% 
     mutate(
@@ -636,12 +638,12 @@ calculate_Points_cover <- function(cover_df) {
   
   # ---- Step 2: COMBINE ---- #
   plot_level_merge <- cover_df %>%
-    select(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>%
+    select(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_NativityStatus) %>%
     unique()
   
   plot_level_sum <- plot_level_merge %>% 
     # full_join(plot_level, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name")) %>% 
-    full_join(plot_level_species, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_Nativity"))
+    full_join(plot_level_species, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_NativityStatus"))
   
 }
 ```
@@ -668,7 +670,7 @@ calculate_SpComp_cover <- function(cover_df) {
   #   )
   # 
   # plot_level_species <- UniqueSpecies_HerbsSpComp %>%
-  #   group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>%
+  #   group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_NativityStatus) %>%
   #   dplyr::reframe(
   #     Hits = 0,
   #     PctCover = 0.1,
@@ -679,13 +681,13 @@ calculate_SpComp_cover <- function(cover_df) {
   # 
   #   # ---- Step 2: COMBINE ---- #
   # plot_level_merge <- cover_df %>%
-  #   select(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>%
+  #   select(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_NativityStatus) %>%
   #   unique()
   # 
   # 
   # plot_level_sum <- plot_level_merge %>% 
   #   full_join(plot_level, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name")) %>% 
-  #   full_join(plot_level_species, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_Nativity"))
+  #   full_join(plot_level_species, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_NativityStatus"))
   
 }
 ```
@@ -699,29 +701,29 @@ HerbsSpComp_sum <- calculate_SpComp_cover(HerbsSpComp)
 
 ```{r}
 Cover_Points_meta <- HerbsPoints %>% 
-  select(1:20, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>%
+  select(all_of(columns_keep), Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_NativityStatus) %>%
   unique()
 
 Cover_SpComp_meta <- HerbsSpComp %>%
-  select(1:20, Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_Nativity) %>%
+  select(all_of(columns_keep), Species_LifeFormNameLocal, Species_Genus, Species_ScientificName, Species_NativityStatus) %>%
   unique()
 
 Cover_Points_calc <- Cover_Points_meta %>%
-  dplyr::full_join(HerbsPoints_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_Nativity"))
+  dplyr::full_join(HerbsPoints_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_NativityStatus"))
 
 Cover_SpComp_calc <- Cover_SpComp_meta %>%
-  dplyr::full_join(HerbsSpComp_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_Nativity"))
+  dplyr::full_join(HerbsSpComp_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_NativityStatus"))
 ```
 
 ```{r}
 Cover_all_merge <- Cover_Points_calc %>% 
-  dplyr::full_join(Cover_SpComp_calc, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_UV1", "Macroplot_UV2", "Macroplot_UV3", "Macroplot_UV4", "Macroplot_UV5", "Macroplot_UV6", "Macroplot_UV7", "Macroplot_UV8", "Macroplot_Name", "MonitoringStatus_Name", "MonitoringStatus_Prefix", "MonitoringStatus_Base", "MonitoringStatus_Suffix", "MonitoringStatus_Order", "SampleEvent_TreatmentUnit", "SampleEvent_Date", "SampleEvent_Date_Year", "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_Nativity")) %>% 
+  dplyr::full_join(Cover_SpComp_calc, by = c(columns_keep, "Species_LifeFormNameLocal", "Species_Genus", "Species_ScientificName", "Species_NativityStatus")) %>% 
   arrange(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, SampleEvent_Date, Species_ScientificName) %>% 
-    mutate(
-      Hits       = replace_na(Hits, 0),
-      PctCover   = replace_na(PctCover, 0.1),
-      Avg_Ht_m   = replace_na(Avg_Ht_m, 0),
-      Avg_Ht_ft  = replace_na(Avg_Ht_ft, 0)
+  mutate(
+    Hits       = replace_na(Hits, 0),
+    PctCover   = replace_na(PctCover, 0.1),
+    Avg_Ht_m   = replace_na(Avg_Ht_m, 0),
+    Avg_Ht_ft  = replace_na(Avg_Ht_ft, 0)
   )
 
 
