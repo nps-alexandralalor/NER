@@ -2,12 +2,6 @@
 title: FFI Database Calculations
 author: NPS Northeast Region Fire Effects Monitoring Program
 output:
-  word_document:
-    toc: true
-    toc_depth: 2
-  pdf_document:
-    toc: true
-    toc_depth: 2
   html_document:
     theme: readable
     highlight: null
@@ -22,8 +16,8 @@ output:
 
 This code is for adding columns to metadata for graphing and reporting.
 
--   all_metadata.csv
--   all_species_info.csv
+- all_metadata.csv
+- all_species_info.csv
 
 ## Before Starting {.hidden}
 
@@ -52,9 +46,10 @@ library(fs)
 ### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
-path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_Clean/FFI/")
-path_save <- paste0(path_main, "Exports_Reporting/FFI/")
+path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
+#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
+path_save <- paste0(path_main, "Exports_Reporting/DataDepot/")
 ```
 
 ### Load Data {.hidden}
@@ -67,45 +62,43 @@ SpeciesReport <- read.csv(paste0(path_data, "all_species_info.csv"))
 ### Define Codes
 
 ```{r}
+zone_WFS <- c("APCO", "FRSP", "PRWI", "RICH", "SHEN")
 zone_NewEngland <- c("ACAD", "CACO")
 zone_MidAtlantic <- c("DEWA", "GATE", "GETT", "SARA", "VAFO")
 zone_NCA <- c("ANTI", "CATO", "MONO", "PRWI")
 zone_Allegheny <- c("CUVA", "NERI")
 zone_MTTS <- c("APCO", "FRSP", "RICH", "SHEN")
-zone_North <- c(zone_NewEngland, zone_MidAtlantic)
-zone_South <- c(zone_Allegheny, zone_MTTS)
 ```
 
 # Metadata Report
 
 ### Basic Columns
 
--   Region (NER)
+- Region (NER)
 
--   Zone (e.g. South)
+- Zone (e.g. South)
 
--   Unit (e.g. MTTS)
+- Unit (e.g. MTTS)
 
--   Purpose Code (FMH, CBI, RA, I&M)
+- Purpose Code (FMH, CBI, RA, I&M)
 
--   Plot Type combines Purpose and Type (FMH - Forest, FMH - Grassland, ...)
+- Plot Type combines Purpose and Type (FMH - Forest, FMH - Grassland, ...)
 
--   Macroplot_Num (01, 02...)
+- Macroplot_Num (01, 02...)
 
 ```{r}
 MetadataReport_all <- MetadataReport %>% 
   # Region
-  mutate(AdminUnit_Region = ifelse(AdminUnit_Name %in% c(zone_NCA), "NCR", "NER")) %>% 
-  # Zone
-  mutate(AdminUnit_Zone = ifelse(AdminUnit_Name %in% zone_North, "North",
-                       ifelse(AdminUnit_Name %in% zone_South, "South", 
-                              "NCA"))) %>% 
+  mutate(NPS_Region = ifelse(AdminUnit_Name %in% zone_NCA, "NCR", "NER")) %>% 
+  mutate(WFS_Region = ifelse(AdminUnit_Name %in% zone_WFS, "Southern", "Eastern")) %>%
   # Unit
-  mutate(AdminUnit_Unit = ifelse(AdminUnit_Name %in% zone_NewEngland, "NewEngland",
+  mutate(NPS_Unit = ifelse(AdminUnit_Name %in% zone_NewEngland, "NewEngland",
                        ifelse(AdminUnit_Name %in% zone_MidAtlantic, "MidAtlantic",
                               ifelse(AdminUnit_Name %in% zone_Allegheny,"Allegheny",
                                     ifelse(AdminUnit_Name %in% zone_MTTS, "MTTS", 
                                            "NCA"))))) %>%
+  mutate(WFS_Unit = ifelse(AdminUnit_Name %in% zone_WFS, 
+                           "Central Atlantic", "Appalachian Coastal")) %>%
   # Purpose Code
   mutate(Macroplot_PurposeCode = ifelse(Macroplot_Purpose == "Fire Monitoring Handbook", "FMH",
                             ifelse(Macroplot_Purpose == "Inventory & Monitoring", "I&M",
@@ -128,9 +121,10 @@ MetadataReport_all <- MetadataReport %>%
   mutate(SampleEvent_Date = as.Date(SampleEvent_Date)) %>% 
   mutate(SampleEvent_Date_Year = year(SampleEvent_Date)) %>% 
   # Reorganize columns
-  relocate(AdminUnit_Region, .before = AdminUnit_Name) %>% 
-  relocate(AdminUnit_Zone, .before = AdminUnit_Name) %>%
-  relocate(AdminUnit_Unit, .before = AdminUnit_Name) %>% 
+  relocate(NPS_Region, .before = AdminUnit_Name) %>% 
+  relocate(NPS_Unit, .before = AdminUnit_Name) %>% 
+  relocate(WFS_Region, .after = NPS_Region) %>%
+  relocate(WFS_Unit, .after = NPS_Unit) %>%
   relocate(Macroplot_PurposeCode, .after = Macroplot_Purpose) %>% 
   relocate(Macroplot_PurposeType, .after = Macroplot_Type) %>% 
   relocate(Macroplot_DateIn_Year, .after = Macroplot_DateIn) %>% 
@@ -173,11 +167,11 @@ MetadataReport_Reads <- MetadataReport_all %>%
 
 #### MonStatus
 
--   Entry / Prefix (0, 1, 2, 3 , 4...)
+- Entry / Prefix (0, 1, 2, 3 , 4...)
 
--   Status (pre, post)
+- Status (pre, post)
 
--   TimeSince / Suffix (0, 1, 2, 5, 10, 20)
+- TimeSince / Suffix (0, 1, 2, 5, 10, 20)
 
 ```{r}
 MonStatus <- MetadataReport_Reads %>%
@@ -218,9 +212,9 @@ MonStatus <- MonStatus %>%
 
 #### Disturbance
 
--   Disturbance_Type (Burn, Herbicide, Mechanical, Mow)
+- Disturbance_Type (Burn, Herbicide, Mechanical, Mow)
 
--   Disturbance_Year (actual year)
+- Disturbance_Year (actual year)
 
 ```{r}
 Disturbances <- MetadataReport_Disturbances %>% 
@@ -247,19 +241,22 @@ MetadataReport_Reads <- merge(MetadataReport_Reads, MonStatus, by = c("Monitorin
 # Merge all
 MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %>%
   arrange(AdminUnit_Name, Macroplot_Name, SampleEvent_Date)
+  # relocate(AdminUnit_Name, .before = Macroplot_Purpose) |> 
+  # relocate(Macroplot_Name, .after = ProjectUnit_Name) |> 
+  # relocate(SampleEvent_Date, .after = SampleEvent_Visited)
 ```
 
 ### Other? {.hidden}
 
--   Disturbance_Entry (to match with MonStatus)
+- Disturbance_Entry (to match with MonStatus)
 
--   Disturbance_Desc (RX, WF-SUPP, WFU, WF)
+- Disturbance_Desc (RX, WF-SUPP, WFU, WF)
 
--   Disturbance_Name (e.g. Cape Final)
+- Disturbance_Name (e.g. Cape Final)
 
--   Disturbance_Severity (Unaltered, Low, Low/Moderate, Moderate, Moderate/High, High)
+- Disturbance_Severity (Unaltered, Low, Low/Moderate, Moderate, Moderate/High, High)
 
--   FuelType (PIPO, PIED, etc.)
+- FuelType (PIPO, PIED, etc.)
 
 ### Save
 
@@ -274,25 +271,25 @@ write.csv(MetadataReport_all, paste0(path_save, "all_metadata.csv"), quote = FAL
 ```{r}
 Substrates <- SpeciesReport %>%
   filter(Species_LifeFormNameLocal == "Undefined")
-Substrates <- unique(Substrates$Species_LocalSpeciesSymbol)
+Substrates <- unique(Substrates$Species_SymbolLocal)
   
 Unknowns_MysteryPlants <- SpeciesReport %>%
   filter(Species_LifeFormNameLocal == "Unknown")
-Unknowns_MysteryPlants <- unique(Unknowns_MysteryPlants$Species_LocalSpeciesSymbol)
+Unknowns_MysteryPlants <- unique(Unknowns_MysteryPlants$Species_SymbolLocal)
 
 Unknowns_LifeFormOnly <- SpeciesReport %>%
   filter(!Species_LifeFormNameLocal %in% c("Undefined", "Unknown"),
          is.na(Species_Family) & is.na(Species_Genus))
-Unknowns_LifeFormOnly <- unique(Unknowns_LifeFormOnly$Species_LocalSpeciesSymbol)
+Unknowns_LifeFormOnly <- unique(Unknowns_LifeFormOnly$Species_SymbolLocal)
 
 Unknowns_FamilyOnly <- SpeciesReport %>%
   filter(!Species_LifeFormNameLocal %in% c("Undefined", "Unknown"),
          !is.na(Species_Family) & is.na(Species_Genus) & is.na(Species_ScientificName))
-Unknowns_FamilyOnly <- unique(Unknowns_FamilyOnly$Species_LocalSpeciesSymbol)
+Unknowns_FamilyOnly <- unique(Unknowns_FamilyOnly$Species_SymbolLocal)
 
 Unknowns_GenusOnly <- SpeciesReport %>%
   filter(Species_ScientificName == Species_Genus)
-Unknowns_GenusOnly <- unique(Unknowns_GenusOnly$Species_LocalSpeciesSymbol)
+Unknowns_GenusOnly <- unique(Unknowns_GenusOnly$Species_SymbolLocal)
 
 
 
@@ -303,11 +300,14 @@ Unknowns <- c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly
 
 ```{r}
 SpeciesReport_all <- SpeciesReport %>% 
-  mutate(Species_Nativity = ifelse(Species_LocalSpeciesSymbol %in% Unknowns & Species_NativityLocal == "False" & Species_Invasive == "False", "Unknown",
+  # add nativity
+  mutate(Species_NativityLocal = toupper(Species_NativityLocal),
+         Species_Invasive = toupper(Species_Invasive)) %>% 
+  mutate(Species_NativityStatus = ifelse(Species_SymbolLocal %in% Unknowns & Species_NativityLocal %in% c("FALSE","F") & Species_Invasive %in% c("FALSE","F"), "Unknown",
                                    ifelse(Species_LifeFormNameLocal == "Undefined", "Substrate",
-                                          ifelse(Species_NativityLocal == "True", "Native",
-                                                 ifelse(Species_Invasive == "True", "Invasive", "Nonnative"))))) %>% 
-  select(c(AdminUnit_Name, Species_LocalSpeciesSymbol, Species_Family, Species_Genus, Species_ScientificName, Species_CommonNameLocal, Species_LifeFormNameLocal, Species_Nativity, Species_NativityLocal, Species_Invasive, Species_LifeCycleLocal, Species_UV1, Species_UV2, Species_UV3))
+                                          ifelse(Species_NativityLocal %in% c("TRUE","T"), "Native",
+                                                 ifelse(Species_Invasive %in% c("TRUE","T"), "Invasive", "Nonnative"))))) %>% 
+  select(c(AdminUnit_Name, Species_SymbolLocal, Species_Family, Species_Genus, Species_ScientificName, Species_CommonNameLocal, Species_LifeFormNameLocal, Species_NativityStatus, Species_NativityLocal, Species_Invasive, Species_LifeCycleLocal, Species_UV1, Species_UV2, Species_UV3))
 ```
 
 ### Save
