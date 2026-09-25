@@ -15,7 +15,7 @@ output:
 
 # PURPOSE
 
-This code is for adding columns for graphing and reporting.
+This code is for adding columns for graphing and reporting. This will add summary statistics [per plot]{.underline}. It does not summarize across plots, save this step for the reporting script.
 
 ## Before Starting
 
@@ -45,8 +45,8 @@ library(fs)
 ```{r file paths, include=FALSE}
 path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
 #path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
-path_save <- paste0(path_main, "Exports_Reporting/DataDepot/")
+path_data <- paste0(path_main, "Exports_Clean/FFI/")
+path_save <- paste0(path_main, "Exports_Reporting/FFI/")
 ```
 
 ### Load Data {.hidden}
@@ -147,18 +147,19 @@ columns_keep <- c("AdminUnit_Name","Macroplot_Purpose","Macroplot_Type","Macropl
 
 # Fuels
 
-## Fuels 1000
+## Summary Statistics
+
+### Fuels 1000
 
 ```{r calculate fuel loads thousand hour, include=FALSE}
 # -------------------------- #
 # ---- 1,000-Hour Fuels ---- #
 # -------------------------- #
-#fuels_df <- Fuels1000
-# ---- Function to calculate 1000-hr fuels for any park dataset ---- #
-calculate_coarse_fuels <- function(fuels_df) {
 
+# Assign data
+fuels_df <- Fuels1000
 
-  # ---- Step 1: Ensure Transect is numeric BEFORE calculations ---- #
+  # ---- Step 1: Ensure values are numeric before calculations ---- #
   fuels_df <- fuels_df %>% 
     mutate(
       MethodData_Transect = suppressWarnings(as.numeric(MethodData_Transect)),
@@ -166,122 +167,146 @@ calculate_coarse_fuels <- function(fuels_df) {
       MethodData_Dia = suppressWarnings(as.numeric(MethodData_Dia))
       )
   
-  # ---- Step 2: Compute per-log contributions ---- #
-  a <- 1.0
-  s_sound <- 0.4
-  s_rotten <- 0.3
-  conversion_factor <- 11.64
-
-  fuels_processed <- fuels_df %>%
-    filter(MethodData_DecayCl %in% c(3, 4)) %>%
+  # ---- Step 2: Create full grid of expected transects per plot ---- #
+  transect_all <- fuels_df %>%
+    select(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, SampleEvent_Date, MethodData_NumTran, MethodData_TranLen) %>% 
+    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, SampleEvent_Date) %>%
+    # takes total number of trasects and separates into one row per transect
+    tidyr::uncount(weights = MethodData_NumTran, .id = "MethodData_Transect") %>%
+    # make sure transect column is numeric
+    mutate(MethodData_Transect = suppressWarnings(as.numeric(MethodData_Transect))) %>%
+    # rename "TranLen" column into "ThousHrTranLen"
+    dplyr::rename(MethodData_ThousHrTranLen = MethodData_TranLen) %>% 
+    unique()
+  
+  # ---- Step 3: Log-level calculations ---- #
+  log_level <- fuels_df %>%
+    # group all "sound" decay class codes into category 3 
+    # and all "rotten" decay class codes into category 4
+    mutate(MethodData_DecayCl = ifelse(MethodData_DecayCl %in% c(1,2,3), 3, 4)) %>%
+    # calculate fuel loads using fuel constants
     mutate(
-      # a = 1.0,
-      # s_sound = 0.4,
-      # s_rotten = 0.3,
-      # conversion_factor = 11.64,
+      a = 1.0,
+      s_sound = 0.4,
+      s_rotten = 0.3,
+      conversion_factor = 11.64,
       D2 = MethodData_Dia^2,
       s = if_else(MethodData_DecayCl == 3, s_sound, s_rotten),
       slope_correction = sqrt(1 + (MethodData_Slope / 100)^2),
-      Load = (conversion_factor * D2 * s * a * slope_correction) / MethodData_TranLen,
-      Load_Adjusted = Load / MethodData_NumTran
+      Load = (conversion_factor * D2 * s * a * slope_correction) / MethodData_TranLen
+      #,Load_Adjusted = Load / MethodData_NumTran
     )
-
-  # ---- Step 3A: Summarise computed loads (only where logs existed) ---- #
-  loads_per_transect <- fuels_processed %>% 
-   group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, MethodData_Transect) %>% 
+  
+  # ---- Step 4A: Transect-level values ---- #
+  transect_level_step1 <- log_level %>% 
+   group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, SampleEvent_Date, MethodData_Transect) %>% 
     dplyr::reframe(
       MethodData_ThousHrTranLen     = MethodData_TranLen,
       MethodData_ThousHrSound       = sum((MethodData_DecayCl == 3), na.rm = TRUE),
       MethodData_ThousHrRott        = sum((MethodData_DecayCl == 4), na.rm = TRUE),
       MethodData_ThousHr            = sum((MethodData_DecayCl %in% c(3,4)), na.rm = TRUE),
-      ThousHrSound_FuelLoad         = sum(Load[MethodData_DecayCl == 3], na.rm = TRUE),
-      ThousHrRott_FuelLoad          = sum(Load[MethodData_DecayCl == 4], na.rm = TRUE),
-      ThousHr_FuelLoad              = sum(Load, na.rm = TRUE)
-    ) %>%
-    mutate(MethodData_Transect = suppressWarnings(as.numeric(MethodData_Transect)))
+      Tran_ThousHrSound_FuelLoad    = sum(Load[MethodData_DecayCl == 3], na.rm = TRUE),
+      Tran_ThousHrRott_FuelLoad     = sum(Load[MethodData_DecayCl == 4], na.rm = TRUE),
+      Tran_ThousHr_FuelLoad         = sum(Load, na.rm = TRUE)
+    )
   
-  
-  # ---- Step 3B: Create full grid of expected transects per plot/year ---- #
-  all_transects <- fuels_df %>%
-    select(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, MethodData_NumTran, MethodData_Transect, MethodData_TranLen) %>% 
-    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>%
-    tidyr::uncount(weights = MethodData_NumTran, .id = "MethodData_Transect") %>%
-    mutate(MethodData_Transect = suppressWarnings(as.numeric(MethodData_Transect))) %>% 
-    dplyr::rename(MethodData_ThousHrTranLen = MethodData_TranLen) %>% 
-    unique()
-  
-  
-  # ---- Step 5C: Bring zeros back in for missing decay classes ---- #
-  fuel_by_transect <- all_transects %>%
-    left_join(loads_per_transect,
-              by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "MethodData_Transect", "MethodData_ThousHrTranLen")) %>%
+  # ---- Step 4B: Bring zeros back in for transects with no logs ---- #
+  transect_level <- transect_all %>%
+    left_join(transect_level_step1,
+              by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "SampleEvent_Date", "MethodData_ThousHrTranLen", "MethodData_Transect")) %>%
     mutate(
-      MethodData_ThousHrSound  = replace_na(MethodData_ThousHrSound, 0),
-      MethodData_ThousHrRott   = replace_na(MethodData_ThousHrRott, 0),
-      MethodData_ThousHr       = replace_na(MethodData_ThousHr, 0),
-      ThousHrSound_FuelLoad    = replace_na(ThousHrSound_FuelLoad, 0),
-      ThousHrRott_FuelLoad     = replace_na(ThousHrRott_FuelLoad, 0),
-      ThousHr_FuelLoad         = replace_na(ThousHr_FuelLoad, 0)
+      MethodData_ThousHrSound       = replace_na(MethodData_ThousHrSound, 0),
+      MethodData_ThousHrRott        = replace_na(MethodData_ThousHrRott, 0),
+      MethodData_ThousHr            = replace_na(MethodData_ThousHr, 0),
+      Tran_ThousHrSound_FuelLoad    = replace_na(Tran_ThousHrSound_FuelLoad, 0),
+      Tran_ThousHrRott_FuelLoad     = replace_na(Tran_ThousHrRott_FuelLoad, 0),
+      Tran_ThousHr_FuelLoad         = replace_na(Tran_ThousHr_FuelLoad, 0)
     ) %>% 
     unique()
 
-
-  return(fuel_by_transect)
-}
+  
+  # ---- Step 5: Plot-level values---- #
+  plot_level <- transect_level %>%
+    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, SampleEvent_Date) %>%
+    dplyr::reframe(
+      
+      # ---- KEEP TRANSECT FUEL COUNTS ---- #
+      MethodData_Transect            = MethodData_Transect,
+      MethodData_ThousHrTranLen      = MethodData_ThousHrTranLen,
+      MethodData_ThousHrSound        = MethodData_ThousHrSound,
+      MethodData_ThousHrRott         = MethodData_ThousHrRott,
+      MethodData_ThousHr             = MethodData_ThousHr,
+      
+      # ---- KEEP TRANSECT FUEL LOADS ---- #
+      Tran_ThousHrSound_FuelLoad     = Tran_ThousHrSound_FuelLoad,
+      Tran_ThousHrRott_FuelLoad      = Tran_ThousHrRott_FuelLoad,
+      Tran_ThousHr_FuelLoad          = Tran_ThousHr_FuelLoad,
+      
+      # ---- plot-level counts ---- #
+      MethodData_ThousHrSound_Total  = sum((MethodData_ThousHrSound), na.rm = TRUE),
+      MethodData_ThousHrRott_Total   = sum((MethodData_ThousHrRott), na.rm = TRUE),
+      MethodData_ThousHr_Total       = sum((MethodData_ThousHr), na.rm = TRUE),
+      
+      # ---- plot-level fuels ---- #
+      Plot_ThousHrSound_FuelLoad      = mean(Tran_ThousHrSound_FuelLoad, na.rm = TRUE),
+      Plot_ThousHrRott_FuelLoad       = mean(Tran_ThousHrRott_FuelLoad, na.rm = TRUE),
+      Plot_ThousHr_FuelLoad           = mean(Tran_ThousHr_FuelLoad, na.rm = TRUE)
+    )
+  
+  
+  # Summary file
+  Fuels1000_sum <- plot_level
 ```
 
-## Fuels Duff Litter
+### Fuels Duff Litter
 
 ```{r calculate fuel loads duff litt, include=FALSE}
 # -------------------------------------- #  
 # ---- Litter and Duff Measurements ---- #
 # -------------------------------------- #
-#fuels_df <- FuelsDuffLitt
-# ---- Function to calculate litter and duff fuel loads ---- #
-calculate_litterduff <- function(fuels_df) {
- 
+
+# Assign data
+fuels_df <- FuelsDuffLitt
   
-  # ---- Step 1: Ensure Transect is numeric BEFORE calculations ---- #
-  
+  # ---- Step 1: Ensure values are numeric before calculations ---- #
   fuels_df <- fuels_df %>% 
     mutate(
       MethodData_Transect = suppressWarnings(as.numeric(MethodData_Transect))
       )
-  
-  # ================================ #
-  # ==== Bulk density constants ==== #
-  # ================================ #
 
-  #litter_bd <- 2.75 * 1.815 # FFI default bulk density for litter (2.75)
-  #duff_bd   <- 5.5  * 1.815 # FFI default bulk density for duff (5.5)
-  
-  # ---- Step 2: Transect-level averages ---- #
-  transect_means <- fuels_df %>%
-    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, MethodData_Transect, MethodData_NumTran) %>% 
+  # ---- Step 2: Transect-level values ---- #
+  transect_level <- fuels_df %>%
+    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, SampleEvent_Date, MethodData_Transect, MethodData_NumTran) %>% 
+    # calculate average litter/duff depth by transect
     dplyr::reframe(
       Tran_LittDep = mean(MethodData_LittDep, na.rm = TRUE),
       Tran_DuffDep = mean(MethodData_DuffDep, na.rm = TRUE)
     ) %>%
+    # replace empty values with 0
     mutate(
       Tran_LittDep = ifelse(is.nan(Tran_LittDep), 0, Tran_LittDep),
       Tran_DuffDep = ifelse(is.nan(Tran_DuffDep), 0, Tran_DuffDep)
     ) %>% 
-    filter(MethodData_Transect <= MethodData_NumTran) %>%   # keep only valid transects
+    # keep only valid transects
+    filter(MethodData_Transect <= MethodData_NumTran) %>%   
+    # calculate fuel loads using fuel constants
     mutate(
-      litter_bd = 2.75 * 1.815, # FFI default bulk density for litter (2.75)
-      duff_bd   = 5.5  * 1.815, # FFI default bulk density for duff (5.5)
+      # FFI default bulk density for litter (2.75)
+      litter_bd = 2.75 * 1.815, 
+      # FFI default bulk density for duff (5.5)
+      duff_bd   = 5.5  * 1.815, 
       Tran_Litt_FuelLoad = Tran_LittDep * litter_bd,
       Tran_Duff_FuelLoad   = Tran_DuffDep * duff_bd,
       Tran_LittDuff_FuelLoad  = Tran_Litt_FuelLoad + Tran_Duff_FuelLoad
     )
   
-  # ---- Step 3: Plot-level averages ---- #
-  plot_means <- transect_means %>%
-    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name) %>%
+  # ---- Step 3: Plot-level values---- #
+  plot_level <- transect_level %>%
+    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, SampleEvent_Date) %>%
     dplyr::reframe(
-      MethodData_Transect = MethodData_Transect,
       
       # ---- KEEP TRANSECT FUEL VALUES ---- #
+      MethodData_Transect = MethodData_Transect,
       Tran_LittDep = Tran_LittDep,
       Tran_DuffDep = Tran_DuffDep,
       Tran_Litt_FuelLoad = Tran_Litt_FuelLoad,
@@ -289,37 +314,36 @@ calculate_litterduff <- function(fuels_df) {
       Tran_LittDuff_FuelLoad  = Tran_LittDuff_FuelLoad,
       
       # ---- plot-level depth ---- #
-      Avg_LittDep = mean(Tran_LittDep, na.rm = TRUE),
-      Avg_DuffDep = mean(Tran_DuffDep, na.rm = TRUE),
+      Plot_LittDep = mean(Tran_LittDep, na.rm = TRUE),
+      Plot_DuffDep = mean(Tran_DuffDep, na.rm = TRUE),
   
       # ---- plot-level fuels ---- #
-      Avg_Litt_FuelLoad = mean(Tran_Litt_FuelLoad, na.rm = TRUE),
-      Avg_Duff_FuelLoad   = mean(Tran_Duff_FuelLoad, na.rm = TRUE),
-      Avg_LittDuff_FuelLoad  = mean(Tran_LittDuff_FuelLoad, na.rm = TRUE)
+      Plot_Litt_FuelLoad = mean(Tran_Litt_FuelLoad, na.rm = TRUE),
+      Plot_Duff_FuelLoad   = mean(Tran_Duff_FuelLoad, na.rm = TRUE),
+      Plot_LittDuff_FuelLoad  = mean(Tran_LittDuff_FuelLoad, na.rm = TRUE)
   ) %>% 
-    mutate(Avg_LittDep = na_if(Avg_LittDep, NaN),
-           Avg_DuffDep = na_if(Avg_DuffDep, NaN),
-           Avg_Litt_FuelLoad = na_if(Avg_Litt_FuelLoad, NaN),
-           Avg_Duff_FuelLoad = na_if(Avg_Duff_FuelLoad, NaN),
-           Avg_LittDuff_FuelLoad = na_if(Avg_LittDuff_FuelLoad, NaN)
+    mutate(Plot_LittDep = na_if(Plot_LittDep, NaN),
+           Plot_DuffDep = na_if(Plot_DuffDep, NaN),
+           Plot_Litt_FuelLoad = na_if(Plot_Litt_FuelLoad, NaN),
+           Plot_Duff_FuelLoad = na_if(Plot_Duff_FuelLoad, NaN),
+           Plot_LittDuff_FuelLoad = na_if(Plot_LittDuff_FuelLoad, NaN)
            )
-  
-  return(plot_means)
-}
+
+  # Summary file
+  FuelsDuffLitt_sum <- plot_level
 ```
 
-## Fuels Fine
+### Fuels Fine
 
 ```{r calculate fuel loads fine, include=FALSE}
 # ------------------------------------- #
 # ---- Fine Fuels (1,10,100-Hours) ---- #
 # ------------------------------------- #
-#fuels_df <- FuelsFine
-# ---- Function to calculate 1-100-hr fuels for any park dataset ---- #
-calculate_fine_fuels <- function(fuels_df) {
-  
-  
-  # ---- Step 1: Compute per-transect fuel load ---- #
+
+# Assign data
+fuels_df <- FuelsFine
+
+  # ---- Step 1: Transect-level values ---- #
   transect_level <- fuels_df %>%
     mutate(
       d2_1hr = 0.0151,
@@ -329,43 +353,77 @@ calculate_fine_fuels <- function(fuels_df) {
       s_100hr = 0.40,
       a = 1.13,
       c = sqrt(1 + (MethodData_Slope / 100)^2),
-      OneHr_FuelLoad = (11.64 * MethodData_OneHr * d2_1hr   * s_1hr_10hr * a * c) / MethodData_OneHrTranLen,
-      TenHr_FuelLoad = (11.64 * MethodData_TenHr * d2_10hr  * s_1hr_10hr * a * c) / MethodData_TenHrTranLen,
-      HunHr_FuelLoad = (11.64 * MethodData_HunHr * d2_100hr * s_100hr    * a * c) / MethodData_HunHrTranLen,
-      Fine_FuelLoad = OneHr_FuelLoad + TenHr_FuelLoad + HunHr_FuelLoad
+      Tran_OneHr_FuelLoad = (11.64 * MethodData_OneHr * d2_1hr   * s_1hr_10hr * a * c) / MethodData_OneHrTranLen,
+      Tran_TenHr_FuelLoad = (11.64 * MethodData_TenHr * d2_10hr  * s_1hr_10hr * a * c) / MethodData_TenHrTranLen,
+      Tran_HunHr_FuelLoad = (11.64 * MethodData_HunHr * d2_100hr * s_100hr    * a * c) / MethodData_HunHrTranLen,
+      Tran_Fine_FuelLoad = Tran_OneHr_FuelLoad + Tran_TenHr_FuelLoad + Tran_HunHr_FuelLoad
+    )
+  
+  
+  # ---- Step 2: Plot-level values---- #
+  plot_level <- transect_level %>%
+    group_by(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, MonitoringStatus_Name, SampleEvent_Date) %>%
+    dplyr::reframe(
+      # ---- KEEP TRANSEC LEVEL INFO ---- #
+      MethodData_NumTran = MethodData_NumTran,
+      MethodData_OneHrTranLen = MethodData_OneHrTranLen,
+      MethodData_TenHrTranLen = MethodData_TenHrTranLen,
+      MethodData_HunHrTranLen = MethodData_HunHrTranLen,
+      
+      # ---- KEEP TRANSECT FUEL COUNTS ---- #
+      MethodData_Transect = MethodData_Transect,
+      MethodData_OneHr = MethodData_OneHr,
+      MethodData_TenHr = MethodData_TenHr,
+      MethodData_HunHr = MethodData_HunHr,
+      
+      # ---- KEEP TRANSECT FUEL LOADS ---- #
+      Tran_OneHr_FuelLoad   = Tran_OneHr_FuelLoad,
+      Tran_TenHr_FuelLoad  = Tran_TenHr_FuelLoad,
+      Tran_HunHr_FuelLoad  = Tran_HunHr_FuelLoad,
+      
+      # ---- plot-level counts ---- #
+      MethodData_OneHr_Total = sum((MethodData_OneHr), na.rm = TRUE),
+      MethodData_TenHr_Total = sum((MethodData_TenHr), na.rm = TRUE),
+      MethodData_HunHr_Total = sum((MethodData_HunHr), na.rm = TRUE),
+      
+      # ---- plot-level fuels ---- #
+      Plot_OneHr_FuelLoad = mean(Tran_OneHr_FuelLoad, na.rm = TRUE),
+      Plot_TenHr_FuelLoad   = mean(Tran_TenHr_FuelLoad, na.rm = TRUE),
+      Plot_HunHr_FuelLoad  = mean(Tran_HunHr_FuelLoad, na.rm = TRUE)
     )
 
-  # ---- Step 2: KEEP TRANSECT-LEVEL DATA (do NOT summarise here) ---- #
-  plot_level_fine <- transect_level %>%
-    dplyr::mutate(
-      Transect_ID = row_number()  # keeps unique transect within plot
-    )
-}
+  # Summary file
+  FuelsFine_sum <- plot_level
 ```
 
 ## Combine Fuels
 
-```{r calculate fuel loads, include=FALSE}
-Fuels1000_all <- Fuels1000 %>% 
-  select(!c(Macroplot_UV1, Macroplot_UV2, Macroplot_UV3, Macroplot_UV4, Macroplot_UV5, Macroplot_UV6, Macroplot_UV7, Macroplot_UV8, MonitoringStatus_Prefix, MonitoringStatus_Base, MonitoringStatus_Suffix, MonitoringStatus_Order, SampleEvent_Date_Year, MethodData_FieldTeam, MethodData_EntryTeam, MethodData_UV1Desc, MethodData_UV2Desc, MethodData_UV3Desc, MethodData_SAComment, MethodData_Visited, MethodData_Index))
-
-Fuels1000_sum <- calculate_coarse_fuels(Fuels1000_all)
-FuelsDuffLitt_sum <- calculate_litterduff(FuelsDuffLitt)
-FuelsFine_sum <- calculate_fine_fuels(FuelsFine)
-```
-
 ```{r combine dataframes fuels, include=FALSE}
+# ============================================================= #
+# ====  Select metadata columns to keep for graphing data  ==== #
+# ============================================================= #
+FuelsFine_meta <- FuelsFine %>% 
+  select(all_of(columns_keep), MethodData_Transect) %>%
+  unique()
+
 # ============================================================= #
 # ==== Join 1-100-hr, litter-duff, and 1,000-hr dataframes ==== #
 # ============================================================= #
-
-Fuels_calc <- FuelsFine_sum %>%
-  dplyr::full_join(FuelsDuffLitt_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "MethodData_Transect")) %>% 
-  dplyr::full_join(Fuels1000_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "MethodData_Transect")) %>% 
+Fuels_calc <- FuelsFine_meta %>%
+  dplyr::full_join(FuelsFine_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "SampleEvent_Date", "MethodData_Transect")) %>%
+  dplyr::full_join(FuelsDuffLitt_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "SampleEvent_Date", "MethodData_Transect")) %>% 
+  dplyr::full_join(Fuels1000_sum, by = c("AdminUnit_Name", "Macroplot_Purpose", "Macroplot_Type", "Macroplot_Name", "MonitoringStatus_Name", "SampleEvent_Date", "MethodData_Transect")) %>% 
   relocate(MethodData_ThousHrTranLen, .after = MethodData_HunHrTranLen) %>% 
-  relocate(MethodData_ThousHrSound, .after = MethodData_HunHr) %>% 
-  relocate(MethodData_ThousHrRott, .after = MethodData_ThousHrSound) %>% 
-  relocate(MethodData_ThousHr, .after = MethodData_ThousHrRott)
+  relocate(MethodData_Transect, .after = MethodData_ThousHrTranLen) %>%
+  relocate(MethodData_OneHr_Total, .after = MethodData_OneHr) %>%
+  relocate(MethodData_TenHr_Total, .after = MethodData_TenHr) %>%
+  relocate(MethodData_HunHr_Total, .after = MethodData_HunHr) %>%
+  relocate(MethodData_ThousHrSound, .after = MethodData_HunHr_Total) %>% 
+  relocate(MethodData_ThousHrSound_Total, .after = MethodData_ThousHrSound) %>% 
+  relocate(MethodData_ThousHrRott, .after = MethodData_ThousHrSound_Total) %>%
+  relocate(MethodData_ThousHrRott_Total, .after = MethodData_ThousHrRott) %>%
+  relocate(MethodData_ThousHr, .after = MethodData_ThousHrRott_Total) %>%
+  relocate(MethodData_ThousHr_Total, .after = MethodData_ThousHr)
 ```
 
 ```{r}
