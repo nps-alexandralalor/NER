@@ -10,9 +10,6 @@ output:
     toc_float:
       smooth_scroll: true
     code_download: false
-link-citations: true
-bibliography: zotero_refs.bib
-csl: "chicago-author-date-17th-edition.csl"
 ---
 
 # Before Starting {.hidden .unlisted .unnumbered}
@@ -75,11 +72,12 @@ library(leaflet)
 ### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
-path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
+#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
 path_data <- paste0(path_main, "Exports_Reporting/FFI/")
 path_save <- paste0(here(), "/output/graphs/")
-## Source Code for Gingrich Stocking Chart
-source(paste0(here(), "/scripts/4_Reports/Gingrich Stocking Chart.R"))
+## Source Code for Gingrich Stocking Chart and Monitoring Objectives
+source(paste0(here(), "/scripts/4_Reports/gingrich stocking chart.R"))
 ```
 
 ### Load Data {.hidden}
@@ -100,7 +98,7 @@ Cover <- read.csv(paste0(path_data, "cover.csv"))
 
 ```{r}
 target_park <- c("RICH")
-target_type <- c("Grassland")
+target_type <- c("Forest")
 target_purpose <- c("Fire Monitoring Handbook")
 
     
@@ -117,8 +115,8 @@ target_purpose <- c("Fire Monitoring Handbook")
 ```
 
 ```{r, include=FALSE}
-target_ProjectUnit <- c("Malvern Hill")
-target_MonitoringType <- c("Warm Season")
+target_ProjectUnit <- c("Cold Harbor I")
+target_MonitoringType <- c("Pine Oak")
 
 
     MetadataReport_SampleEvents <- MetadataReport %>%
@@ -197,7 +195,7 @@ Species_all <- SpeciesReport %>%
     "Genus" = Species_Genus,
     "Scientific Name" = Species_ScientificName,
     "Lifeform" = Species_LifeFormNameLocal,
-    "Nativity" = Species_Nativity
+    "Nativity" = Species_NativityStatus
   ) %>%
   separate(Species_CommonNameLocal, into = "Common Name", sep = ";") %>%
   select("Genus", "Scientific Name", "Common Name", "Nativity", "Lifeform") %>% 
@@ -310,15 +308,15 @@ if (!is.na(target_Native)) {
 ## Map
 
 ```{r}
-# leaflet(data = MetadataReport_SampleEvents %>%
-#           select(c(AdminUnit_Name, Macroplot_Type, Macroplot_Name, Macroplot_Lat_dd, Macroplot_Long_dd)) %>%
-#           distinct()) %>%
-#   addTiles() %>%
-#   addMarkers(
-#     lng = ~Macroplot_Long_dd,
-#     lat = ~Macroplot_Lat_dd,
-#     popup = ~Macroplot_Name
-#   )
+leaflet(data = MetadataReport_SampleEvents %>%
+          select(c(AdminUnit_Name, Macroplot_Type, Macroplot_Name, Macroplot_Lat_dd, Macroplot_Long_dd)) %>%
+          distinct()) %>%
+  addTiles() %>%
+  addMarkers(
+    lng = ~Macroplot_Long_dd,
+    lat = ~Macroplot_Lat_dd,
+    popup = ~Macroplot_Name
+  )
 ```
 
 \newpage
@@ -330,7 +328,7 @@ if (!is.na(target_Native)) {
 ```{r}
 Disturbances_graph <- MetadataReport_Disturbances %>%
   group_by(
-    AdminUnit_Region, AdminUnit_Zone, AdminUnit_Unit, AdminUnit_Name, Macroplot_PurposeType, Macroplot_UV1, Macroplot_UV2, Disturbance_Date, Disturbance_Date_Year, SampleEvent_Date_Year, MonitoringStatus_Name
+    AdminUnit_Name, Macroplot_PurposeType, Macroplot_UV1, Macroplot_UV2, Disturbance_Date, Disturbance_Date_Year, SampleEvent_Date_Year, MonitoringStatus_Name
     ) %>%
   filter(
     Disturbance_Date_Year == SampleEvent_Date_Year
@@ -415,7 +413,7 @@ FuelLoad_graph <- Fuels %>%
     ) %>%
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
-    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
+    Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     ) %>% 
   dplyr::summarise(
     n_plots = n_distinct(Macroplot_Name),
@@ -495,7 +493,7 @@ FuelDepth_graph <- Fuels %>%
     ) %>%
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
-    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
+    Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     ) %>% 
   dplyr::summarise(
     n_plots = n_distinct(Macroplot_Name),
@@ -579,16 +577,11 @@ if(nrow(FuelLoad_graph) == 0) {
   geom_line(position = "stack") +
   geom_point(position = "stack") +
   geom_text(
-    data = FuelLoad_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = FuelLoad_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
+  #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
   facet_grid(Macroplot_UV1 ~ Macroplot_UV2) +
   labs(
     x = "Year",
@@ -707,14 +700,8 @@ p_data <- FuelDepth_graph %>%
   geom_bar(aes(x = SampleEvent_Date_Year, y = FuelDepth, fill = FuelClass),
            position = "stack", stat = "identity") + 
   geom_text(
-    data = FuelDepth_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = FuelLoad_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -835,14 +822,8 @@ p_data <- FuelLoad_graph %>%
   geom_bar(aes(x = SampleEvent_Date_Year, y = FuelLoad, fill = FuelClass),
            position = "stack", stat = "identity") + 
   geom_text(
-    data = FuelLoad_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = FuelLoad_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -940,16 +921,24 @@ Trees_graph <- Trees %>%
   mutate(
     SampleEvent_Date_Year = as.numeric(SampleEvent_Date_Year)
     ) %>% 
+  # summarize number of plots visited per year OR per mon status
+  group_by(
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type,
+    Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
+  ) %>%
+  dplyr::mutate(
+    n_plots = n_distinct(Macroplot_Name)
+  ) %>%
+  # summarize data by year OR mon status AND species attributes
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
-    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
+    Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     ,Species_Genus
     ,Species_ScientificName
     ,MethodData_Status
+    ,n_plots
     ) %>%
   dplyr::summarise(
-    n_plots = n_distinct(Macroplot_Name),
-    
     Seedling_Count  = sum(Seedling_Count),
     Seedling_Density_ac = round((mean(Seedling_Dens_ac, na.rm = TRUE)),1),
     Seedling_Density_ha = round((mean(Seedling_Dens_ha, na.rm = TRUE)),1),
@@ -972,6 +961,7 @@ Trees_graph <- Trees %>%
     
     .groups = "drop"
   ) %>% 
+  # prepare categories for graphing
   pivot_longer(
     cols = matches("Seedling|Sapling|Pole|Overstory"),
     names_to = c("SizeClass", ".value"),
@@ -1037,14 +1027,8 @@ p_data <- Trees_graph %>%
       ),
     position = "stack", stat = "identity") +
   geom_text(
-    data = Trees_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Trees_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -1193,14 +1177,8 @@ p_data <- Trees_graph %>%
     #,position = position_dodge2(preserve = "single"), stat = "identity"
     ) +
   geom_text(
-    data = Trees_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Trees_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -1346,14 +1324,8 @@ p_data <- Trees_graph %>%
   geom_line() +
   geom_point() +
   geom_text(
-    data = Trees_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Trees_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -1496,14 +1468,8 @@ p_data <- Trees_graph %>%
   geom_line() +
   geom_point() +
   geom_text(
-    data = Trees_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Trees_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -1627,14 +1593,8 @@ p_data <- Trees_graph %>%
       ),
     position = "stack", stat = "identity") +
   geom_text(
-    data = Trees_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Trees_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -1773,6 +1733,14 @@ plot.gingrich.imperial(
   type = "p",
   main = paste(target_park, "\nOverstory Stand Structure")
 )
+# plot.gingrich.metric(
+#   tpa = p_data$Total_Density_ha,
+#   ba = p_data$Total_BA_m2,
+#   label = p_data$Macroplot_UV1,
+#   color = TRUE,
+#   type = "p",
+#   main = paste(target_park, "\nOverstory Stand Structure")
+# )
 }
 ```
 
@@ -1841,14 +1809,8 @@ p_data <- Trees_graph %>%
       ),
     position = "stack", stat = "identity") +
   geom_text(
-    data = Trees_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Trees_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -1946,20 +1908,29 @@ Cover_graph <- Cover %>%
   mutate(
     SampleEvent_Date_Year = as.numeric(SampleEvent_Date_Year)
     ) %>% 
+  # summarize number of plots visited per year OR per mon status
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type,
-    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    ,Species_LifeFormNameLocal, Species_Genus, Species_Nativity
-    ,Species_ScientificName
+    Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
+  ) %>%
+  dplyr::mutate(
+    n_plots = n_distinct(Macroplot_Name)
+  ) %>%
+  # summarize data by year OR mon status AND species attributes
+  group_by(
+    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type,
+    Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
+    ,Species_LifeFormNameLocal, Species_Genus, Species_NativityStatus
+    ,Species_ScientificName, n_plots
     ) %>%
   dplyr::summarise(
-    n_plots = n_distinct(Macroplot_Name),
     Avg_Ht_m = round(mean(Avg_Ht_m, na.rm = TRUE), 1),
     Avg_Ht_ft = round(mean(Avg_Ht_ft, na.rm = TRUE), 1),
     Abundance = sum(Hits, na.rm = TRUE),
     PctCover = round(mean(PctCover, na.rm = TRUE), 1),
     .groups = "drop"
     ) %>% 
+  # prepare categories for graphing
   mutate(
     Species_LifeFormNameLocal = ifelse(Species_LifeFormNameLocal == "Undefined", "Substrate", Species_LifeFormNameLocal),
     Species_LifeFormNameLocal = ifelse(Species_LifeFormNameLocal == "Subshrub", "Shrub", Species_LifeFormNameLocal),
@@ -1976,8 +1947,7 @@ Cover_graph <- Cover %>%
         "Nonvascular", 
         "Lichenous", 
         "Substrate"
-      ))) %>% 
-  filter(Species_Nativity == "Native")
+      )))
 ```
 
 \newpage
@@ -2014,7 +1984,7 @@ p_data <- Cover_graph %>%
       #"Tree",
       #"Substrate"
       ),
-    Species_Nativity %in% c(
+    Species_NativityStatus %in% c(
       "Native"
       #"Nonnative",
       #"Invasive",
@@ -2023,42 +1993,23 @@ p_data <- Cover_graph %>%
     ) %>% 
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
-    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    # ,Species_LifeFormNameLocal
-    # ,Species_Genus
-    # ,Species_ScientificName
-    # ,Species_Nativity
-    ) %>% 
-  dplyr::summarise(
-    Status_Cover = sum(PctCover),
-    .groups = "drop"
-    ) %>%
-  group_by(
-    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     # ,Species_LifeFormNameLocal
     # ,Species_Genus
     # ,Species_ScientificName
-    # ,Species_Nativity
+    # ,Species_NativityStatus
     ) %>% 
   dplyr::summarise(
-    Total_Cover = round(mean(Status_Cover), 1),
+    Total_Cover = sum(PctCover),
     .groups = "drop"
-    ) %>% 
-
+    ) %>%
   
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
   geom_line() +
   geom_point() +
   geom_text(
-    data = Cover_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Cover_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -2066,7 +2017,7 @@ p_data <- Cover_graph %>%
   labs(
     x = "Year",
     y = "% Cover",
-    title = paste(target_park, target_type, "Native Grass and Forb Cover")
+    title = paste(target_park, target_type, "Native Grass & Forb Cover")
     ) +
   scale_x_continuous(
     limits = c(year_min, year_max),
@@ -2112,7 +2063,7 @@ p_disturbance_merge <- p_disturbance +
         plot.title = element_text(size = 15, face="bold", hjust = 0.5)
         )+
   labs(
-    title = paste(target_park, target_type, "Native Grass and Forb Cover"),
+    title = paste(target_park, target_type, "Native Grass & Forb Cover"),
     fill = "Disturbance"
        )
 
@@ -2145,7 +2096,7 @@ download_this(p, icon = NULL,
 
 \newpage
 
-### Cover Nonnative Invasive
+### Cover Non-Native Invasive
 
 ```{r}
 if(target_type == "Grassland" & !(is.na(target_Invasive))) {
@@ -2170,7 +2121,7 @@ p_data <- Cover_graph %>%
       #"Tree",
       #"Substrate"
       ),
-    Species_Nativity %in% c(
+    Species_NativityStatus %in% c(
       #"Native"
       "Nonnative",
       "Invasive"
@@ -2179,42 +2130,24 @@ p_data <- Cover_graph %>%
     ) %>% 
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
-    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    # ,Species_LifeFormNameLocal
-    # ,Species_Genus
-    # ,Species_ScientificName
-    # ,Species_Nativity
-    ) %>% 
-  dplyr::summarise(
-    Status_Cover = sum(PctCover),
-    .groups = "drop"
-    ) %>%
-  group_by(
-    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     # ,Species_LifeFormNameLocal
     # ,Species_Genus
     # ,Species_ScientificName
-    # ,Species_Nativity
-    ) %>% 
+    # ,Species_NativityStatus
+  ) %>% 
   dplyr::summarise(
-    Total_Cover = round(mean(Status_Cover), 1),
+    Total_Cover = sum(PctCover),
     .groups = "drop"
-    ) %>% 
+  ) %>%
 
   
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
   geom_line() +
   geom_point() +
   geom_text(
-    data = Cover_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Cover_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -2222,7 +2155,7 @@ p_data <- Cover_graph %>%
   labs(
     x = "Year",
     y = "% Cover",
-    title = paste(target_park, target_type, "Non-Native Invasive Grass and Forb Cover")
+    title = paste(target_park, target_type, "Non-Native Invasive Grass & Forb Cover")
     ) +
   scale_x_continuous(
     limits = c(year_min, year_max),
@@ -2268,7 +2201,7 @@ p_disturbance_merge <- p_disturbance +
         plot.title = element_text(size = 15, face="bold", hjust = 0.5)
         )+
   labs(
-    title = paste(target_park, target_type, "Non-Native Invasive Grass and Forb Cover"),
+    title = paste(target_park, target_type, "Non-Native Invasive Grass & Forb Cover"),
     fill = "Disturbance"
        )
 
@@ -2327,7 +2260,7 @@ p_data <- Cover_graph %>%
       #"Tree"
       #"Substrate"
       ),
-    Species_Nativity %in% c(
+    Species_NativityStatus %in% c(
       "Native",
       "Nonnative",
       "Invasive",
@@ -2336,42 +2269,24 @@ p_data <- Cover_graph %>%
     ) %>% 
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
-    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    # ,Species_LifeFormNameLocal
-    # ,Species_Genus
-    # ,Species_ScientificName
-    # ,Species_Nativity
-    ) %>% 
-  dplyr::summarise(
-    Status_Cover = sum(PctCover),
-    .groups = "drop"
-    ) %>%
-  group_by(
-    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     # ,Species_LifeFormNameLocal
     # ,Species_Genus
     # ,Species_ScientificName
-    # ,Species_Nativity
-    ) %>% 
+    # ,Species_NativityStatus
+  ) %>% 
   dplyr::summarise(
-    Total_Cover = round(mean(Status_Cover), 1),
+    Total_Cover = sum(PctCover),
     .groups = "drop"
-    ) %>% 
+  ) %>%
 
   
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
   geom_line() +
   geom_point() +
   geom_text(
-    data = Cover_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Cover_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -2483,7 +2398,7 @@ p_data <- Cover_graph %>%
       "Tree"
       #"Substrate"
       ),
-    Species_Nativity %in% c(
+    Species_NativityStatus %in% c(
       "Native",
       "Nonnative",
       "Invasive",
@@ -2492,42 +2407,24 @@ p_data <- Cover_graph %>%
     ) %>% 
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
-    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    # ,Species_LifeFormNameLocal
-    # ,Species_Genus
-    # ,Species_ScientificName
-    # ,Species_Nativity
-    ) %>% 
-  dplyr::summarise(
-    Status_Cover = sum(PctCover),
-    .groups = "drop"
-    ) %>%
-  group_by(
-    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     # ,Species_LifeFormNameLocal
     # ,Species_Genus
     # ,Species_ScientificName
-    # ,Species_Nativity
-    ) %>% 
+    # ,Species_NativityStatus
+  ) %>% 
   dplyr::summarise(
-    Total_Cover = round(mean(Status_Cover), 1),
+    Total_Cover = sum(PctCover),
     .groups = "drop"
-    ) %>% 
+  ) %>%
 
   
   ggplot(aes(x = SampleEvent_Date_Year, y = Total_Cover)) +
   geom_line() +
   geom_point() +
   geom_text(
-    data = Cover_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Cover_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -2630,7 +2527,7 @@ p_data <- Cover_graph %>%
       ,"Tree"
       #,"Substrate"
       ),
-    Species_Nativity %in% c(
+    Species_NativityStatus %in% c(
       "Native",
       "Nonnative",
       "Invasive",
@@ -2639,28 +2536,16 @@ p_data <- Cover_graph %>%
     ) %>% 
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
-    Macroplot_UV1, Macroplot_UV2, MonitoringStatus_Name, SampleEvent_Date_Year
-    ,Species_LifeFormNameLocal
-    # ,Species_Genus
-    # ,Species_ScientificName
-    # ,Species_Nativity
-    ) %>% 
-  dplyr::summarise(
-    Status_Cover = sum(PctCover),
-    .groups = "drop"
-    ) %>%
-  group_by(
-    AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, 
     Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
     ,Species_LifeFormNameLocal
     # ,Species_Genus
     # ,Species_ScientificName
-    # ,Species_Nativity
-    ) %>% 
+    # ,Species_NativityStatus
+  ) %>% 
   dplyr::summarise(
-    Total_Cover = round(mean(Status_Cover), 1),
+    Total_Cover = sum(PctCover),
     .groups = "drop"
-    ) %>% 
+  ) %>%
 
   ggplot() +
   geom_col(
@@ -2674,14 +2559,8 @@ p_data <- Cover_graph %>%
     #position = position_dodge2(preserve = "single"), stat = "identity"
   ) +
   geom_text(
-    data = Cover_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Cover_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -2779,7 +2658,7 @@ p_data <- Cover_graph %>%
       ,"Tree"
       #,"Substrate"
       ),
-    Species_Nativity %in% c(
+    Species_NativityStatus %in% c(
       "Native",
       "Nonnative",
       "Invasive"
@@ -2792,7 +2671,7 @@ p_data <- Cover_graph %>%
     ,Species_LifeFormNameLocal
     # ,Species_Genus
     # ,Species_ScientificName
-    # ,Species_Nativity
+    # ,Species_NativityStatus
     ) %>% 
   dplyr::summarise(
     Total_Cover = sum(PctCover, na.rm = TRUE),
@@ -2813,14 +2692,8 @@ p_data <- Cover_graph %>%
     position = position_dodge2(preserve = "single"), stat = "identity"
   ) +
   geom_text(
-    data = Cover_graph %>%
-      group_by(Macroplot_UV1,Macroplot_UV2,SampleEvent_Date_Year) %>% 
-      summarize(n_plots = max(n_plots), .groups = "drop"),
-    aes(
-      x = SampleEvent_Date_Year,
-      y = 0,
-      label = n_plots
-      ),
+    data = Cover_graph,
+    aes(x = SampleEvent_Date_Year, y = 0, label = n_plots),
     vjust = 0.3, size = 3, color = "grey40"
   ) +
   #facet_wrap( ~ Macroplot_UV1, ncol = 1) +
@@ -2836,7 +2709,7 @@ p_data <- Cover_graph %>%
     breaks = seq(year_min, year_max, by = 1),
     expand = expansion(mult = c(0, 0))
     ) +
-  ylim(0, 6) +
+  ylim(0, NA) +
   theme_minimal() +
   theme(
     axis.text.x = element_text(size = 8, angle = 90, hjust = 0.5, vjust = 0.5),
@@ -2959,7 +2832,7 @@ Species_all_table
 
 \newpage
 
-## Literature Cited
+## Literature Cited  {.hidden}
 
 ```{r}
 #WriteBib(bib, file = "zotero_refs.bib")
