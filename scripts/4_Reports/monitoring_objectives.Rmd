@@ -10,6 +10,9 @@ output:
     toc_float:
       smooth_scroll: true
     code_download: false
+link-citations: true
+bibliography: zotero_refs.bib
+csl: "chicago-author-date-17th-edition.csl"
 ---
 
 ### Setup
