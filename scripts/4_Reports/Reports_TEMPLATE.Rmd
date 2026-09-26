@@ -126,6 +126,28 @@ year_min <- as.numeric((min(MetadataReport_SampleEvents$SampleEvent_Date_Year)) 
 date_min <- as.Date(paste0(year_min, "-12-31"))
 ```
 
+### Set Objectives  {.hidden}
+
+```{r set objectives, include=FALSE}
+source(paste0(here(), "/scripts/4_Reports/monitoring_objectives.R"))
+
+if(length(target_MonitoringType) > 1) {
+  target_FineFuelLoading <- NA
+  target_Duff <-  NA
+  target_Sapling <- NA
+  target_PoleXericDens <- NA
+  target_PoleMesicDens <- NA
+  target_OverstoryXericRatio <- NA
+  target_OverstoryMesicRatio <- NA
+  target_StockingLow <- NA
+  target_StockingHigh <- NA
+  target_Shrub <- NA
+  target_Native <- NA
+  target_Invasive <- NA
+  target_Woody <- NA
+}
+```
+
 ### Add Species Info {.hidden}
 
 ```{r species, include=FALSE}
@@ -228,25 +250,7 @@ na_color <- "grey70"
 
 # Monitoring Objectives
 
-```{r objectives}
-source(paste0(here(), "/scripts/4_Reports/monitoring_objectives.R"))
-
-if(length(target_MonitoringType) > 1) {
-  target_FineFuelLoading <- NA
-  target_Duff <-  NA
-  target_Sapling <- NA
-  target_PoleXericDens <- NA
-  target_PoleMesicDens <- NA
-  target_OverstoryXericRatio <- NA
-  target_OverstoryMesicRatio <- NA
-  target_StockingLow <- NA
-  target_StockingHigh <- NA
-  target_Shrub <- NA
-  target_Native <- NA
-  target_Invasive <- NA
-  target_Woody <- NA
-}
-
+```{r monitoring objectives}
 
 Objectives_Forest <- data.frame(
   "Num" = c(1,2,3,4,5,6,7,8),
@@ -288,7 +292,7 @@ if (!is.na(target_Native)) {
 
 ## Map
 
-```{r}
+```{r map}
 leaflet(data = MetadataReport_SampleEvents %>%
           select(c(AdminUnit_Name, Macroplot_Type, Macroplot_Name, Macroplot_Lat_dd, Macroplot_Long_dd)) %>%
           distinct()) %>%
@@ -306,7 +310,7 @@ leaflet(data = MetadataReport_SampleEvents %>%
 
 ### Prep {.hidden}
 
-```{r}
+```{r prep disturbance, include=FALSE}
 Disturbances_graph <- MetadataReport_Disturbances %>%
   group_by(
     AdminUnit_Name, Macroplot_PurposeType, Macroplot_UV1, Macroplot_UV2, Disturbance_Date, Disturbance_Date_Year, SampleEvent_Date_Year, MonitoringStatus_Name
@@ -326,7 +330,7 @@ Disturbances_graph <- MetadataReport_Disturbances %>%
 
 ### Timeline
 
-```{r}
+```{r disturbance timeline}
 if(nrow(MetadataReport_Disturbances) == 0) {
   p_disturbance <- ggplot()
 } else {
@@ -380,7 +384,7 @@ p_disturbance
 
 ### Prep {.hidden}
 
-```{r}
+```{r prep fuel load, include=FALSE}
 FuelLoad_graph <- Fuels %>% 
   filter(
     AdminUnit_Name == target_park,
@@ -460,7 +464,7 @@ FuelLoad_graph <- Fuels %>%
   )
 ```
 
-```{r}
+```{r prep fuel depth, include=FALSE}
 FuelDepth_graph <- Fuels %>% 
   filter(
     AdminUnit_Name == target_park,
@@ -890,7 +894,7 @@ download_this(p, icon = NULL,
 
 ### Prep {.hidden}
 
-```{r}
+```{r prep trees, include=FALSE}
 Trees_graph <- Trees %>%
   filter(
     AdminUnit_Name == target_park,
@@ -1877,7 +1881,7 @@ download_this(p, icon = NULL,
 
 ### Prep {.hidden}
 
-```{r}
+```{r prep cover, include=FALSE}
 Cover_graph <- Cover %>% 
   filter(
     AdminUnit_Name == target_park,
@@ -1901,14 +1905,15 @@ Cover_graph <- Cover %>%
   group_by(
     AdminUnit_Name, Macroplot_Purpose, Macroplot_Type,
     Macroplot_UV1, Macroplot_UV2, SampleEvent_Date_Year
-    ,Species_LifeFormNameLocal, Species_Genus, Species_NativityStatus
-    ,Species_ScientificName, n_plots
+    ,Species_LifeFormNameLocal, Species_NativityStatus
+    ,Species_Genus, Species_ScientificName
+    ,n_plots
     ) %>%
   dplyr::summarise(
+    Abundance = sum(Hits, na.rm = TRUE),
+    Avg_PctCover = round(mean(Plot_PctCover, na.rm = TRUE), 1),
     Avg_Ht_m = round(mean(Plot_Ht_m, na.rm = TRUE), 1),
     Avg_Ht_ft = round(mean(Plot_Ht_ft, na.rm = TRUE), 1),
-    Abundance = sum(Hits, na.rm = TRUE),
-    PctCover = round(mean(PctCover, na.rm = TRUE), 1),
     .groups = "drop"
     ) %>% 
   # prepare categories for graphing
@@ -1981,7 +1986,7 @@ p_data <- Cover_graph %>%
     # ,Species_NativityStatus
     ) %>% 
   dplyr::summarise(
-    Total_Cover = sum(PctCover),
+    Total_Cover = sum(Avg_PctCover),
     .groups = "drop"
     ) %>%
   
@@ -2118,7 +2123,7 @@ p_data <- Cover_graph %>%
     # ,Species_NativityStatus
   ) %>% 
   dplyr::summarise(
-    Total_Cover = sum(PctCover),
+    Total_Cover = sum(Avg_PctCover),
     .groups = "drop"
   ) %>%
 
@@ -2257,7 +2262,7 @@ p_data <- Cover_graph %>%
     # ,Species_NativityStatus
   ) %>% 
   dplyr::summarise(
-    Total_Cover = sum(PctCover),
+    Total_Cover = sum(Avg_PctCover),
     .groups = "drop"
   ) %>%
 
@@ -2395,7 +2400,7 @@ p_data <- Cover_graph %>%
     # ,Species_NativityStatus
   ) %>% 
   dplyr::summarise(
-    Total_Cover = sum(PctCover),
+    Total_Cover = sum(Avg_PctCover),
     .groups = "drop"
   ) %>%
 
@@ -2524,7 +2529,7 @@ p_data <- Cover_graph %>%
     # ,Species_NativityStatus
   ) %>% 
   dplyr::summarise(
-    Total_Cover = sum(PctCover),
+    Total_Cover = sum(Avg_PctCover),
     .groups = "drop"
   ) %>%
 
@@ -2655,7 +2660,7 @@ p_data <- Cover_graph %>%
     # ,Species_NativityStatus
     ) %>% 
   dplyr::summarise(
-    Total_Cover = sum(PctCover, na.rm = TRUE),
+    Total_Cover = sum(Avg_PctCover),
     Avg_Ht_m = mean(Avg_Ht_m),
     Avg_Ht_ft = mean(Avg_Ht_ft),
     .groups = "drop"
