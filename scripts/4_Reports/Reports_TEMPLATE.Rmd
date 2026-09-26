@@ -52,23 +52,6 @@ library(downloadthis)
 library(leaflet)
 ```
 
-### References {.hidden}
-
-```{r references, include=FALSE}
-# ZoteroUserID <- "3306456"
-# ZoteroAPIkey <- "F7k8Rp07XhH9rIqiKP1ob0uB"
-# ZoteroFolderKey <- "DGJVBG7G"
-# 
-# bib <- ReadZotero(
-#   user = ZoteroUserID,
-#   .params = list(
-#     collection = ZoteroFolderKey,
-#     key = ZoteroAPIkey,
-#     limit = 100),
-#   temp.file = "zotero_refs.bib",
-#   delete.file = FALSE)
-```
-
 ### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
@@ -88,8 +71,6 @@ SpeciesReport <- read.csv(paste0(path_data, "all_species_info.csv"))
 Fuels <- read.csv(paste0(path_data, "fuels.csv"))
 Trees <- read.csv(paste0(path_data, "trees.csv"))
 Cover <- read.csv(paste0(path_data, "cover.csv"))
-# Cover_Points <- read.csv(paste0(path_data, "cover_points.csv"))
-# Cover_SpComp <- read.csv(paste0(path_data, "cover_comp.csv"))
 # PostBurn <- read.csv(paste0(path_data, "post.csv"))
 # Shrubs <- read.csv(paste0(path_data, "shrubs.csv"))
 ```
@@ -417,27 +398,27 @@ FuelLoad_graph <- Fuels %>%
     ) %>% 
   dplyr::summarise(
     n_plots = n_distinct(Macroplot_Name),
-    ThousHr_FuelLoad = mean(ThousHr_FuelLoad, na.rm = TRUE),
-    ThousHrRott_FuelLoad = mean(ThousHrRott_FuelLoad, na.rm = TRUE),
-    ThousHrSound_FuelLoad = mean(ThousHrSound_FuelLoad, na.rm = TRUE),
-    Fine_FuelLoad = mean(Fine_FuelLoad, na.rm = TRUE),
-    HunHr_FuelLoad = mean(HunHr_FuelLoad, na.rm = TRUE),
-    TenHr_FuelLoad = mean(TenHr_FuelLoad, na.rm = TRUE),
-    OneHr_FuelLoad = mean(OneHr_FuelLoad, na.rm = TRUE),
-    Avg_LittDuff_FuelLoad = mean(Avg_LittDuff_FuelLoad, na.rm = TRUE),
-    Avg_Litt_FuelLoad  = mean(Avg_Litt_FuelLoad, na.rm = TRUE),
-    Avg_Duff_FuelLoad = mean(Avg_Duff_FuelLoad, na.rm = TRUE),
+    Avg_ThousHr_FuelLoad = mean(Plot_ThousHr_FuelLoad, na.rm = TRUE),
+    Avg_ThousHrRott_FuelLoad = mean(Plot_ThousHrRott_FuelLoad, na.rm = TRUE),
+    Avg_ThousHrSound_FuelLoad = mean(Plot_ThousHrSound_FuelLoad, na.rm = TRUE),
+    Avg_Fine_FuelLoad = mean(Plot_Fine_FuelLoad, na.rm = TRUE),
+    Avg_HunHr_FuelLoad = mean(Plot_HunHr_FuelLoad, na.rm = TRUE),
+    Avg_TenHr_FuelLoad = mean(Plot_TenHr_FuelLoad, na.rm = TRUE),
+    Avg_OneHr_FuelLoad = mean(Plot_OneHr_FuelLoad, na.rm = TRUE),
+    Avg_LittDuff_FuelLoad = mean(Plot_LittDuff_FuelLoad, na.rm = TRUE),
+    Avg_Litt_FuelLoad  = mean(Plot_Litt_FuelLoad, na.rm = TRUE),
+    Avg_Duff_FuelLoad = mean(Plot_Duff_FuelLoad, na.rm = TRUE),
     .groups = "drop"
     ) %>% 
   pivot_longer(
     cols = c(
-      ThousHr_FuelLoad,
-      ThousHrRott_FuelLoad,
-      ThousHrSound_FuelLoad,
-      Fine_FuelLoad,
-      HunHr_FuelLoad,
-      TenHr_FuelLoad,
-      OneHr_FuelLoad,
+      Avg_ThousHr_FuelLoad,
+      Avg_ThousHrRott_FuelLoad,
+      Avg_ThousHrSound_FuelLoad,
+      Avg_Fine_FuelLoad,
+      Avg_HunHr_FuelLoad,
+      Avg_TenHr_FuelLoad,
+      Avg_OneHr_FuelLoad,
       Avg_LittDuff_FuelLoad,
       Avg_Litt_FuelLoad,
       Avg_Duff_FuelLoad
@@ -449,13 +430,13 @@ FuelLoad_graph <- Fuels %>%
     FuelClass = factor(
       FuelClass,
       levels = c(
-        "ThousHr_FuelLoad",
-        "ThousHrRott_FuelLoad",
-        "ThousHrSound_FuelLoad",
-        "Fine_FuelLoad",
-        "HunHr_FuelLoad",
-        "TenHr_FuelLoad",
-        "OneHr_FuelLoad",
+        "Avg_ThousHr_FuelLoad",
+        "Avg_ThousHrRott_FuelLoad",
+        "Avg_ThousHrSound_FuelLoad",
+        "Avg_Fine_FuelLoad",
+        "Avg_HunHr_FuelLoad",
+        "Avg_TenHr_FuelLoad",
+        "Avg_OneHr_FuelLoad",
         "Avg_LittDuff_FuelLoad",
         "Avg_Litt_FuelLoad",
         "Avg_Duff_FuelLoad"
@@ -465,16 +446,16 @@ FuelLoad_graph <- Fuels %>%
     mutate(
     FuelClass = recode(
       FuelClass,
-      ThousHr_FuelLoad        = "1000-hr",
-      ThousHrRott_FuelLoad    = "1000-hr Rotten",
-      ThousHrSound_FuelLoad   = "1000-hr Sound",
-      Fine_FuelLoad           = "1-100hr",
-      HunHr_FuelLoad          = "100-hr",
-      TenHr_FuelLoad          = "10-hr",
-      OneHr_FuelLoad          = "1-hr",
-      Avg_LittDuff_FuelLoad   = "Litter/Duff",
-      Avg_Litt_FuelLoad       = "Litter",
-      Avg_Duff_FuelLoad       = "Duff"
+      Avg_ThousHr_FuelLoad        = "1000-hr",
+      Avg_ThousHrRott_FuelLoad    = "1000-hr Rotten",
+      Avg_ThousHrSound_FuelLoad   = "1000-hr Sound",
+      Avg_Fine_FuelLoad           = "1-100hr",
+      Avg_HunHr_FuelLoad          = "100-hr",
+      Avg_TenHr_FuelLoad          = "10-hr",
+      Avg_OneHr_FuelLoad          = "1-hr",
+      Avg_LittDuff_FuelLoad       = "Litter/Duff",
+      Avg_Litt_FuelLoad           = "Litter",
+      Avg_Duff_FuelLoad           = "Duff"
     )
   )
 ```
@@ -497,8 +478,8 @@ FuelDepth_graph <- Fuels %>%
     ) %>% 
   dplyr::summarise(
     n_plots = n_distinct(Macroplot_Name),
-    Avg_LittDep = mean(Avg_LittDep, na.rm = TRUE),
-    Avg_DuffDep = mean(Avg_DuffDep, na.rm = TRUE),
+    Avg_LittDep = mean(Plot_LittDep, na.rm = TRUE),
+    Avg_DuffDep = mean(Plot_DuffDep, na.rm = TRUE),
     .groups = "drop"
     ) %>% 
   pivot_longer(
@@ -1924,8 +1905,8 @@ Cover_graph <- Cover %>%
     ,Species_ScientificName, n_plots
     ) %>%
   dplyr::summarise(
-    Avg_Ht_m = round(mean(Avg_Ht_m, na.rm = TRUE), 1),
-    Avg_Ht_ft = round(mean(Avg_Ht_ft, na.rm = TRUE), 1),
+    Avg_Ht_m = round(mean(Plot_Ht_m, na.rm = TRUE), 1),
+    Avg_Ht_ft = round(mean(Plot_Ht_ft, na.rm = TRUE), 1),
     Abundance = sum(Hits, na.rm = TRUE),
     PctCover = round(mean(PctCover, na.rm = TRUE), 1),
     .groups = "drop"
@@ -2832,7 +2813,7 @@ Species_all_table
 
 \newpage
 
-## Literature Cited  {.hidden}
+## Literature Cited {.hidden}
 
 ```{r}
 #WriteBib(bib, file = "zotero_refs.bib")
