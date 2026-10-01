@@ -14,7 +14,7 @@ library(purrr)
 library(here)
 
 # designate target park(s)
-target_park <- "NERI"
+target_park <- "SHEN"
 
 # Adjust filr paths
 path_data <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/Exports_clean/FFI/"
