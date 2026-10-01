@@ -16,8 +16,8 @@ output:
 
 This code is for adding columns to metadata for graphing and reporting.
 
-- all_metadata.csv
-- all_species_info.csv
+-   all_metadata.csv
+-   all_species_info.csv
 
 ## Before Starting {.hidden}
 
@@ -46,10 +46,9 @@ library(fs)
 ### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
-path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
-#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
-path_save <- paste0(path_main, "Exports_Reporting/DataDepot/")
+path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_data <- paste0(path_main, "Exports_Clean/FFI/")
+path_save <- paste0(path_main, "Exports_Reporting/FFI/")
 ```
 
 ### Load Data {.hidden}
@@ -74,17 +73,17 @@ zone_MTTS <- c("APCO", "FRSP", "RICH", "SHEN")
 
 ### Basic Columns
 
-- Region (NER)
+-   Region (NER)
 
-- Zone (e.g. South)
+-   Zone (e.g. South)
 
-- Unit (e.g. MTTS)
+-   Unit (e.g. MTTS)
 
-- Purpose Code (FMH, CBI, RA, I&M)
+-   Purpose Code (FMH, CBI, RA, I&M)
 
-- Plot Type combines Purpose and Type (FMH - Forest, FMH - Grassland, ...)
+-   Plot Type combines Purpose and Type (FMH - Forest, FMH - Grassland, ...)
 
-- Macroplot_Num (01, 02...)
+-   Macroplot_Num (01, 02...)
 
 ```{r}
 MetadataReport_all <- MetadataReport %>% 
@@ -167,11 +166,11 @@ MetadataReport_Reads <- MetadataReport_all %>%
 
 #### MonStatus
 
-- Entry / Prefix (0, 1, 2, 3 , 4...)
+-   Entry / Prefix (0, 1, 2, 3 , 4...)
 
-- Status (pre, post)
+-   Status (pre, post)
 
-- TimeSince / Suffix (0, 1, 2, 5, 10, 20)
+-   TimeSince / Suffix (0, 1, 2, 5, 10, 20)
 
 ```{r}
 MonStatus <- MetadataReport_Reads %>%
@@ -212,9 +211,9 @@ MonStatus <- MonStatus %>%
 
 #### Disturbance
 
-- Disturbance_Type (Burn, Herbicide, Mechanical, Mow)
+-   Disturbance_Type (Burn, Herbicide, Mechanical, Mow)
 
-- Disturbance_Year (actual year)
+-   Disturbance_Year (actual year)
 
 ```{r}
 Disturbances <- MetadataReport_Disturbances %>% 
@@ -248,15 +247,15 @@ MetadataReport_all <- rbind(MetadataReport_Disturbances, MetadataReport_Reads) %
 
 ### Other? {.hidden}
 
-- Disturbance_Entry (to match with MonStatus)
+-   Disturbance_Entry (to match with MonStatus)
 
-- Disturbance_Desc (RX, WF-SUPP, WFU, WF)
+-   Disturbance_Desc (RX, WF-SUPP, WFU, WF)
 
-- Disturbance_Name (e.g. Cape Final)
+-   Disturbance_Name (e.g. Cape Final)
 
-- Disturbance_Severity (Unaltered, Low, Low/Moderate, Moderate, Moderate/High, High)
+-   Disturbance_Severity (Unaltered, Low, Low/Moderate, Moderate, Moderate/High, High)
 
-- FuelType (PIPO, PIED, etc.)
+-   FuelType (PIPO, PIED, etc.)
 
 ### Save
 

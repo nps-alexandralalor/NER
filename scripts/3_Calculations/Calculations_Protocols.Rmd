@@ -40,11 +40,10 @@ library(DT)
 library(fs)
 ```
 
-### Adjust File Paths  {.hidden}
+### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
-path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
-#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
 path_data <- paste0(path_main, "Exports_Clean/FFI/")
 path_save <- paste0(path_main, "Exports_Reporting/FFI/")
 ```
@@ -67,7 +66,7 @@ HerbsSpComp <- read.csv(paste0(path_data, "metric_cover_species_composition.csv"
 SpeciesReport <- read.csv(paste0(path_data, "all_species_info.csv"))
 ```
 
-### Add Columns  {.hidden}
+### Add Columns {.hidden}
 
 ```{r add columns, include=FALSE}
 # Clean up data frame
@@ -90,7 +89,7 @@ for (name in df_names) {
 columns_keep <- c("AdminUnit_Name","Macroplot_Purpose","Macroplot_Type","SampleEvent_TreatmentUnit","Macroplot_UV1","Macroplot_UV2","Macroplot_UV3","Macroplot_UV4","Macroplot_UV5","Macroplot_UV6","Macroplot_UV7","Macroplot_UV8","Macroplot_Name","MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order","SampleEvent_Date","SampleEvent_Date_Year")
 ```
 
-### Add Species Columns  {.hidden}
+### Add Species Columns {.hidden}
 
 ```{r add species columns, include=FALSE}
 # 
@@ -425,7 +424,7 @@ fuels_df <- FuelsFine
   FuelsFine_sum <- plot_level
 ```
 
-## Combine Fuels  {.hidden}
+## Combine Fuels {.hidden}
 
 ```{r combine fuels, include=FALSE}
 # ============================================================= #
@@ -773,7 +772,7 @@ trees_df <- Seedlings
   Seedlings_sum <- plot_level
 ```
 
-## Combine Trees  {.hidden}
+## Combine Trees {.hidden}
 
 ```{r combine trees, include=FALSE}
 # ============================================================= #
@@ -961,7 +960,7 @@ cover_df <- HerbsPoints
   HerbsSpComp_sum <- plot_level
 ```
 
-## Combine Cover  {.hidden}
+## Combine Cover {.hidden}
 
 ```{r combine cover, include=FALSE}
 # ============================================================= #

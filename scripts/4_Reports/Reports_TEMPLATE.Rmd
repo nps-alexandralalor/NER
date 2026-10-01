@@ -55,8 +55,7 @@ library(leaflet)
 ### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
-path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
-#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
 path_data <- paste0(path_main, "Exports_Reporting/FFI/")
 path_save <- paste0(here(), "/output/graphs/")
 ## Source Code for Gingrich Stocking Chart and Monitoring Objectives
@@ -79,7 +78,7 @@ Cover <- read.csv(paste0(path_data, "cover.csv"))
 
 ```{r}
 target_park <- c("RICH")
-target_type <- c("Forest")
+target_type <- c("Grassland")
 target_purpose <- c("Fire Monitoring Handbook")
 
     
@@ -96,8 +95,8 @@ target_purpose <- c("Fire Monitoring Handbook")
 ```
 
 ```{r, include=FALSE}
-target_ProjectUnit <- c("Cold Harbor I")
-target_MonitoringType <- c("Pine Oak")
+target_ProjectUnit <- c("Malvern Hill")
+target_MonitoringType <- c("Warm Season")
 
 
     MetadataReport_SampleEvents <- MetadataReport %>%
@@ -120,13 +119,13 @@ target_MonitoringType <- c("Pine Oak")
         MonitoringStatus_Name %in% c("Burn", "Herbicide", "Mechanical", "Mow")
         )
 
-year_max <- as.numeric(format(Sys.Date(), "%Y"))
+year_max <- as.numeric(format(Sys.Date(), "%Y")) + 1
 date_max <- as.Date(paste0(year_max, "-12-31"))
 year_min <- as.numeric((min(MetadataReport_SampleEvents$SampleEvent_Date_Year)) - 2)
 date_min <- as.Date(paste0(year_min, "-12-31"))
 ```
 
-### Set Objectives  {.hidden}
+### Set Objectives {.hidden}
 
 ```{r set objectives, include=FALSE}
 source(paste0(here(), "/scripts/4_Reports/monitoring_objectives.R"))
