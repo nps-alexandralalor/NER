@@ -36,13 +36,10 @@ library(ggplot2)
 library(stringr)
 library(DT)
 library(fs)
-# ggplot2 is used for graphing. gganimate creates graph animations patchwork stitches graphs together
+# ggplot2 is used for graphing. patchwork stitches graphs together
 library(ggplot2)
-#library(gganimate)
 library(patchwork)
 library(RColorBrewer)
-# zotero reference manager
-library(RefManageR)
 # shannon diversity index
 library(vegan)
 library(here)
