@@ -2,12 +2,6 @@
 title: Annual Report
 author: NPS Northeast Region Fire Effects Monitoring Program
 output:
-  word_document:
-    toc: true
-    toc_depth: 2
-  pdf_document:
-    toc: true
-    toc_depth: 2
   html_document:
     theme: readable
     highlight: null
