@@ -13,23 +13,20 @@ library(dplyr)
 library(purrr)
 library(here)
 
-# designate target park(s)
-target_park <- "SHEN"
 
-# Adjust filr paths
+# Adjust file paths
 path_data <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/Exports_clean/FFI/"
 path_output <- paste0(here(), "/output/data_clean/")
 
 # Load and filter data
-data_raw <- read.csv(paste0(path_data, "all_metadata.csv")) %>% 
-  filter(AdminUnit_Name == target_park)
+data_raw <- read.csv(paste0(path_data, "all_metadata.csv"))
 
 # Group
 df_locations <- data_raw %>% 
   select(!c(SampleEvent_Who, SampleEvent_Comment, SampleEvent_Date, SampleEvent_LegacyMonitoringStatus, 
             SampleEvent_Protocols, SampleEvent_Visited, MonitoringStatus_Name)) %>% 
   distinct() %>% 
-  select(c(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, ProjectUnit_Name,
+  select(c(AdminUnit_Name, Macroplot_Purpose, Macroplot_Type, Macroplot_Name, ProjectUnit_Name, Macroplot_UV1, Macroplot_UV2,
            Macroplot_UtmX_m, Macroplot_UtmY_m, Macroplot_UtmZone, Macroplot_Datum))
 
 # Filter
@@ -37,9 +34,6 @@ df_filtered <- df_locations %>%
   filter(Macroplot_UtmX_m != 0.0,
          !is.na(Macroplot_UtmX_m))
 
-
-# write.csv(df_filtered, paste0(path_output, target_park, "_PlotCoordinates.csv"), quote=FALSE, row.names = FALSE, na = "") 
-# df_filtered <- read.csv(paste0(here(), "/output/data_clean/", target_park, "_PlotCoordinates.csv"))
 
 ################
 # Functions to convert coordinates
@@ -87,7 +81,33 @@ df_coords <- bind_rows(lapply(1:nrow(df), function(i) {
 df_final <- bind_cols(df, df_coords) %>% 
   select(!c(EPSG))
 
-# save file
-write.csv(df_final, paste0(path_output, target_park, "_PlotCoordinates.csv"), quote=FALSE, row.names = FALSE, na = "") 
+
+
+################
+# Save files
+################
+
+## All parks, all FMH
+df_FMH <- df_final %>% 
+  filter(Macroplot_Purpose == "Fire Monitoring Handbook")
+write.csv(df_FMH, paste0(path_output, "_NER_FMH_PlotLocations_UTM.csv"), quote=FALSE, row.names = FALSE)
+
+## All parks, all RA
+df_RA <- df_final %>%
+  filter(Macroplot_Purpose == "Rapid Assessment")
+write.csv(df_RA, paste0(path_output, "_NER_RA_PlotLocations_UTM.csv"), quote=FALSE, row.names = FALSE)
+
+## All parks, all CBI
+df_CBI <- df_final %>%
+  filter(Macroplot_Purpose == "Composite Burn Index")
+write.csv(df_CBI, paste0(path_output, "_NER_CBI_PlotLocations_UTM.csv"), quote=FALSE, row.names = FALSE)
+
+## All parks, all I&M
+df_IM <- df_final %>%
+  filter(Macroplot_Purpose == "Inventory & Monitoring")
+write.csv(df_IM, paste0(path_output, "_NER_I&M_PlotLocations_UTM.csv"), quote=FALSE, row.names = FALSE)
+
+## All parks, all plots
+write.csv(df_final, paste0(path_output, "_NER_ALL_PlotLocations_UTM.csv"), quote=FALSE, row.names = FALSE, na = "")
 
 
