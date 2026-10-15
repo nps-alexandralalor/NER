@@ -48,7 +48,7 @@ bib <- ReadZotero(
 
 # Monitoring Objectives
 
-Recommendations will be aimed at maintaining target vegetation associations for each Monitoring Type. We utilize the [International Vegetation Classification](https://www.natureserve.org/projects/international-vegetation-classification) system to determine vegetation Monitoring Types. Vegetation descriptions can be found on [NatureServe](https://explorer.natureserve.org/Search). From coarse to fine scale, vegetation is classified at Group (G###), Alliance (A####), and Association (CEGL00####) levels. We genenally group Monitoring Types in alignment with Alliance level classifications, though may group more broadly based on fire effects.
+Recommendations will be aimed at maintaining target vegetation associations for each Monitoring Type. We utilize the [International Vegetation Classification](https://www.natureserve.org/projects/international-vegetation-classification) system to determine vegetation Monitoring Types. Vegetation descriptions can be found on [NatureServe](https://explorer.natureserve.org/Search). From coarse to fine scale, vegetation is classified at Group (G###), Alliance (A####), and Association (CEGL00####) levels. We generally group Monitoring Types in alignment with Alliance level classifications, though may group more broadly based on fire effects.
 
 Pine Oak Monitoring Type Associations
 
@@ -56,13 +56,15 @@ Pine Oak Monitoring Type Associations
 
 Xeric Oak Monitoring Type Associations:
 
+-   Central Appalachian Dry-Mesic Chestnut Oak – Northern Red Oak Forest (G650, A4435, [CEGL006057](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.683617/Quercus_montana_-_Quercus_rubra_-_Hamamelis_virginiana_Forest))
+
+<!-- -->
+
 -   Central Appalachian / Inner Piedmont Chestnut Oak Forest (G650, A4435, [CEGL006299](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.728821/Quercus_montana_-_(Quercus_coccinea_Quercus_rubra)_-_Kalmia_latifolia_-_Vaccinium_pallidum_Forest))
 
 -   Low-Elevation Mixed Oak / Heath Forest (G650, A4435, [CEGL008521](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.684700/Quercus_alba_-_Quercus_(coccinea_velutina_montana)_-_Gaylussacia_baccata_Forest))
 
 -   Central Appalachian Dry Chestnut Oak – Northern Red Oak / Heath Forest (G650, A4435, [CEGL008523](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.686143/Quercus_montana_-_Quercus_rubra_-_Vaccinium_pallidum_-_(Rhododendron_periclymenoides)_Forest))
-
--   Central Appalachian Dry-Mesic Chestnut Oak – Northern Red Oak Forest (G650, A4435, [CEGL006057](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.683617/Quercus_montana_-_Quercus_rubra_-_Hamamelis_virginiana_Forest))
 
 Mesic Oak Monitoring Type Associations:
 
@@ -74,15 +76,21 @@ Mesic Oak Monitoring Type Associations:
 
 -   Central Appalachian Montane Oak – Hickory Forest (Basic Type) (G650, A4436, [CEGL008518](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.688757/Quercus_rubra_-_Carya_ovata_-_Fraxinus_americana_-_Actaea_racemosa_-_Hydrophyllum_virginianum_Forest))
 
+Red Oak Monitoring Type Associations:
+
+-   Gray Birch Monitoring Type?
+
+-   Modified Disturbed Monitoring Type?
+
+-   Central Appalachian Northern Red Oak Forest (G015, A3116, [CEGL008506](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.687229/Quercus_rubra_-_(Quercus_alba)_-_Ilex_montana_-_Dennstaedtia_punctilobula_-_Lysimachia_quadrifolia_Forest))
+
 Oak Hickory Monitoring Type Associations:
+
+-   
 
 Mixed Oak Monitoring Type Associations:
 
-Gray Birch Monitoring Type Associations:
-
-Modified Disturbed Monitoring Type Associations:
-
--   Central Appalachian Northern Red Oak Forest (G015, A3116, [CEGL008506](https://explorer.natureserve.org/Taxon/ELEMENT_GLOBAL.2.687229/Quercus_rubra_-_(Quercus_alba)_-_Ilex_montana_-_Dennstaedtia_punctilobula_-_Lysimachia_quadrifolia_Forest))
+-   
 
 ```{r}
 # Monitoring Types
