@@ -741,7 +741,7 @@ errors_Trees_DBH <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Check for tag duplication and store results in new column
 data_temp <- Trees_data %>% 
-  get_dupes(SampleEvent_Date, Macroplot_Name, MethodData_SubFrac, MethodData_TagNo)
+  get_dupes(SampleEvent_Date, Macroplot_Name, MethodData_TagNo)
 
 # Set parameters 
 data <- merge(Trees_data, data_temp, all.x = T)
@@ -754,6 +754,27 @@ values_check <- values_data == values_valid
 
 # Identify errors
 errors_Trees_Duplicate <- qaqc(data, query, query_message, values_check)
+```
+
+### Trees LifeForm
+
+[Problem:]{.underline} Species entered that are not trees.
+
+[Procedure:]{.underline}
+
+-   Check that Preferred Lifeform = Tree
+
+```{r}
+# Set parameters 
+data <- Trees_data
+query <- "Trees LifeForm" 
+query_message <- paste0("Species = ", data$Species_SymbolLocal, ". ", "Life Form")
+values_data <- data$Species_LifeFormNameLocal
+values_valid <- "Tree"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Trees_LifeForm <- qaqc(data, query, query_message, values_check)
 ```
 
 ### Trees Status
@@ -962,6 +983,27 @@ values_check <- values_data  > values_valid
 
 # Identify errors
 errors_Seedlings_Height <- qaqc(data, query, query_message, values_check)
+```
+
+### Dens Quad LifeForm
+
+[Problem:]{.underline} Species entered that are not trees.
+
+[Procedure:]{.underline}
+
+-   Check that Preferred Lifeform = Tree
+
+```{r}
+# Set parameters 
+data <- Seedlings_data
+query <- "Dens Quad LifeForm" 
+query_message <- paste0("Species = ", data$Species_SymbolLocal, ". ", "Life Form")
+values_data <- data$Species_LifeFormNameLocal
+values_valid <- "Tree"
+values_check <- values_data == values_valid
+
+# Identify errors
+errors_Seedlings_LifeForm <- qaqc(data, query, query_message, values_check)
 ```
 
 ### Dens Quad Status

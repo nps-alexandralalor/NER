@@ -1944,7 +1944,7 @@ if(nrow(errors_Trees_DD) > 1) {
 ```{r}
 # Check for tag duplication and store results in new column
 data_temp <- Trees_data %>% 
-  get_dupes(SampleEvent_Date, Macroplot_Name, MethodData_SubFrac, MethodData_TagNo)
+  get_dupes(SampleEvent_Date, Macroplot_Name, MethodData_TagNo)
 
 # Set parameters 
 data <- merge(Trees_data, data_temp, all.x = T)
