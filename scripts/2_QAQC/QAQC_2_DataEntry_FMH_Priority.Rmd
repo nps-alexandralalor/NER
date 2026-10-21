@@ -312,7 +312,7 @@ data_temp <- FuelsDuffLitt_data %>%
 data <- merge(FuelsDuffLitt_data, data_temp, by = c("Macroplot_Name","SampleEvent_Date"), all = T)%>% 
   filter(Macroplot_Purpose == "Fire Monitoring Handbook")
 query <- "Fuel DL Complete" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Sample Locations")
+query_message <- paste0("Complete Sample Locations")
 values_data <- data$data_points
 values_valid <- 40
 values_check <- values_data == values_valid
@@ -334,7 +334,7 @@ errors_FuelsDuffLitt_Complete <- qaqc(data, query, query_message, values_check)
 data <- FuelsDuffLitt_data %>% 
   filter(Macroplot_Purpose == "Fire Monitoring Handbook")
 query <- "Fuel DL Header" 
-query_message <- "FMH plot. Number of Transects"  
+query_message <- "Number of Transects"  
 values_data <- data$MethodData_NumTran  
 values_valid <- 4    
 values_check <- values_data == values_valid
@@ -399,7 +399,7 @@ data_temp <- FuelsFine_data %>%
 data <- merge(FuelsFine_data, data_temp, by = c("Macroplot_Name","SampleEvent_Date"), all = T) %>% 
   filter(Macroplot_Purpose == "Fire Monitoring Handbook")
 query <- "Fuel Fine Complete"
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Complete Transects")
+query_message <- paste0("Complete Transects")
 values_data <- data$data_points
 values_valid <- 4
 values_check <- values_data == values_valid
@@ -1134,7 +1134,7 @@ data_temp <- HerbsPoints_data %>%
 data <- merge(HerbsPoints_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Name", "SampleEvent_Date", "MethodData_Transect"), all = T) %>% 
   filter(Macroplot_Type %in% c("Grassland", "Shrubland"))
 query <- "Cvr Pts Complete" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Transect = ", data$MethodData_Transect, ". Total Points") 
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". Total Points") 
 values_data <- data$data_points
 values_valid <- 100
 values_check <- values_data == values_valid
@@ -1155,7 +1155,7 @@ data_temp <- HerbsPoints_data %>%
 data <- merge(HerbsPoints_data, data_temp, by = c("AdminUnit_Name", "Macroplot_Name", "SampleEvent_Date", "MethodData_Transect"), all = T) %>% 
   filter(Macroplot_Type %in% c("Forest"))
 query <- "Cvr Pts Complete" 
-query_message <- paste0(data$Macroplot_Name, ". Date = ",data$SampleEvent_Date, ". Transect = ", data$MethodData_Transect, ". Total Points") 
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". Total Points") 
 values_data <- data$data_points
 values_valid <- 166
 values_check <- values_data == values_valid
@@ -1217,7 +1217,7 @@ values_check <- values_data == values_valid
 errors_HerbsPoints_NumTran_Grassland <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that TranLen = 30, 49.8, 50, or 50.1
+-   Check that TranLen = 30, 49.8, or 50
 
 ```{r}
 # Set parameters 
@@ -1225,7 +1225,7 @@ data <- HerbsPoints_data
 query <- "Cvr Pts Header" 
 query_message <- paste0("Transect Length")
 values_data <- data$MethodData_TranLen
-values_valid <- c(30, 49.8, 50, 50.1)
+values_valid <- c(30, 49.8, 50)
 values_check <- values_data %in% values_valid
 
 # Identify errors
