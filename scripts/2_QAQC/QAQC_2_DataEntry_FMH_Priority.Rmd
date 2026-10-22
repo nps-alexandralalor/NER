@@ -177,7 +177,7 @@ errors_Fuels1000_TranLen <- qaqc(data, query, query_message, values_check)
 # Set parameters
 data <- Fuels1000_data
 query <- "Fuel 1000 DecayCl"
-query_message <- paste0("Log ", data$MethodData_LogNum, ". ", "Decay Class")
+query_message <- paste0("Log ", data$MethodData_LogNum, ". Decay Class")
 values_data <- data$MethodData_DecayCl
 values_valid <- c(1:5)
 values_check <- values_data %in% values_valid
@@ -198,7 +198,7 @@ errors_Fuels1000_DecayCl <- qaqc(data, query, query_message, values_check)
 # Set parameters
 data <- Fuels1000_data
 query <- "Fuel 1000 Dia"
-query_message <- paste0("Log ", data$MethodData_LogNum, ". ", "Diameter")
+query_message <- paste0("Log ", data$MethodData_LogNum, ". Diameter")
 values_data <- data$MethodData_Dia
 values_valid <- min(3)
 values_check <- values_data >= values_valid
@@ -224,7 +224,7 @@ data_temp <- Fuels1000_data %>%
 data <- merge(Fuels1000_data, data_temp, all.x = T)
 data$dupe_count[is.na(data$dupe_count)] <- 0
 query <- "Fuel 1000 LogNo" 
-query_message <- paste0("Log ", data$MethodData_LogNum, ". ", "Transect ", data$MethodData_Transect, ". ",  "Dia ", data$MethodData_Dia, ". ",  "DecayCl ", data$MethodData_DecayCl, ". ", "Duplicates")
+query_message <- paste0("Log ", data$MethodData_LogNum, ". Transect ", data$MethodData_Transect, ". ",  "Dia ", data$MethodData_Dia, ". ",  "DecayCl ", data$MethodData_DecayCl, ". Duplicates")
 values_data <- data$dupe_count
 values_valid <- 0
 values_check <- values_data == values_valid
@@ -245,7 +245,7 @@ errors_Fuels1000_LogNo <- qaqc(data, query, query_message, values_check)
 # Set parameters
 data <- Fuels1000_data
 query <- "Fuel 1000 Slope"
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Slope")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". Slope")
 values_data <- data$MethodData_Slope
 values_valid <- seq(-50, 50, by = 1)
 values_check <- values_data %in% values_valid
@@ -502,7 +502,7 @@ if(nrow(errors_FuelsFine_Header) > 1) {
 # Set parameters
 data <- FuelsFine_data
 query <- "Fuel Fine Slope"
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Slope")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". Slope")
 values_data <- data$MethodData_Slope
 values_valid <- seq(-50, 50, by = 1)
 values_check <- values_data %in% values_valid
@@ -538,7 +538,7 @@ remove(data_temp1, data_temp2)
 # Set parameters
 data <- merge(FuelsFine_data, data_temp, by = c("Macroplot_Name", "SampleEvent_Date", "MethodData_Transect"), all = T)
 query <- "Fuel Fine Slope"
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "CWD slope = ", data$Slope_1000, ". ", "FWD slope")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". CWD slope = ", data$Slope_1000, ". FWD slope")
 values_data <- data$Slope_fine
 values_valid <- data$Slope_1000
 values_check <- values_data == values_valid
@@ -595,7 +595,7 @@ errors_FuelsFine_Transect <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- FuelsFine_data
 query <- "Fuel Fine Values OneHr" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Possible outlier. One Hour Count")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". Possible outlier. One Hour Count")
 values_data <- data$MethodData_OneHr
 values_valid <- 0
 values_check <- values_data >= values_valid
@@ -610,7 +610,7 @@ errors_FuelsFine_OneHr <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- FuelsFine_data
 query <- "Fuel Fine Values TenHr" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Possible outlier. Ten Hour Count")
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". Possible outlier. Ten Hour Count")
 values_data <- data$MethodData_TenHr
 values_valid <- 0
 values_check <- values_data >= values_valid
@@ -625,7 +625,7 @@ errors_FuelsFine_TenHr <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- FuelsFine_data
 query <- "Fuel Fine Values HunHr" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Possible outlier. Hundred Hour Count") 
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". Possible outlier. Hundred Hour Count") 
 values_data <- data$MethodData_HunHr
 values_valid <- 0
 values_check <- values_data >= values_valid
@@ -721,7 +721,7 @@ data <- Trees_data %>%
   filter(!MethodData_CrwnCl %in% c("DD", "BBD", "CUS")) %>% 
   filter(MethodData_Status == "L")
 query <- "Trees DBH" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "DBH")
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". DBH")
 values_data <- data$MethodData_DBH
 values_valid <- min(2.5)
 values_check <- values_data >= values_valid
@@ -747,7 +747,7 @@ data_temp <- Trees_data %>%
 data <- merge(Trees_data, data_temp, all.x = T)
 data$dupe_count[is.na(data$dupe_count)] <- 0
 query <- "Trees Duplicates" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Duplicates")
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". Duplicates")
 values_data <- data$dupe_count
 values_valid <- 0
 values_check <- values_data == values_valid
@@ -768,7 +768,7 @@ errors_Trees_Duplicate <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Trees_data
 query <- "Trees LifeForm" 
-query_message <- paste0("Species = ", data$Species_SymbolLocal, ". ", "Life Form")
+query_message <- paste0("Species = ", data$Species_SymbolLocal, ". Life Form")
 values_data <- data$Species_LifeFormNameLocal
 values_valid <- "Tree"
 values_check <- values_data == values_valid
@@ -789,7 +789,7 @@ errors_Trees_LifeForm <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Trees_data
 query <- "Trees Status" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Status")
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". Status")
 values_data <- data$MethodData_Status
 values_valid <- c("L", "D")
 values_check <- values_data %in% values_valid
@@ -810,7 +810,7 @@ errors_Trees_Status <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Trees_data
 query <- "Trees SubFrac" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "Subplot Fraction")
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". Subplot Fraction")
 values_data <- data$MethodData_SubFrac
 values_valid <- 1
 values_check <- values_data <= values_valid
@@ -826,7 +826,7 @@ errors_Trees_SubFrac_All <- qaqc(data, query, query_message, values_check)
 data <- Trees_data %>% 
    filter(MethodData_DBH > 15.0, MethodData_SubFrac <= 1)
 query <- "Trees SubFrac" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". ", "DBH = overstory. Subplot Fraction")
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". DBH = overstory. Subplot Fraction")
 values_data <- data$MethodData_SubFrac
 values_valid <- 1
 values_check <- values_data == values_valid
@@ -842,7 +842,7 @@ errors_Trees_SubFrac_Overstory <- qaqc(data, query, query_message, values_check)
 data <- Trees_data %>% 
   filter(MethodData_DBH <= 15.0)
 query <- "Trees SubFrac" 
-query_message <- paste0("DBH = pole. Subplot Fraction")
+query_message <- paste0("Tag ", data$MethodData_TagNo, "DBH = pole. Subplot Fraction")
 values_data <- data$MethodData_SubFrac
 values_valid <- 0.25
 values_check <- values_data == values_valid
@@ -976,7 +976,7 @@ errors_Seedlings_Count <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Seedlings_data
 query <- "Dens Quad Height" 
-query_message <- paste0("SubFrac = ", data$MethodData_SubFrac, ". ", "Species = ", data$Species_SymbolLocal, ". ", "Height")
+query_message <- paste0("SubFrac = ", data$MethodData_SubFrac, ". Species = ", data$Species_SymbolLocal, ". Height")
 values_data <- data$MethodData_Height
 values_valid <- 0
 values_check <- values_data  > values_valid
@@ -997,7 +997,7 @@ errors_Seedlings_Height <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Seedlings_data
 query <- "Dens Quad LifeForm" 
-query_message <- paste0("Species = ", data$Species_SymbolLocal, ". ", "Life Form")
+query_message <- paste0("Species = ", data$Species_SymbolLocal, ". Life Form")
 values_data <- data$Species_LifeFormNameLocal
 values_valid <- "Tree"
 values_check <- values_data == values_valid
@@ -1018,7 +1018,7 @@ errors_Seedlings_LifeForm <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Seedlings_data
 query <- "Dens Quad Status" 
-query_message <- paste0("Species ", data$Species_SymbolLocal, ". ", "Status")
+query_message <- paste0("Species ", data$Species_SymbolLocal, ". Status")
 values_data <- data$MethodData_Status
 values_valid <- c("L")
 values_check <- values_data %in% values_valid
@@ -1217,7 +1217,7 @@ values_check <- values_data == values_valid
 errors_HerbsPoints_NumTran_Grassland <- qaqc(data, query, query_message, values_check)
 ```
 
--   Check that TranLen = 30, 49.8, or 50
+-   Check that TranLen = 30 or 49.8
 
 ```{r}
 # Set parameters 
@@ -1225,7 +1225,7 @@ data <- HerbsPoints_data
 query <- "Cvr Pts Header" 
 query_message <- paste0("Transect Length")
 values_data <- data$MethodData_TranLen
-values_valid <- c(30, 49.8, 50)
+values_valid <- c(30, 49.8)
 values_check <- values_data %in% values_valid
 
 # Identify errors
@@ -1287,7 +1287,7 @@ data_temp <- data_temp %>%
 data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot_Name", "SampleEvent_Date", "MethodData_Transect"), all = T) %>% 
   filter(Macroplot_Type == "Forest")
 query <- "Cvr Pts Point" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Order = 1. Missing/Extra Point") 
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". Order = 1. Missing/Extra Point") 
 values_data <- data$Missing
 values_valid <- 0
 values_check <- values_data == values_valid
@@ -1314,7 +1314,7 @@ data_temp <- data_temp %>%
 data <- merge(HerbsPoints_data, data_temp, by = c("Macroplot_Name", "SampleEvent_Date", "MethodData_Transect"), all = T) %>% 
   filter(Macroplot_Type == "Grassland")
 query <- "Cvr Pts Point" 
-query_message <- paste0("Transect = ", data$MethodData_Transect, ". ", "Order = 1. Missing/Extra Point") 
+query_message <- paste0("Transect = ", data$MethodData_Transect, ". Order = 1. Missing/Extra Point") 
 values_data <- data$Missing
 values_valid <- 0
 values_check <- values_data == values_valid
