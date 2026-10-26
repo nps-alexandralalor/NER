@@ -34,8 +34,7 @@ library(tidyverse)
 ### Adjust File Paths {.hidden}
 
 ```{r file paths, include=FALSE}
-path_main <- "E:/Allie/FireFX_NER/FFI_DATA_MANAGEMENT/"
-#path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
+path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
 path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
 path_save <- paste0(path_main, "Exports_Clean/Exports_Share/")
 ```
@@ -54,13 +53,14 @@ columns_SpeciesReport_drop <- c("AdminUnitId","Species_Id","Species_MasterSpecie
 
 columns_ID_drop <- c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId")
 
+columns_MonStatus_keep <- c("ProjectUnit_Name", "MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")
+
 columns_Macroplot_keep <- c("Organization_Name","AdminUnit_Name","Macroplot_Purpose","Macroplot_Type","Macroplot_Name","Macroplot_Lat_dd","Macroplot_Long_dd","Macroplot_LocatedBy","Macroplot_DateIn","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill_pct","Macroplot_SlopeTransect_pct","Macroplot_UV1","Macroplot_UV2","Macroplot_UV3")
 columns_Macroplot_drop <- c("AdminUnit_Comment","Macroplot_UtmX_m","Macroplot_UtmY_m","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_FutureVisit","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","Macroplot_UV4","Macroplot_UV5","Macroplot_UV6","Macroplot_UV7","Macroplot_UV8")
 
 columns_SampleEvent_keep <- c("SampleEvent_LegacyMonitoringStatus","SampleEvent_Who","SampleEvent_TreatmentUnit","SampleEvent_Date")
 columns_SampleEvent_drop <- c("SampleEvent_Comment","SampleEvent_UserVariables","SampleData_Executed")
 
-# columns_MethodData <- c("MethodData_Visited","MethodData_FieldTeam","MethodData_EntryTeam","MethodData_UV1Desc","MethodData_UV2Desc","MethodData_UV3Desc","MethodData_SAComment","MethodData_CreatedDate","MethodData_UpdatedDate","MethodData_DeletedDate","MethodData_Comment","MethodData_UV1","MethodData_UV2","MethodData_UV3","MethodData_Index")
 columns_MethodData_keep <- c("MethodData_FieldTeam","MethodData_EntryTeam","MethodData_UV1Desc","MethodData_UV2Desc","MethodData_UV3Desc","MethodData_UV1","MethodData_UV2","MethodData_UV3","MethodData_Index")
 columns_MethodData_drop <- c("MethodData_Visited","MethodData_CreatedDate","MethodData_UpdatedDate","MethodData_DeletedDate","MethodData_SAComment","MethodData_Comment")
 
@@ -71,7 +71,11 @@ columns_Species_drop <- c("Species_SourceEntityId","Species_LocalSpeciesId","Spe
 
 columns_CoverFrequency <- c("MethodData_NumTran","MethodData_TranLen", "MethodData_NumQuadLen","MethodData_QuadLen","MethodData_QuadWid","MethodData_NFRatio", "MethodData_NFNum","MethodData_Transect","MethodData_Quadrat","MethodData_Status", "MethodData_NRF","MethodData_TypeCov","MethodData_Cover","MethodData_Height","MethodData_QuadCover","MethodData_Frequency")
 
+columns_CoverLineIntercept <- c("MethodData_NumTran","MethodData_TranLen","MethodData_Transect","MethodData_Start","MethodData_Stop","MethodData_Intercept","MethodData_Height","MethodData_SubFrac","MethodData_Cover","MethodData_Status","MethodData_SizeCl","MethodData_AgeCl","MethodData_TypeCov")
+
 columns_CoverPoints <- c("MethodData_NumTran","MethodData_TranLen","MethodData_NumPtsTran","MethodData_Offset","MethodData_Transect","MethodData_Point","MethodData_Tape","MethodData_Order","MethodData_Height","MethodData_Status","MethodData_Cover","MethodData_CanopyLayer")
+
+columns_CoverPointsByTransect <- c("MethodData_Cover","MethodData_Height","MethodData_NumTran","MethodData_tranLen","MethodData_NumPtsTran","MethodData_Transect","MethodData_Hits","MethodData_Status")
 
 columns_CoverSpComp <- c("MethodData_MinCovLevel","MethodData_Area","MethodData_Status","MethodData_SizeCl","MethodData_AgeCl","MethodData_Cover","MethodData_Height")
 
@@ -81,13 +85,25 @@ columns_DensityQuads <- c("MethodData_NumTran","MethodData_NumQuadTran","MethodD
 
 columns_PostBurn <- c("MethodData_NumTran","MethodData_tranLen","MethodData_NumPtsTran","MethodData_PlotType","MethodData_PtArea","MethodData_Transect","MethodData_Point","MethodData_TapeDist",'MethodData_Veg',"MethodData_Sub")
 
+columns_FuelsAKDuffLitt <- c("MethodData_NumTran","MethodData_Transect","MethodData_SampLoc","MethodData_OffSet","MethodData_LittDep","MethodData_LiveMoss","MethodData_DeadMoss","MethodData_UppDuffDep","MethodData_LowDuffDep","MethodData_LichDep","MethodData_FuelBedDep","MethodData_ExpDLFuConSt")
+
 columns_FuelsDuffLitt <- c("MethodData_NumTran","MethodData_Transect","MethodData_SampLoc","MethodData_OffSet","MethodData_LittDep","MethodData_DuffDep","MethodData_FuelbedDep","MethodData_DLFuConSt")
 
 columns_FuelsFine <- c("MethodData_NumTran","MethodData_OneHrTranLen","MethodData_TenHrTranLen","MethodData_HunHrTranLen","MethodData_Transect","MethodData_Azimuth","MethodData_Slope","MethodData_OneHr","MethodData_TenHr","MethodData_HunHr","MethodData_FWDFuConSt")
 
+columns_FuelsPiles <- c("MethodData_plotDensity","MethodData_PileNum","MethodData_PileCnt","MethodData_Width1","MethodData_Width2","MethodData_Length1","MethodData_Length2","MethodData_Height1","MethodData_Height2","MethodData_PackRatio","MethodData_SpecGrav","MethodData_PileShp","MethodData_SoilCont")
+
 columns_Fuels1000 <- c("MethodData_NumTran","MethodData_TranLen","MethodData_Transect","MethodData_Slope","MethodData_LogNum","MethodData_Dia","MethodData_DecayCl","MethodData_CWDFuConSt")
 
+columns_FuelsVeg <- c("MethodData_NumTran","MethodData_Transect","MethodData_SampLoc","MethodData_OffSet","MethodData_Cover","MethodData_Height","MethodData_Item","MethodData_VegFuCon")
+
 columns_Trees <- c("MethodData_MacroPlotSize","MethodData_SnagPlotSize","MethodData_BrkPntDia","MethodData_IsVerified","MethodData_QTR","MethodData_SubFrac","MethodData_TagNo","MethodData_Status","MethodData_DBH","MethodData_Ht","MethodData_CrwnRto","MethodData_CrwnCl","MethodData_CrFuBHt","MethodData_LiCrBHt","MethodData_CrwnRad","MethodData_Age","MethodData_GrwthRt","MethodData_Mort","MethodData_DecayCl","MethodData_LaddBaseHt","MethodData_LaddMaxHt","MethodData_DRC","MethodData_NuLiStems","MethodData_NuDeStems","MethodData_EqDia","MethodData_XCoord","MethodData_YCoord","MethodData_CKR","MethodData_CharHt","MethodData_ScorchHt","MethodData_CrScPct","MethodData_DamCd1","MethodData_DamSev1","MethodData_DamCd2","MethodData_DamSev2","MethodData_DamCd3","MethodData_DamSev3","MethodData_DamCd4","MethodData_DamSev4","MethodData_DamCd5","MethodData_DamSev5","MethodData_Density","MethodData_BasalArea")
+
+columns_TreesSaplings <- c("MethodData_MacroPlotSize","MethodData_SizeClDia","MethodData_Count","MethodData_AvgHt","MethodData_AvgCrwnRto","MethodData_SubFrac","MethodData_Status","MethodData_Density","MethodData_BasalArea")
+
+columns_TreesSeedlings <- c("MethodData_MacroPlotSize","MethodData_SizeClHt","MethodData_Count","MethodData_AvgDia","MethodData_AvgCrwnRto","MethodData_AgeCl","MethodData_SubFrac","MethodData_Status","MethodData_Density")
+
+columns_TreesVariableRadius <- c("MethodData_BAF","MethodData_BrkPntDia","MethodData_TagNo","MethodData_DBH","MethodData_Ht","MethodData_CrwnRto","MethodData_TaperHt","MethodData_TaperDia","MethodData_NuLiStems","MethodData_NuDeStems","MethodData_DRC","MethodData_LiCrBHT","MethodData_CrFuBHt","MethodData_CrwnRad","MethodData_Age","MethodData_GrwthRt","MethodData_LaddBaseHt","MethodData_LaddMaxHt","MethodData_EqDia","MethodData_XCoord","MethodData_YCoord","MethodData_CKR","MethodData_CharHt",'MethodData_ScorchHt',"MethodData_CrScPct","MethodData_DamSev1","MethodData_DamSev2","MethodData_DamSev3","MethodData_DamSev4","MethodData_DamSev5","MethodData_Density","MethodData_BasalArea","MethodData_CrwnCl","MethodData_GroupCode","MethodData_Defect","MethodData_DecayCl","MethodData_Mort","MethodData_DamCd1","MethodData_DamCd2","MethodData_DamCd3","MethodData_DamCd4","MethodData_DamCd5","MethodData_Status")
 ```
 
 # METADATA
@@ -215,6 +231,7 @@ keep_df <- temp_df %>%
   select(c(
     columns_Macroplot_keep,
     columns_SampleEvent_keep,
+    columns_MonStatus_keep,
     columns_MethodData_keep,
     columns_CoverFrequency,
     columns_Species_keep, 
@@ -235,6 +252,35 @@ drop_df <- temp_df %>%
 write.csv(keep_df, paste0(path_save, "metric_cover_frequency.csv"), row.names = FALSE)
 ```
 
+### cover_line_intercept
+
+```{r cover_line_intercept, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_cover_line_intercept.csv"))
+
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    columns_MethodData_keep,
+    columns_CoverLineIntercept, 
+    columns_Species_keep
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id,
+    MethodData_SpeciesId,
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    SampleEvent_UserVariables, SampleEvent_Comment, #columns_SampleEvent_drop,
+    columns_MethodData_drop,
+    columns_Species_drop
+  ))
+```
+
 ### cover_points
 
 ```{r cover_points, warning=FALSE}
@@ -246,6 +292,7 @@ keep_df <- temp_df %>%
   select(c(
     columns_Macroplot_keep,
     columns_SampleEvent_keep,
+    columns_MonStatus_keep,
     columns_MethodData_keep,
     columns_CoverPoints,
     columns_Species_keep
@@ -266,6 +313,35 @@ drop_df <- temp_df %>%
 write.csv(keep_df, paste0(path_save, "metric_cover_points.csv"), row.names = FALSE)
 ```
 
+### cover_points_by_transect
+
+```{r cover_points_by_transect, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_cover_points_by_transect.csv"))
+
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    columns_MethodData_keep,
+    columns_CoverPointsByTransect,
+    columns_Species_keep
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId,
+    MethodData_SpeciesId, MethodData_LocalSpeciesId,
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    columns_MethodData_drop,
+    columns_Species_drop
+  ))
+```
+
 ### cover_species_composition
 
 ```{r cover_species_composition, warning=FALSE}
@@ -277,6 +353,7 @@ keep_df <- temp_df %>%
   select(c(
     columns_Macroplot_keep,
     columns_SampleEvent_keep,
+    columns_MonStatus_keep,
     columns_MethodData_keep,
     columns_CoverSpComp,
     columns_Species_keep
@@ -310,6 +387,7 @@ keep_df <- temp_df %>%
   select(c(
     columns_Macroplot_keep,
     columns_SampleEvent_keep,
+    columns_MonStatus_keep,
     columns_MethodData_keep,
     columns_DensityBelts,
     columns_Species_keep
@@ -341,6 +419,7 @@ keep_df <- temp_df %>%
   select(c(
     columns_Macroplot_keep,
     columns_SampleEvent_keep,
+    columns_MonStatus_keep,
     columns_MethodData_keep,
     columns_DensityQuads,
     columns_Species_keep
@@ -374,6 +453,7 @@ keep_df <- temp_df %>%
   select(c(
     columns_Macroplot_keep,
     columns_SampleEvent_keep,
+    columns_MonStatus_keep,
     columns_MethodData_keep,
     columns_PostBurn
   ))
@@ -393,6 +473,32 @@ write.csv(keep_df, paste0(path_save, "metric_post_burn_severity.csv"), row.names
 
 ## Surface Fuels
 
+### surface_fuels_alaska_duff_litter
+
+```{r surface_fuels_alaska_duff_litter, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "english_surface_fuels_alaska_duff_litter.csv"))
+
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    columns_MethodData_keep,
+    columns_FuelsAKDuffLitt
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    columns_MethodData_drop
+  ))
+```
+
 ### surface_fuels_duff_litter
 
 ```{r surface_fuels_duff_litter, warning=FALSE}
@@ -404,6 +510,7 @@ keep_df <- temp_df %>%
   select(c(
     columns_Macroplot_keep,
     columns_SampleEvent_keep,
+    columns_MonStatus_keep,
     columns_MethodData_keep,
     columns_FuelsDuffLitt
   ))
@@ -432,6 +539,7 @@ keep_df <- temp_df %>%
   select(c(
     columns_Macroplot_keep,
     columns_SampleEvent_keep,
+    columns_MonStatus_keep,
     columns_MethodData_keep,
     columns_FuelsFine
   ))
@@ -449,6 +557,32 @@ drop_df <- temp_df %>%
 write.csv(keep_df, paste0(path_save, "english_surface_fuels_fine.csv"), row.names = FALSE)
 ```
 
+### surface_fuels_piles
+
+```{r surface_fuels_piles, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "english_surface_fuels_piles.csv"))
+
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    columns_MethodData_keep, 
+    columns_FuelsPiles
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    columns_MethodData_drop
+  ))
+```
+
 ### surface_fuels_thousand_hr
 
 ```{r surface_fuels_thousand_hr, warning=FALSE}
@@ -460,6 +594,7 @@ keep_df <- temp_df %>%
   select(c(
     columns_Macroplot_keep,
     columns_SampleEvent_keep,
+    columns_MonStatus_keep,
     columns_MethodData_keep,
     columns_Fuels1000
   ))
@@ -477,6 +612,32 @@ drop_df <- temp_df %>%
 write.csv(keep_df, paste0(path_save, "english_surface_fuels_thousand_hr.csv"), row.names = FALSE)
 ```
 
+### surface_fuels_vegetation
+
+```{r surface_fuels_vegetation, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "english_surface_fuels_vegetation.csv"))
+
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    columns_MethodData_keep,
+    columns_FuelsVeg
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    columns_MethodData_drop
+  ))
+```
+
 ## Trees
 
 ### trees_individuals
@@ -490,6 +651,7 @@ keep_df <- temp_df %>%
   select(c(
     columns_Macroplot_keep,
     columns_SampleEvent_keep,
+    columns_MonStatus_keep,
     columns_MethodData_keep,
     columns_Trees,
     columns_Species_keep
@@ -508,3 +670,118 @@ drop_df <- temp_df %>%
 # save file
 write.csv(keep_df, paste0(path_save, "metric_trees_individuals.csv"), row.names = FALSE)
 ```
+
+### trees_saplings
+
+```{r trees_saplings, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_trees_saplings.csv"))
+
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    MethodData_FieldTeam, MethodData_EntryTeam, MethodData_UV1Desc, MethodData_UV2Desc, MethodData_UV3Desc, MethodData_Record_UV1, MethodData_Record_UV2, MethodData_Record_UV3, MethodData_Index, #columns_MethodData_keep,
+    columns_TreesSaplings,
+    columns_Species_keep
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    MethodData_SpeciesId,
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    columns_MethodData_drop,
+    columns_Species_drop
+  ))
+```
+
+### trees_seedlings
+
+```{r trees_seedlings, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_trees_seedlings.csv"))
+
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    columns_MethodData_keep, 
+    columns_TreesSeedlings,
+    columns_Species_keep 
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    columns_MethodData_drop,
+    columns_Species_drop
+  ))
+```
+
+### trees_variable_radius
+
+```{r trees_variable_radius, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_trees_variable_radius.csv"))
+
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    columns_MethodData_keep, 
+    columns_TreesVariableRadius,
+    columns_Species_keep 
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, MacroPlotId,
+    MethodData_SpeciesId, MethodData_LocalSpeciesId,
+    MethodData_SampleEventDate, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    columns_MethodData_drop,
+    columns_Species_drop
+  ))
+```
+
+## Other?
+
+### ars_cover_points
+
+### biomass_fuels
+
+### canopy_densiometer
+
+### disturbance_history
+
+### fire_behavior
+
+### fuel_characteristic_classification_system
+
+### plot_description
+
+### photoload
+
+### photos
+
+### biomass_plants
+
+### logs_fixed_area
+
+### pilot_sampling
+
+### rare_plants
