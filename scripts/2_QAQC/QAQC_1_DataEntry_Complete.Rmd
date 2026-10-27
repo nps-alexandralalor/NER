@@ -14,46 +14,46 @@ output:
 
 This code is intended to quality check all FFI CSV exports for missing data. Missing data is especially difficult to catch because it relies on information on how much data there is "supposed to be" vs how much data actually was exported. There is added complexity because certain protocols may not contain data for valid reasons (e.g. no trees, no coarse woody debris, no seedlings, no shrubs, etc...). Each error should be carefully checked and considered as a potential major error. Sample events with errors are [entirely absent]{.underline} from FFI CSV exports. Follow the guide below to determine what action is needed.
 
-- [Procedure:]{.underline}
+-   [Procedure:]{.underline}
 
-  - Code will check that data exists for every protocol which was visited/included in the sample event.
-    - Group by Macroplot_Name and SampleEvent_Date. Calculate number of data points per plot. Check that data_points \> 0
-  - **No data (valid):**
-    - Certain protocols may not contain data for valid reasons (e.g. no trees, no coarse woody debris, no seedlings, no shrubs, etc...). [Make sure this is noted in the comment field of the protocol header in FFI]{.underline}.
+    -   Code will check that data exists for every protocol which was visited/included in the sample event.
+        -   Group by Macroplot_Name and SampleEvent_Date. Calculate number of data points per plot. Check that data_points \> 0
+    -   **No data (valid):**
+        -   Certain protocols may not contain data for valid reasons (e.g. no trees, no coarse woody debris, no seedlings, no shrubs, etc...). [Make sure this is noted in the comment field of the protocol header in FFI]{.underline}.
 
-    - Protocols may have been inadvertently added to the sample event with no intention to collect data on that protocol. [Make sure to delete protocol from the sample event in FFI.]{.underline}
-  - **No data (invalid):**
-    - If data should exist but doesn't, data may not have been entered into FFI yet. [Make sure to enter missing data into FFI.]{.underline}
+        -   Protocols may have been inadvertently added to the sample event with no intention to collect data on that protocol. [Make sure to delete protocol from the sample event in FFI.]{.underline}
+    -   **No data (invalid):**
+        -   If data should exist but doesn't, data may not have been entered into FFI yet. [Make sure to enter missing data into FFI.]{.underline}
 
-    - Data may have been added into a non-standard protocol (e.g. "Density - Quadrats" instead of "Density - Quadrats (metric)". [Make sure to transfer data into the correct protocol.]{.underline}
+        -   Data may have been added into a non-standard protocol (e.g. "Density - Quadrats" instead of "Density - Quadrats (metric)". [Make sure to transfer data into the correct protocol.]{.underline}
 
-    - There may be an issue exporting the data out of FFI. [Make sure to troubleshoot data exports, and contact FFI developers if the issue cannot be resolved.]{.underline}
+        -   There may be an issue exporting the data out of FFI. [Make sure to troubleshoot data exports, and contact FFI developers if the issue cannot be resolved.]{.underline}
 
-      - Possible reason: Seems like plots with no monitoring status will not be exported
+            -   Possible reason: Seems like plots with no monitoring status will not be exported
 
 This code uses the Macroplot Report and Sample Event Report from FFI as the reference file for how much data there is "supposed to be". These reports have been combined into a clean "Metadata Report", using the Clean+Merge.Rmd script.
 
-- MetadataReport.csv
+-   MetadataReport.csv
 
 These protocols are included in the code and have been cleaned using the Clean+Merge.Rmd script.
 
-- Cover - Points (metric)
+-   Cover - Points (metric)
 
-- Cover - Species Composition (metric)
+-   Cover - Species Composition (metric)
 
-- Density - Belts (metric)
+-   Density - Belts (metric)
 
-- Density - Quadrats (metric)
+-   Density - Quadrats (metric)
 
-- Post Burn Severity (metric)
+-   Post Burn Severity (metric)
 
-- Surface Fuels - 1000Hr
+-   Surface Fuels - 1000Hr
 
-- Surface Fuels - Duff_Litter
+-   Surface Fuels - Duff_Litter
 
-- Surface Fuels - Fine
+-   Surface Fuels - Fine
 
-- Trees - Individuals (metric)
+-   Trees - Individuals (metric)
 
 **If you are using a protocol that is not listed above, you will need to add code to check this data. See the below table for protocols used by your program.**
 
