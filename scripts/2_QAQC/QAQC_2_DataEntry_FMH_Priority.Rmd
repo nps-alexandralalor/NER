@@ -842,7 +842,7 @@ errors_Trees_SubFrac_Overstory <- qaqc(data, query, query_message, values_check)
 data <- Trees_data %>% 
   filter(MethodData_DBH <= 15.0)
 query <- "Trees SubFrac" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, "DBH = pole. Subplot Fraction")
+query_message <- paste0("Tag ", data$MethodData_TagNo, ". DBH = pole. Subplot Fraction")
 values_data <- data$MethodData_SubFrac
 values_valid <- 0.25
 values_check <- values_data == values_valid
