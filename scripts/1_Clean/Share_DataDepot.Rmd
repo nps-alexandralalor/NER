@@ -53,9 +53,9 @@ columns_SpeciesReport_drop <- c("AdminUnitId","Species_Id","Species_MasterSpecie
 
 columns_ID_drop <- c("OrganizationId","AdminUnitId","MacroplotId","SampleEventId","MethodId")
 
-columns_MonStatus_keep <- c("ProjectUnit_Name", "MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")
+columns_MonStatus_keep <- c("MonitoringStatus_Name","MonitoringStatus_Prefix","MonitoringStatus_Base","MonitoringStatus_Suffix","MonitoringStatus_Order")
 
-columns_Macroplot_keep <- c("Organization_Name","AdminUnit_Name","Macroplot_Purpose","Macroplot_Type","Macroplot_Name","Macroplot_Lat_dd","Macroplot_Long_dd","Macroplot_LocatedBy","Macroplot_DateIn","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill_pct","Macroplot_SlopeTransect_pct","Macroplot_UV1","Macroplot_UV2","Macroplot_UV3")
+columns_Macroplot_keep <- c("Organization_Name","AdminUnit_Name","ProjectUnit_Name","Macroplot_Purpose","Macroplot_Type","Macroplot_Name","Macroplot_Lat_dd","Macroplot_Long_dd","Macroplot_LocatedBy","Macroplot_DateIn","Macroplot_DateOut","Macroplot_Elevation","Macroplot_ElevationUnits","Macroplot_Azimuth","Macroplot_Aspect","Macroplot_SlopeHill_pct","Macroplot_SlopeTransect_pct","Macroplot_UV1","Macroplot_UV2","Macroplot_UV3")
 columns_Macroplot_drop <- c("AdminUnit_Comment","Macroplot_UtmX_m","Macroplot_UtmY_m","Macroplot_UtmZone","Macroplot_Datum","Macroplot_Pdop","Macroplot_Precision","Macroplot_FutureVisit","Macroplot_StartPoint","Macroplot_Directions","Macroplot_Comment","Macroplot_Metadata","Macroplot_UV4","Macroplot_UV5","Macroplot_UV6","Macroplot_UV7","Macroplot_UV8")
 
 columns_SampleEvent_keep <- c("SampleEvent_LegacyMonitoringStatus","SampleEvent_Who","SampleEvent_TreatmentUnit","SampleEvent_Date")
@@ -68,6 +68,19 @@ columns_Species_keep <- c("Species_SymbolLocal","Species_Family","Species_Genus"
 columns_Species_drop <- c("Species_SourceEntityId","Species_LocalSpeciesId","Species_MasterSpeciesId","Species_AuxSpeciesId","Species_ITISTaxonomicSerialNumber","MethodData_RemoteApp_LocalSpeciesSymbol","Species_SymbolMaster","Species_CommonNameLocal","Species_LifeFormName","Species_LifeCycle","Species_Nativity","Species_Cultural","Species_Concern","Species_Retired","Species_NotBiological","Species_Description","Species_Comment","MethodData_SppGuid")
 
 
+columns_cbiInfo <- c("MethodData_CBIUnits","MethodData_RadiusOver","MethodData_RadiusUnder","MethodData_FireDate","MethodData_FireName","MethodData_Pct20Burn","MethodData_Pct30Burn","MethodData_NumPlotPhotos","MethodData_PlotPhotos")
+
+columns_cbiSummation <- c("MethodData_USSum","MethodData_USNRated","MethodData_USMean","MethodData_OSSum","MethodData_OSNRated","MethodData_OSMean","MethodData_PTSum","MethodData_PTNRated","MethodData_PTMean")
+
+columns_cbiSubstrates <- c("MethodData_PfLittCov","MethodData_PfDuffCov","MethodData_PfSoilRockCov","MethodData_DepUnits","MethodData_PfLittDep","MethodData_PfDuffDep","MethodData_PfFuelBed","MethodData_LittLftFuel","MethodData_Duff","MethodData_MedFuel","MethodData_HeavyFuel","MethodData_SoilColor","MethodData_CBI1","MethodData_CBI2","MethodData_CBI3","MethodData_Sum","MethodData_NRated","MethodData_Mean")
+
+columns_cbiHerbs <- c("MethodData_PfCov","MethodData_PfGrowFact","MethodData_PctFolAlt","MethodData_FreqLive","MethodData_Colonizers","MethodData_SppComp","MethodData_CBI1","MethodData_CBI2","MethodData_CBI3","MethodData_Sum","MethodData_NRated","MethodData_Mean")
+
+columns_cbiTallShrubs <- c("MethodData_PfCov","MethodData_PfGrowFact","MethodData_PctFolAlt","MethodData_FreqLive","MethodData_ChangeCov","MethodData_SppComp","MethodData_CBI1","MethodData_CBI2","MethodData_CBI3","MethodData_Sum","MethodData_NRated","MethodData_Mean")
+
+columns_cbiIntermediateTrees <- c("MethodData_PfCov","MethodData_PfLiveTrees","MethodData_PfDeadTrees","MethodData_Green","MethodData_Black","MethodData_Brown","MethodData_CanopyMort","MethodData_CharHgt","MethodData_CBI1","MethodData_CBI2","MethodData_CBI3","MethodData_Sum","MethodData_NRated","MethodData_Mean","MethodData_PostfGirdled","MethodData_PostfFelled","MethodData_PostfTreeMort")
+
+columns_cbiBigTrees <- c("MethodData_PfCov","MethodData_PfLiveTrees","MethodData_PfDeadTrees","MethodData_Green","MethodData_Black","MethodData_Brown","MethodData_CanopyMortality","MethodData_CharHeight","MethodData_CBI1","MethodData_CBI2","MethodData_CBI3","MethodData_Sum","MethodData_NRated","MethodData_Mean","MethodData_PostfGirdled","MethodData_PostfFelled","MethodData_PostfTreeMort")
 
 columns_CoverFrequency <- c("MethodData_NumTran","MethodData_TranLen", "MethodData_NumQuadLen","MethodData_QuadLen","MethodData_QuadWid","MethodData_NFRatio", "MethodData_NFNum","MethodData_Transect","MethodData_Quadrat","MethodData_Status", "MethodData_NRF","MethodData_TypeCov","MethodData_Cover","MethodData_Height","MethodData_QuadCover","MethodData_Frequency")
 
@@ -179,43 +192,203 @@ write.csv(keep_df, paste0(path_save, "all_species_info.csv"), row.names = FALSE)
 ### cbi_info
 
 ```{r cbi_info, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_cbi_info.csv"))
 
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    MethodData_FieldTeam,MethodData_EntryTeam,MethodData_UV1Desc,MethodData_UV2Desc,MethodData_UV3Desc,MethodData_UV1,MethodData_UV2,MethodData_UV3, 
+    columns_cbiInfo
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    MacroPlotId, MethodData_SampleEventDate, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    MethodData_Visited,MethodData_CreatedDate,MethodData_UpdatedDate,MethodData_DeletedDate,MethodData_Comment
+    #columns_MethodData_drop
+  ))
 ```
 
 ### cbi_summation
 
 ```{r cbi_summation, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_cbi_summation.csv"))
 
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    MethodData_UV1Desc,MethodData_UV2Desc,MethodData_UV3Desc,MethodData_UV1,MethodData_UV2,MethodData_UV3, 
+    #columns_MethodData_keep
+    columns_cbiSummation
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    MacroPlotId, MethodData_SampleEventDate, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    MethodData_Visited,MethodData_CreatedDate,MethodData_UpdatedDate,MethodData_DeletedDate,MethodData_Comment
+    #columns_MethodData_drop
+  ))
 ```
 
 ### cbi_substrates
 
 ```{r cbi_substrates, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_cbi_substrates.csv"))
 
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    MethodData_UV1Desc,MethodData_UV2Desc,MethodData_UV3Desc,MethodData_UV1,MethodData_UV2,MethodData_UV3, 
+    #columns_MethodData_keep
+    columns_cbiSubstrates
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    MacroPlotId, MethodData_SampleEventDate, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    MethodData_Visited,MethodData_CreatedDate,MethodData_UpdatedDate,MethodData_DeletedDate,MethodData_Comment
+    #columns_MethodData_drop
+  ))
 ```
 
 ### cbi_herbs
 
 ```{r cbi_herbs, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_cbi_herbs.csv"))
 
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    MethodData_UV1Desc,MethodData_UV2Desc,MethodData_UV3Desc,MethodData_UV1,MethodData_UV2,MethodData_UV3, 
+    #columns_MethodData_keep
+    columns_cbiHerbs
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    MacroPlotId, MethodData_SampleEventDate, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    MethodData_Visited,MethodData_CreatedDate,MethodData_UpdatedDate,MethodData_DeletedDate,MethodData_Comment
+    #columns_MethodData_drop
+  ))
 ```
 
 ### cbi_tall_shrubs
 
 ```{r cbi_tall_shrubs, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_cbi_tall_shrubs.csv"))
 
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    MethodData_UV1Desc,MethodData_UV2Desc,MethodData_UV3Desc,MethodData_UV1,MethodData_UV2,MethodData_UV3, 
+    #columns_MethodData_keep
+    columns_cbiTallShrubs
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    MacroPlotId, MethodData_SampleEventDate, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    MethodData_Visited,MethodData_CreatedDate,MethodData_UpdatedDate,MethodData_DeletedDate,MethodData_Comment
+    #columns_MethodData_drop
+  ))
 ```
 
 ### cbi_intermediate_trees
 
 ```{r cbi_intermediate_trees, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_cbi_intermediate_trees.csv"))
 
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    MethodData_UV1Desc,MethodData_UV2Desc,MethodData_UV3Desc,MethodData_UV1,MethodData_UV2,MethodData_UV3, 
+    #columns_MethodData_keep
+    columns_cbiIntermediateTrees
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, MethodData_Id, 
+    MacroPlotId, MethodData_SampleEventDate, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    MethodData_Visited,MethodData_CreatedDate,MethodData_UpdatedDate,MethodData_DeletedDate,MethodData_Comment
+    #columns_MethodData_drop
+  ))
 ```
 
 ### cbi_big_trees
 
 ```{r cbi_big_trees, warning=FALSE}
+# load data
+temp_df <- read.csv(paste0(path_data, "metric_cbi_big_trees.csv"))
 
+# select columns
+keep_df <- temp_df %>%
+  select(c(
+    columns_Macroplot_keep,
+    columns_SampleEvent_keep,
+    columns_MonStatus_keep,
+    MethodData_UV1Desc,MethodData_UV2Desc,MethodData_UV3Desc,MethodData_UV1,MethodData_UV2,MethodData_UV3, 
+    #columns_MethodData_keep
+    columns_cbiBigTrees
+  ))
+
+drop_df <- temp_df %>%
+  select(c(
+    MethodDataId, 
+    MacroPlotId, MethodData_SampleEventDate, 
+    columns_ID_drop,
+    columns_Macroplot_drop,
+    columns_SampleEvent_drop,
+    MethodData_Visited,MethodData_CreatedDate,MethodData_UpdatedDate,MethodData_DeletedDate,MethodData_Comment
+    #columns_MethodData_drop
+  ))
 ```
 
 ## Cover
