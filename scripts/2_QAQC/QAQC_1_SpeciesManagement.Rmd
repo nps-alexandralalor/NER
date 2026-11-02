@@ -19,7 +19,7 @@ output:
 
 This code is intended to quality check species metadata, including the Local Species Report. This report has been cleaned using the Clean+Merge.Rmd script.
 
-- SpeciesReport.csv
+-   SpeciesReport.csv
 
 ## Before Starting
 
@@ -89,7 +89,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Species_SymbolLocal", "Error"
 ```{r file paths, include=FALSE}
 # adjust file paths
 path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
+path_data <- paste0(path_main, "Exports_Clean/FFI/")
 path_errors <- paste0(here(), "/output/errors/")
 path_errors_name <- paste0("Species QAQC Errors")
 ```
@@ -132,7 +132,7 @@ Unknowns_LifeFormOnly_temp <- c(
 
 ### Lifeform
 
-- Substrate. Check that Species_LifeFormNameLocal = Undefined
+-   Substrate. Check that Species_LifeFormNameLocal = Undefined
 
 ```{r}
 # Set parameters 
@@ -148,7 +148,7 @@ values_check <- values_data == values_valid
 errors_SpeciesReport_LifeForm_Substrate <- qaqc(data, query, query_message, values_check)
 ```
 
-- Unknown plant. Check that Species_LifeFormNameLocal = Unknown
+-   Unknown plant. Check that Species_LifeFormNameLocal = Unknown
 
 ```{r}
 # Set parameters 
@@ -164,7 +164,7 @@ values_check <- values_data == values_valid
 errors_SpeciesReport_LifeForm_Unknown <- qaqc(data, query, query_message, values_check)
 ```
 
-- Known plant. Check that Species_LifeFormNameLocal is [not]{.underline} Unknown or Undefined
+-   Known plant. Check that Species_LifeFormNameLocal is [not]{.underline} Unknown or Undefined
 
 ```{r}
 # Set parameters 
@@ -201,7 +201,7 @@ if(nrow(errors_SpeciesReport_LifeForm) > 1) {
 
 [Procedure:]{.underline}
 
-- Filter for unknowns. Make sure that Family, Genus, and Scientific Name columns are blank.
+-   Filter for unknowns. Make sure that Family, Genus, and Scientific Name columns are blank.
 
 ```{r}
 # Set parameters 
@@ -268,7 +268,7 @@ if(nrow(errors_SpeciesReport_Unknown_Taxa) > 1) {
 
 [Procedure:]{.underline}
 
-- If Family column has data, make sure that Genus and Scientific Name columns are blank.
+-   If Family column has data, make sure that Genus and Scientific Name columns are blank.
 
 ```{r}
 # Set parameters 
@@ -322,9 +322,9 @@ if(nrow(errors_SpeciesReport_Unknown_FamilyOnly) > 1) {
 
 [Procedure:]{.underline}
 
-- Check that genus is spelled correctly in both the Genus field and Scientific Name field.
-- If Genus = NA, make sure the Family field is filled out and Scientific Name field is blank
-- If plant is an unknown family, make sure Family/Genus/Scientific Name fields are all blank.
+-   Check that genus is spelled correctly in both the Genus field and Scientific Name field.
+-   If Genus = NA, make sure the Family field is filled out and Scientific Name field is blank
+-   If plant is an unknown family, make sure Family/Genus/Scientific Name fields are all blank.
 
 ```{r}
 data_temp <- SpeciesReport %>% 
@@ -395,7 +395,7 @@ Unknowns <- c(Unknowns_MysteryPlants, Unknowns_LifeFormOnly, Unknowns_FamilyOnly
 
 [Procedure:]{.underline}
 
-- Check that Species_ScientificName is not blank
+-   Check that Species_ScientificName is not blank
 
 ```{r}
 # Set parameters 
@@ -412,7 +412,7 @@ values_check <- values_data != values_valid
 errors_SpeciesReport_Taxa_ScientificName <- qaqc(data, query, query_message, values_check)
 ```
 
-- Check that Species_Genus is not blank.
+-   Check that Species_Genus is not blank.
 
 ```{r}
 # Set parameters 
@@ -429,7 +429,7 @@ values_check <- values_data != values_valid
 errors_SpeciesReport_Taxa_Genus <- qaqc(data, query, query_message, values_check)
 ```
 
-- Check that Species_Family is not blank. (Field sometimes cannot be edited in FFI)
+-   Check that Species_Family is not blank. (Field sometimes cannot be edited in FFI)
 
 ```{r}
 # # Set parameters
@@ -466,7 +466,7 @@ if(nrow(errors_SpeciesReport_Taxa) > 1) {
 
 [Procedure:]{.underline}
 
-- Check that Species_CommonNameLocal is not blank and not too long
+-   Check that Species_CommonNameLocal is not blank and not too long
 
 ```{r}
 # Set parameters 
@@ -483,7 +483,7 @@ values_check <- values_data != values_valid
 errors_SpeciesReport_Local_CommonName <- qaqc(data, query, query_message, values_check)
 ```
 
-- Check that Species_LifeCycleLocal is not blank
+-   Check that Species_LifeCycleLocal is not blank
 
 ```{r}
 # Set parameters 
@@ -500,7 +500,7 @@ values_check <- values_data != values_valid
 errors_SpeciesReport_Local_LifeCycle <- qaqc(data, query, query_message, values_check)
 ```
 
-- Sort by Native = True. Check that Invasive = False. Native Species should not be invasive.
+-   Sort by Native = True. Check that Invasive = False. Native Species should not be invasive.
 
 ```{r}
 # Set parameters
@@ -516,7 +516,7 @@ values_check <- values_data %in% values_valid
 errors_SpeciesReport_Local_Native <- qaqc(data, query, query_message, values_check)
 ```
 
-- Sort by Native = False. Check that Invasive = True (Nonnative & noninvasive species ok, but should be double checked)
+-   Sort by Native = False. Check that Invasive = True (Nonnative & noninvasive species ok, but should be double checked)
 
 ```{r}
 # # Set parameters
@@ -554,7 +554,7 @@ if(nrow(errors_SpeciesReport_Local) > 1) {
 
 [Procedure:]{.underline}
 
-- Check that Species_ScientificName is not duplicated
+-   Check that Species_ScientificName is not duplicated
 
 ```{r}
 # Check for species duplication and store results in new column
@@ -576,7 +576,7 @@ values_check <- values_data == values_valid
 errors_SpeciesReport_Duplicate_1 <- qaqc(data, query, query_message, values_check)
 ```
 
-- Check that Species_SymbolLocal is not duplicated
+-   Check that Species_SymbolLocal is not duplicated
 
 ```{r}
 # Check for species duplication and store results in new column

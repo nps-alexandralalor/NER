@@ -19,7 +19,7 @@ output:
 
 This code is intended to quality check species metadata, including the Local Species Report. This report has been cleaned using the Clean+Merge.Rmd script.
 
-- SpeciesReport.csv
+-   SpeciesReport.csv
 
 ## Before Starting
 
@@ -81,7 +81,7 @@ errors_group <- c("SavedQuery", "AdminUnit_Name", "Species_SymbolLocal", "Error"
 ```{r file paths, include=FALSE}
 # adjust file paths
 path_main <- "Z:/NER/SHEN/RAD/Fire/Fire Mgmt/FIRE_ECOLOGIST_FILES/FFI_DATA_MANAGEMENT/"
-path_data <- paste0(path_main, "Exports_Clean/DataDepot/")
+path_data <- paste0(path_main, "Exports_Clean/FFI/")
 path_errors <- paste0(here(), "/output/errors/")
 path_errors_name <- paste0("Cross Park Species QAQC Errors")
 ```
