@@ -140,7 +140,7 @@ This code conducts quality control checks on coarse woody debris (CWD) surface f
 # Set parameters 
 data <- Fuels1000_data %>% 
   filter(Macroplot_Purpose == "Fire Monitoring Handbook")
-query <- "Fuel 1000 Header"
+query <- "Fuel 1000 Num Tran"
 query_message <- "Number of Transects" 
 values_data <- data$MethodData_NumTran
 values_valid <- 4
@@ -155,7 +155,7 @@ errors_Fuels1000_NumTran <- qaqc(data, query, query_message, values_check)
 ```{r}
 # Set parameters 
 data <- Fuels1000_data
-query <- "Fuel 1000 Header" 
+query <- "Fuel 1000 Tran Len" 
 query_message <- "Transect Length" 
 values_data <- data$MethodData_TranLen
 values_valid <- 50  
@@ -721,7 +721,7 @@ data <- Trees_data %>%
   filter(!MethodData_CrwnCl %in% c("DD", "BBD", "CUS")) %>% 
   filter(MethodData_Status == "L")
 query <- "Trees DBH" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". DBH")
+query_message <- paste0("DBH")
 values_data <- data$MethodData_DBH
 values_valid <- min(2.5)
 values_check <- values_data >= values_valid
@@ -789,7 +789,7 @@ errors_Trees_LifeForm <- qaqc(data, query, query_message, values_check)
 # Set parameters 
 data <- Trees_data
 query <- "Trees Status" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". Status")
+query_message <- paste0("Status")
 values_data <- data$MethodData_Status
 values_valid <- c("L", "D")
 values_check <- values_data %in% values_valid
@@ -826,7 +826,7 @@ errors_Trees_SubFrac_All <- qaqc(data, query, query_message, values_check)
 data <- Trees_data %>% 
    filter(MethodData_DBH > 15.0, MethodData_SubFrac <= 1)
 query <- "Trees SubFrac" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". DBH = overstory. Subplot Fraction")
+query_message <- paste0("DBH = overstory. Subplot Fraction")
 values_data <- data$MethodData_SubFrac
 values_valid <- 1
 values_check <- values_data == values_valid
@@ -842,7 +842,7 @@ errors_Trees_SubFrac_Overstory <- qaqc(data, query, query_message, values_check)
 data <- Trees_data %>% 
   filter(MethodData_DBH <= 15.0)
 query <- "Trees SubFrac" 
-query_message <- paste0("Tag ", data$MethodData_TagNo, ". DBH = pole. Subplot Fraction")
+query_message <- paste0("DBH = pole. Subplot Fraction")
 values_data <- data$MethodData_SubFrac
 values_valid <- 0.25
 values_check <- values_data == values_valid
@@ -869,7 +869,7 @@ if(nrow(errors_Trees_SubFrac) > 1) {
 ## Trees Errors
 
 ```{r}
-errors_Trees <- rbind(errors_Trees_Header, errors_blank, errors_Trees_DBH, errors_blank, errors_Trees_Duplicate, errors_blank, errors_Trees_Status, errors_blank, errors_Trees_SubFrac)
+errors_Trees <- rbind(errors_Trees_Header, errors_blank, errors_Trees_DBH, errors_blank, errors_Trees_Duplicate, errors_blank, errors_Trees_LifeForm, errors_blank, errors_Trees_Status, errors_blank, errors_Trees_SubFrac)
 
 remove(errors_Trees_Header, errors_Trees_DBH, errors_Trees_Duplicate, errors_Trees_Status, errors_Trees_SubFrac)
 ```
@@ -1051,7 +1051,7 @@ errors_Seedlings_SubFrac <- qaqc(data, query, query_message, values_check)
 ### Dens Quad Errors
 
 ```{r}
-errors_Seedlings <- rbind(errors_Seedlings_Header, errors_blank, errors_Seedlings_Count, errors_blank, errors_Seedlings_Height, errors_blank, errors_Seedlings_Status, errors_blank, errors_Seedlings_SubFrac)
+errors_Seedlings <- rbind(errors_Seedlings_Header, errors_blank, errors_Seedlings_Count, errors_blank, errors_Seedlings_Height, errors_blank, errors_Seedlings_LifeForm, errors_blank, errors_Seedlings_Status, errors_blank, errors_Seedlings_SubFrac)
 
 remove(errors_Seedlings_Header, errors_Seedlings_Count, errors_Seedlings_Height, errors_Seedlings_Status, errors_Seedlings_Transect)
 ```
