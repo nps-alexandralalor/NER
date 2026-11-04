@@ -871,7 +871,7 @@ if(nrow(errors_Trees_SubFrac) > 1) {
 ```{r}
 errors_Trees <- rbind(errors_Trees_Header, errors_blank, errors_Trees_DBH, errors_blank, errors_Trees_Duplicate, errors_blank, errors_Trees_LifeForm, errors_blank, errors_Trees_Status, errors_blank, errors_Trees_SubFrac)
 
-remove(errors_Trees_Header, errors_Trees_DBH, errors_Trees_Duplicate, errors_Trees_Status, errors_Trees_SubFrac)
+remove(errors_Trees_Header, errors_Trees_DBH, errors_Trees_Duplicate, errors_Trees_LifeForm, errors_Trees_Status, errors_Trees_SubFrac)
 ```
 
 # PROTOCOL - DENS QUAD SEEDLINGS
@@ -1053,7 +1053,7 @@ errors_Seedlings_SubFrac <- qaqc(data, query, query_message, values_check)
 ```{r}
 errors_Seedlings <- rbind(errors_Seedlings_Header, errors_blank, errors_Seedlings_Count, errors_blank, errors_Seedlings_Height, errors_blank, errors_Seedlings_LifeForm, errors_blank, errors_Seedlings_Status, errors_blank, errors_Seedlings_SubFrac)
 
-remove(errors_Seedlings_Header, errors_Seedlings_Count, errors_Seedlings_Height, errors_Seedlings_Status, errors_Seedlings_Transect)
+remove(errors_Seedlings_Header, errors_Seedlings_Count, errors_Seedlings_Height, errors_Seedlings_LifeForm, errors_Seedlings_Status, errors_Seedlings_Transect)
 ```
 
 # PROTOCOL - COVER SPECIES COMP
